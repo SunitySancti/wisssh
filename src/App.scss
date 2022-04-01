@@ -1,7 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Jura:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+// Sizes:
 $smallStep: 4px;
 $bigStep: 11px;
 $logoWidth: 18 * $bigStep;
 
+// Colors:
 $primary: #F3E672;
 $primaryHover: #F8ED8F;
 $primaryLight: #FBF8DD;
@@ -17,14 +22,51 @@ $gray2: #999999;
 $darkGray1: #777777;
 $darkGray2: #505050;
 
+// Shadows:
+$lyingCard: 0 1px 4px 0 rgba(0,0,0,.17), 0 3px 6px 0 rgba(0,0,0,.1);
+$flyingAbove: 0 8px 15px 0 rgba(0,0,0,.1), 0 10px 40px 0 rgba(0,0,0,.07);
+$glow: 0 0 $bigStep 0 rgba(243,230,114,.7);
+
+//fonts
+$logo: 400 33px/44px Leckerli One, serif;
+$action: 400 16px/24px 'Jura', sans-serif;;
+$wishHeader: 500 20px/28px 'Montserrat', sans-serif;;
+$price: 400 22px/33px Montserrat, sans-serif;
+$link: 400 18px/33px Lato, sans-serif;
+$sidebarHeader: 600 18px/30px 'Jura', sans-serif;;
+
 *, *::before, *::after {
   box-sizing: border-box;
+}
+
+a {
+  font: $link;
+  letter-spacing: 1px;
+  &:link {
+    color: $darkGray1;
+  }
+  &:visited {
+    color: $gray1;
+  }
+  &:hover {
+    color: $darkGray2;
+  }
+}
+
+button {
+  width: 100%;
+  height: 5 * $bigStep;
+  background-color: $primary;
+  border: none;
+  font: $action;
+  letter-spacing: 1px;
 }
 
 .layout {
   width: 100vw;
   height: 100vh;
-  background-color: white;
+  display: flex;
+  flex-direction: column;
 }
 
 .app-header {
@@ -36,9 +78,10 @@ $darkGray2: #505050;
 
 .app-body {
   width: 100%;
-  height: 100%;
+  //height: 100%;
   display: flex;
   flex-direction: row;
+  flex: 1;
 }
 
 .sidebar {
@@ -49,19 +92,47 @@ $darkGray2: #505050;
 }
 
 .work-space {
-  padding: 2 * $bigStep;
+  padding: 2*$bigStep 5*$bigStep;
   width: 100%;
   height: 100%;
+  background-color: white;
+  flex: 1;
 }
 
 .wish-card {
   background-color: $lightGray1;
   width: 30 * $bigStep;
-  height: 34 * $bigStep;
-  padding-bottom: 2 * $bigStep;
   border-radius: $bigStep;
+  box-shadow: $lyingCard;
+  overflow: auto;
+  resize: horizontal;
 
   img {
       width: 100%;
+  }
+
+  .wish-content {
+    width: 100%;
+    padding: 2*$bigStep;
+
+    .wish-name {
+      font: $wishHeader;
+      margin-bottom: 2 * $bigStep;
+      color: $darkGray2;
+    }
+
+    .wish-description {
+      color: $gray2
+    }
+
+    .price {
+      font: $price;
+      margin-bottom: 2 * $bigStep;
+      color: $darkGray2;
+    }
+
+    a {
+      float: right;
+    }
   }
 }
