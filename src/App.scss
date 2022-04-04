@@ -1,5 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Jura:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat+Alternates:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: normal;
+  src: local('Lato'), local('lato'),
+    url('../public/fonts/Lato/Lato-Regular.woff2') format('woff2'),
+    url('../public/fonts/Lato/Lato-Regular.woff') format('woff'),
+    url('../public/fonts/Lato/Lato-Regular.ttf') format('ttf'),
+    url('../public/fonts/Lato/Lato-Regular.eot') format('eot');
+}
 
 // Sizes:
 $smallStep: 4px;
@@ -28,12 +40,13 @@ $flyingAbove: 0 8px 15px 0 rgba(0,0,0,.1), 0 10px 40px 0 rgba(0,0,0,.07);
 $glow: 0 0 $bigStep 0 rgba(243,230,114,.7);
 
 //fonts
-$logo: 400 33px/44px Leckerli One, serif;
-$action: 400 16px/24px 'Jura', sans-serif;;
-$wishHeader: 500 20px/28px 'Montserrat', sans-serif;;
-$price: 400 22px/33px Montserrat, sans-serif;
-$link: 400 18px/33px Lato, sans-serif;
-$sidebarHeader: 600 18px/30px 'Jura', sans-serif;;
+$logo: 400 33px/44px 'Leckerli One', serif;
+$general: normal 16px/22px 'Lato', sans-serif;
+$action: 400 18px/24px 'Nunito', sans-serif;;
+$wishHeader: 500 20px/28px 'Montserrat Alternates', sans-serif;;
+$price: 400 22px/33px 'Montserrat Alternates', sans-serif;
+$link: normal 18px/33px 'Lato', sans-serif;
+$sidebarHeader: 600 18px/30px 'Nunito', sans-serif;;
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -55,11 +68,15 @@ a {
 
 button {
   width: 100%;
-  height: 5 * $bigStep;
+  height: 5*$bigStep;
   background-color: $primary;
   border: none;
   font: $action;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
+
+  &:hover {
+    background-color: $primaryHover;
+  }
 }
 
 .layout {
@@ -71,9 +88,9 @@ button {
 
 .app-header {
   width: 100%;
-  height: 8 * $bigStep;
+  min-height: 8*$bigStep;
   background-color: $lightGray1;
-  border-bottom: solid 1px $lightGray2; 
+  border-bottom: solid 1px $lightGray2;
 }
 
 .app-body {
@@ -85,13 +102,16 @@ button {
 }
 
 .sidebar {
-  width: $logoWidth + 4 * $bigStep;
+  min-width: $logoWidth + 4*$bigStep;
   height: 100%;
   background-color: $lightGray1;
   border-right: solid 1px $lightGray2;
 }
 
 .work-space {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
   padding: 2*$bigStep 5*$bigStep;
   width: 100%;
   height: 100%;
@@ -101,9 +121,12 @@ button {
 
 .wish-card {
   background-color: $lightGray1;
-  width: 30 * $bigStep;
+  max-width: 30*$bigStep;
+  min-width: 20*$bigStep;
+  flex: 1 1;
   border-radius: $bigStep;
   box-shadow: $lyingCard;
+  margin: 0 2*$bigStep 2*$bigStep 0;
   overflow: auto;
   resize: horizontal;
 
@@ -116,18 +139,20 @@ button {
     padding: 2*$bigStep;
 
     .wish-name {
+      display: block;
       font: $wishHeader;
-      margin-bottom: 2 * $bigStep;
+      margin-bottom: 2*$bigStep;
       color: $darkGray2;
     }
 
     .wish-description {
-      color: $gray2
+      margin-bottom: 2*$bigStep;
+      color: $gray2;
+      font: $general;
     }
 
     .price {
       font: $price;
-      margin-bottom: 2 * $bigStep;
       color: $darkGray2;
     }
 
