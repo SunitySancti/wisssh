@@ -79,7 +79,7 @@ button {
   }
 }
 
-.layout {
+.app-layout {
   width: 100vw;
   height: 100vh;
   display: flex;
@@ -111,13 +111,27 @@ button {
 .work-space {
   display: flex;
   align-items: flex-start;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   padding: 2*$bigStep 5*$bigStep;
   width: 100%;
   height: 100%;
   background-color: white;
   flex: 1;
 }
+
+.wish-column {
+  width: 100%;
+  height: 50*$bigStep;
+  background-color: $primary;
+
+  &:not(:last-child) {
+    margin-right: 2*$bigStep;
+  }
+}
+
+//.menu li:not(:last-child) a {   
+//  border-right: 1px dotted #ccc;
+//  }
 
 .wish-card {
   background-color: $lightGray1;
