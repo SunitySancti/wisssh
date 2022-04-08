@@ -102,7 +102,7 @@ button {
 }
 
 .sidebar {
-  min-width: $logoWidth + 4*$bigStep;
+  width: $logoWidth + 4*$bigStep;
   height: 100%;
   background-color: $lightGray1;
   border-right: solid 1px $lightGray2;
@@ -121,11 +121,22 @@ button {
 
 .wish-column {
   width: 100%;
+  max-width: 40*$bigStep;
   height: 50*$bigStep;
   background-color: $primary;
+  padding: $bigStep;
 
   &:not(:last-child) {
     margin-right: 2*$bigStep;
+  }
+
+  .wish-mock {
+    width: 100%;
+    height: 220px;
+    background-color: $negativeHover;
+    &:not(:last-child) { 
+      margin-bottom: $bigStep;
+    }
   }
 }
 
