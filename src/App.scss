@@ -122,9 +122,9 @@ button {
 .wish-column {
   width: 100%;
   max-width: 40*$bigStep;
-  height: 50*$bigStep;
-  background-color: $primary;
-  padding: $bigStep;
+//  height: 50*$bigStep;
+//  background-color: $primary;
+//  padding: $bigStep;
 
   &:not(:last-child) {
     margin-right: 2*$bigStep;
@@ -150,10 +150,12 @@ button {
   min-width: 20*$bigStep;
   flex: 1 1;
   border-radius: $bigStep;
+  overflow: hidden;
   box-shadow: $lyingCard;
-  margin: 0 2*$bigStep 2*$bigStep 0;
-  overflow: auto;
-  resize: horizontal;
+  margin-bottom: 2*$bigStep;
+//  margin: 0 2*$bigStep 2*$bigStep 0;
+//  overflow: auto;
+//  resize: horizontal;
 
   img {
       width: 100%;
