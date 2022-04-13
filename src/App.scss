@@ -16,7 +16,8 @@
 // Sizes:
 $smallStep: 4px;
 $bigStep: 11px;
-$logoWidth: 18 * $bigStep;
+$sidebarWidth: 22*$bigStep;
+$appHeaderHeight: 8*$bigStep;
 
 // Colors:
 $primary: #F3E672;
@@ -40,19 +41,18 @@ $flyingAbove: 0 8px 15px 0 rgba(0,0,0,.1), 0 10px 40px 0 rgba(0,0,0,.07);
 $glow: 0 0 $bigStep 0 rgba(243,230,114,.7);
 
 //fonts
-$logo: 400 33px/44px 'Leckerli One', serif;
 $general: normal 16px/22px 'Lato', sans-serif;
-$action: 400 18px/24px 'Nunito', sans-serif;;
-$wishHeader: 500 20px/28px 'Montserrat Alternates', sans-serif;;
+$action: 400 18px/24px 'Nunito', sans-serif;
+$wishHeader: 500 20px/28px 'Montserrat Alternates', sans-serif;
 $price: 400 22px/33px 'Montserrat Alternates', sans-serif;
 $link: normal 18px/33px 'Lato', sans-serif;
-$sidebarHeader: 600 18px/30px 'Nunito', sans-serif;;
+$sidebarHeader: 600 18px/30px 'Nunito', sans-serif;
 
 *, *::before, *::after {
   box-sizing: border-box;
 }
 
-a {
+.link {
   font: $link;
   letter-spacing: 1px;
   &:link {
@@ -79,6 +79,13 @@ button {
   }
 }
 
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  fill: $darkGray2;
+}
+
 .app-layout {
   width: 100vw;
   height: 100vh;
@@ -88,25 +95,66 @@ button {
 
 .app-header {
   width: 100%;
-  min-height: 8*$bigStep;
+  height: $appHeaderHeight;
   background-color: $lightGray1;
   border-bottom: solid 1px $lightGray2;
+
+  .logo {
+    width: $sidebarWidth;
+    height: 100%;
+    padding: $bigStep 2*$bigStep;
+
+    .logo-btn {
+      display: block;
+      width: 100%;
+      height: 100%;
+      padding: inherit;
+      border-radius: 44px;
+      background-color: $primary;
+      fill: $darkGray2;
+
+      &:hover {
+        background-color: $primaryHover;
+      }
+    }
+  }
 }
 
 .app-body {
   width: 100%;
-  //height: 100%;
   display: flex;
   flex-direction: row;
   flex: 1;
+  min-height: 1px;
 }
 
 .sidebar {
-  width: $logoWidth + 4*$bigStep;
+  width: $sidebarWidth;
   height: 100%;
   background-color: $lightGray1;
   border-right: solid 1px $lightGray2;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+
+  .side-nav {
+    width: 100%;
+    height: 5*$bigStep;
+    font: $action;
+    padding-left: 2*$bigStep;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: $darkGray2;
+    
+    &.active {
+      background-color: $primary;
+    }
+
+    &:hover {
+      background-color: $primaryHover;
+    }
+  }
 }
 
 .work-space {
@@ -114,7 +162,7 @@ button {
   width: 100%;
   height: 100%;
   background-color: white;
-  overflow: hidden;
+  overflow-y: scroll;
 }
 
 .wish-card {
@@ -153,7 +201,7 @@ button {
       color: $darkGray2;
     }
 
-    a {
+    .link {
       float: right;
     }
   }
