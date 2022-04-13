@@ -1,13 +1,12 @@
 import { Routes, Route } from 'react-router-dom';
 
 import './App.scss';
-import { Wishes } from 'containers/Wishes'
-import { WishCardsLayout } from 'containers/WishCardsLayout';
+import { MyWishes } from 'pages/MyWishes'
 
 function App() {
   return (
     <Routes>
-        <Route path='/' element={<WishCardsLayout />} />
+        <Route path='/' element={<MyWishes />} />
     </Routes>
   );
 }
