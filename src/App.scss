@@ -46,7 +46,8 @@ $action: 400 18px/24px 'Nunito', sans-serif;
 $wishHeader: 500 20px/28px 'Montserrat Alternates', sans-serif;
 $price: 400 22px/33px 'Montserrat Alternates', sans-serif;
 $link: normal 18px/33px 'Lato', sans-serif;
-$sidebarHeader: 600 18px/30px 'Nunito', sans-serif;
+$sidebarHeader: 700 20px/30px 'Nunito', sans-serif;
+$appHeader: 500 18px/24px 'Montserrat Alternates', sans-serif;
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -66,7 +67,7 @@ $sidebarHeader: 600 18px/30px 'Nunito', sans-serif;
   }
 }
 
-button {
+.button {
   width: 100%;
   height: 5*$bigStep;
   background-color: $primary;
@@ -79,11 +80,27 @@ button {
   }
 }
 
+.icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  fill: $gray2;
+  border: none;
+  background: none;
+
+  &:hover svg {
+    fill: $darkGray2;
+  }
+
+  &:disabled {
+    fill: $gray1;
+  }
+}
+
 .icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  fill: $darkGray2;
 }
 
 .app-layout {
@@ -98,6 +115,8 @@ button {
   height: $appHeaderHeight;
   background-color: $lightGray1;
   border-bottom: solid 1px $lightGray2;
+  display: flex;
+  flex-direction: row;
 
   .logo {
     width: $sidebarWidth;
@@ -116,6 +135,28 @@ button {
       &:hover {
         background-color: $primaryHover;
       }
+    }
+  }
+
+  .tab-group {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 100%;
+    margin: 0 2*$bigStep;
+    transition: width 1s ease-in-out;
+
+    .header-nav {
+      display: inline-block;
+      padding: 0 $bigStep;
+      font: $appHeader;
+      text-decoration: none;
+      color: $gray2;
+      cursor: default;
+    }
+
+    a.active, a:hover {
+      color: $darkGray2;
     }
   }
 }
@@ -137,6 +178,22 @@ button {
   display: flex;
   flex-direction: column;
 
+  .side-header {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: 7*$bigStep;
+    padding: $bigStep 0;
+    align-items: center;
+
+    span {
+      display: block;
+      flex: 1;
+      padding-left: 2*$bigStep;
+      font: $sidebarHeader;
+    }
+  }
+
   .side-nav {
     width: 100%;
     height: 5*$bigStep;
@@ -154,6 +211,12 @@ button {
     &:hover {
       background-color: $primaryHover;
     }
+  }
+
+  .divider {
+    width: 100%;
+    height: 2*$bigStep;
+    border-bottom: 1px solid $lightGray2;
   }
 }
 
