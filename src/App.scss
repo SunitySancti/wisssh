@@ -42,7 +42,7 @@ $glow: 0 0 $bigStep 0 rgba(243,230,114,.7);
 
 //fonts
 $general: normal 16px/22px 'Lato', sans-serif;
-$action: 400 18px/24px 'Nunito', sans-serif;
+$action: 500 18px/25px 'Nunito', sans-serif;
 $wishHeader: 500 20px/28px 'Montserrat Alternates', sans-serif;
 $price: 400 22px/33px 'Montserrat Alternates', sans-serif;
 $link: normal 18px/33px 'Lato', sans-serif;
@@ -103,6 +103,14 @@ $appHeader: 500 18px/24px 'Montserrat Alternates', sans-serif;
   justify-content: center;
 }
 
+.highlighter {
+  position: absolute;
+  background-color: $primary;
+  border-radius: 2*$bigStep;
+  z-index: 1;
+  transition: all 0.3s ease-in-out;
+}
+
 .app-layout {
   width: 100vw;
   height: 100vh;
@@ -144,7 +152,8 @@ $appHeader: 500 18px/24px 'Montserrat Alternates', sans-serif;
     align-items: center;
     height: 100%;
     margin: 0 2*$bigStep;
-    transition: width 1s ease-in-out;
+    transition: all 1s ease-in-out;
+    z-index: 2;
 
     .header-nav {
       display: inline-block;
@@ -196,20 +205,17 @@ $appHeader: 500 18px/24px 'Montserrat Alternates', sans-serif;
 
   .side-nav {
     width: 100%;
-    height: 5*$bigStep;
+    height: fit-content;
     font: $action;
-    padding-left: 2*$bigStep;
+    padding: 15px 2*$bigStep;
     display: flex;
     align-items: center;
     text-decoration: none;
-    color: $darkGray2;
-    
-    &.active {
-      background-color: $primary;
-    }
+    color: $gray2;
+    z-index: 1;
 
-    &:hover {
-      background-color: $primaryHover;
+    &.active, &:hover {
+      color: $darkGray2;
     }
   }
 

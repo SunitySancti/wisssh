@@ -24,8 +24,8 @@ function App() {
           </Route>
           <Route path='wishlists/' element={ <SideBar/> } >
             <Route index element={ <Navigate to='/my-wishes/actual' replace/> } />
-            <Route path='my/:id' element={ <MultiColumnTapeLayout/> } />
-            <Route path=':userId/:id' element={ <MultiColumnTapeLayout/> } />
+            <Route path='my/:wishListId' element={ <MultiColumnTapeLayout/> } />
+            <Route path=':userId/:wishListId' element={ <MultiColumnTapeLayout/> } />
           </Route>
         </Route>
     </Routes>
