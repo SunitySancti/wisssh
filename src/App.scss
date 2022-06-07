@@ -12,6 +12,26 @@
     url('../public/fonts/Lato/Lato-Regular.ttf') format('ttf'),
     url('../public/fonts/Lato/Lato-Regular.eot') format('eot');
 }
+@font-face {
+  font-family: 'RoundedMplus1c';
+  font-style: normal;
+  font-weight: normal;
+  src: local('MPLUSRounded1c'), local('RoundedMplus1c'),
+  url('../public/fonts/RoundedMplus1c/RoundedMplus1c-Regular.woff2') format('woff2'),
+  url('../public/fonts/RoundedMplus1c/RoundedMplus1c-Regular.woff') format('woff'),
+  url('../public/fonts/RoundedMplus1c/RoundedMplus1c-Regular.ttf') format('ttf'),
+  url('../public/fonts/RoundedMplus1c/RoundedMplus1c-Regular.eot') format('eot');
+}
+@font-face {
+  font-family: 'RoundedMplus1c';
+  font-style: normal;
+  font-weight: medium;
+  src: local('MPLUSRounded1c'), local('RoundedMplus1c'),
+  url('../public/fonts/RoundedMplus1c/RoundedMplus1c-Medium.woff2') format('woff2'),
+  url('../public/fonts/RoundedMplus1c/RoundedMplus1c-Medium.woff') format('woff'),
+  url('../public/fonts/RoundedMplus1c/RoundedMplus1c-Medium.ttf') format('ttf'),
+  url('../public/fonts/RoundedMplus1c/RoundedMplus1c-Medium.eot') format('eot');
+}
 
 // Sizes:
 $smallStep: 4px;
@@ -47,7 +67,7 @@ $wishHeader: 500 20px/28px 'Montserrat Alternates', sans-serif;
 $price: 400 22px/33px 'Montserrat Alternates', sans-serif;
 $link: normal 18px/33px 'Lato', sans-serif;
 $sidebarHeader: 700 20px/30px 'Nunito', sans-serif;
-$appHeader: 500 18px/24px 'Montserrat Alternates', sans-serif;
+$appHeader: normal 20px/32px 'RoundedMplus1c', sans-serif;
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -125,38 +145,39 @@ $appHeader: 500 18px/24px 'Montserrat Alternates', sans-serif;
   border-bottom: solid 1px $lightGray2;
   display: flex;
   flex-direction: row;
+  justify-content: center;
 
-  .logo {
-    width: $sidebarWidth;
-    height: 100%;
-    padding: $bigStep 2*$bigStep;
-
-    .logo-btn {
-      display: block;
-      width: 100%;
-      height: 100%;
-      padding: inherit;
-      border-radius: 44px;
-      background-color: $primary;
-      fill: $darkGray2;
-
-      &:hover {
-        background-color: $primaryHover;
-      }
-    }
-  }
-
-  .tab-group {
+  .center-group {
     display: flex;
     flex-direction: row;
     align-items: center;
     height: 100%;
-    margin: 0 2*$bigStep;
+    padding: $bigStep 2*$bigStep;
     transition: all 1s ease-in-out;
     z-index: 2;
 
+    .logo-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 2*$bigStep;
+
+      .logo-back {
+        fill: $primary;
+      }
+      .logo-icon {
+        position: absolute;
+        fill: $darkGray2;
+      }
+      &:hover .logo-back {
+        fill: $primaryHover;
+      }
+    }
+
     .header-nav {
-      display: inline-block;
+      display: flex;
+      align-items: center;
+      height: 6 * $bigStep;
       padding: 0 $bigStep;
       font: $appHeader;
       text-decoration: none;
