@@ -1,31 +1,39 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom'
 
 import './App.scss';
-import { AppHeader } from 'containers/AppHeader';
-import { SideBar } from 'containers/SideBar';
-import { MultiColumnTapeLayout } from 'containers/MultiColumnTapeLayout';
+import { AppHeader } from 'containers/AppHeader'
+import { NavBar } from 'containers/NavBar'
+import { MultiColumnTapeLayout } from 'containers/MultiColumnTapeLayout'
+import { WishPage } from 'pages/WishPage'
+import { WishListPage } from 'pages/WishListPage'
+import { ListOfListsPage } from 'pages/ListOfListsPage'
 
 function App() {
   return (
     <Routes>
         <Route path='/' element={ <AppHeader/> } >
-          <Route index element={ <Navigate to='/my-wishes/actual' replace/> } />
-          <Route path='my-wishes/' element={ <SideBar/> } >
-            <Route index element={ <Navigate to='/my-wishes/actual' replace/> } />
-            <Route path='actual' element={ <MultiColumnTapeLayout/> } />
-            <Route path='done' element={ <MultiColumnTapeLayout/> } />
-            <Route path='all' element={ <MultiColumnTapeLayout/> } />
+          <Route index element={ <Navigate to='/my-wishes/items/actual' replace/> } />
+          <Route path='my-wishes/' element={ <NavBar/> } >
+            <Route path='items/actual' element={ <MultiColumnTapeLayout/> } />
+            <Route path='items/completed' element={ <MultiColumnTapeLayout/> } />
+            <Route path='items/all' element={ <MultiColumnTapeLayout/> } />
+            <Route path='items/:wishId' element={ <WishPage/> } />
           </Route>
-          <Route path='my-invites/' element={ <SideBar/> } >
-            <Route index element={ <Navigate to='/my-invites/actual' replace/> } />
-            <Route path='actual' element={ <MultiColumnTapeLayout/> } />
-            <Route path='past' element={ <MultiColumnTapeLayout/> } />
-            <Route path='presented-by-me' element={ <MultiColumnTapeLayout/> } />
+          <Route path='my-wishes/' element={ <NavBar/> } >
+            <Route path='lists/' element={ <ListOfListsPage/> } />
+            <Route path='lists/:wishlistId/' element={ <WishListPage/> } />
+            <Route path='lists/:wishlistId/:wishId' element={ <WishPage/> } />
           </Route>
-          <Route path='wishlists/' element={ <SideBar/> } >
-            <Route index element={ <Navigate to='/my-wishes/actual' replace/> } />
-            <Route path='my/:wishListId' element={ <MultiColumnTapeLayout/> } />
-            <Route path=':userId/:wishListId' element={ <MultiColumnTapeLayout/> } />
+          <Route path='my-invites/' element={ <NavBar/> } >
+            <Route path='items/reserved' element={ <MultiColumnTapeLayout/> } />
+            <Route path='items/presented' element={ <MultiColumnTapeLayout/> } />
+            <Route path='items/all' element={ <MultiColumnTapeLayout/> } />
+            <Route path='items/:wishId' element={ <WishPage/> } />
+          </Route>
+          <Route path='my-invites/' element={ <NavBar/> } >
+            <Route path='lists/' element={ <ListOfListsPage/> } />
+            <Route path='lists/:wishlistId/' element={ <WishListPage/> } />
+            <Route path='lists/:wishlistId/:wishId' element={ <WishPage/> } />
           </Route>
         </Route>
     </Routes>

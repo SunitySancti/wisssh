@@ -194,9 +194,51 @@ $appHeader: normal 20px/32px 'RoundedMplus1c', sans-serif;
 .app-body {
   width: 100%;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   flex: 1;
   min-height: 1px;
+}
+
+.content-header {
+  width: 100%;
+  padding: 0 10*$bigStep;
+}
+.nav-bar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  .items-lists-toggle {
+    padding: $bigStep;
+
+    .container {
+      display: flex;
+      flex-direction: row;
+      border: solid $lightGray3 1px;
+      border-radius: 2*$bigStep;
+      background-color: $lightGray1;
+
+      .toggle-button {
+        width: 4*$bigStep;
+        height: 4*$bigStep;
+        fill: $gray2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &:hover {
+          fill: $darkGray2;
+        }
+
+        &.active-page {
+          fill: $darkGray2
+        }
+      }
+    }
+  }
+  .nav-option {
+
+  }
 }
 
 .sidebar {
@@ -248,7 +290,7 @@ $appHeader: normal 20px/32px 'RoundedMplus1c', sans-serif;
 }
 
 .work-space {
-  padding: 2*$bigStep;
+  padding: $bigStep 10*$bigStep 0;
   width: 100%;
   height: 100%;
   background-color: white;
