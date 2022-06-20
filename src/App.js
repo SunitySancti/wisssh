@@ -13,27 +13,29 @@ function App() {
     <Routes>
         <Route path='/' element={ <AppHeader/> } >
           <Route index element={ <Navigate to='/my-wishes/items/actual' replace/> } />
-          <Route path='my-wishes/' element={ <NavBar/> } >
-            <Route path='items/actual' element={ <MultiColumnTapeLayout/> } />
-            <Route path='items/completed' element={ <MultiColumnTapeLayout/> } />
-            <Route path='items/all' element={ <MultiColumnTapeLayout/> } />
-            <Route path='items/:wishId' element={ <WishPage/> } />
+          <Route path='my-wishes/items/' element={ <NavBar/> } >
+            <Route index element={ <Navigate to='/my-wishes/items/actual' replace/> } />
+            <Route path='actual' element={ <MultiColumnTapeLayout/> } />
+            <Route path='completed' element={ <MultiColumnTapeLayout/> } />
+            <Route path='all' element={ <MultiColumnTapeLayout/> } />
+            <Route path=':wishId' element={ <WishPage/> } />
           </Route>
-          <Route path='my-wishes/' element={ <NavBar/> } >
-            <Route path='lists/' element={ <ListOfListsPage/> } />
-            <Route path='lists/:wishlistId/' element={ <WishListPage/> } />
-            <Route path='lists/:wishlistId/:wishId' element={ <WishPage/> } />
+          <Route path='my-wishes/lists/' element={ <NavBar/> } >
+            <Route index element={ <ListOfListsPage/> } />
+            <Route path=':wishlistId/' element={ <WishListPage/> } />
+            <Route path=':wishlistId/:wishId' element={ <WishPage/> } />
           </Route>
-          <Route path='my-invites/' element={ <NavBar/> } >
-            <Route path='items/reserved' element={ <MultiColumnTapeLayout/> } />
-            <Route path='items/presented' element={ <MultiColumnTapeLayout/> } />
-            <Route path='items/all' element={ <MultiColumnTapeLayout/> } />
-            <Route path='items/:wishId' element={ <WishPage/> } />
+          <Route path='my-invites/items' element={ <NavBar/> } >
+            <Route index element={ <Navigate to='/my-invites/items/reserved' replace/> } />
+            <Route path='reserved' element={ <MultiColumnTapeLayout/> } />
+            <Route path='presented' element={ <MultiColumnTapeLayout/> } />
+            <Route path='all' element={ <MultiColumnTapeLayout/> } />
+            <Route path=':wishId' element={ <WishPage/> } />
           </Route>
-          <Route path='my-invites/' element={ <NavBar/> } >
-            <Route path='lists/' element={ <ListOfListsPage/> } />
-            <Route path='lists/:wishlistId/' element={ <WishListPage/> } />
-            <Route path='lists/:wishlistId/:wishId' element={ <WishPage/> } />
+          <Route path='my-invites/lists/' element={ <NavBar/> } >
+            <Route index element={ <ListOfListsPage/> } />
+            <Route path=':wishlistId/' element={ <WishListPage/> } />
+            <Route path=':wishlistId/:wishId' element={ <WishPage/> } />
           </Route>
         </Route>
     </Routes>

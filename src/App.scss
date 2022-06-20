@@ -62,15 +62,37 @@ $glow: 0 0 $bigStep 0 rgba(243,230,114,.7);
 
 //fonts
 $general: normal 16px/22px 'Lato', sans-serif;
+$appHeader: normal 20px/32px 'RoundedMplus1c', sans-serif;
+$navbar: normal 18px/22px 'Lato', sans-serif;
 $action: 500 18px/25px 'Nunito', sans-serif;
 $wishHeader: 500 20px/28px 'Montserrat Alternates', sans-serif;
 $price: 400 22px/33px 'Montserrat Alternates', sans-serif;
 $link: normal 18px/33px 'Lato', sans-serif;
-$sidebarHeader: 700 20px/30px 'Nunito', sans-serif;
-$appHeader: normal 20px/32px 'RoundedMplus1c', sans-serif;
 
 *, *::before, *::after {
   box-sizing: border-box;
+  scrollbar-color: white $gray1;
+  scrollbar-width: 2*$bigStep;
+
+  &:hover {
+    scrollbar-color: white $gray1;
+  }
+}
+
+::-webkit-scrollbar {
+  position: absolute;
+  width: 22px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: $gray1;
+  border-radius: 100vw;
+  border: solid 5px white;
+  transition: all 0.3s ease-in-out;
+  &:hover {
+     border: solid 4px white;
+    background-color: $gray2;
+  }
 }
 
 .link {
@@ -207,11 +229,14 @@ $appHeader: normal 20px/32px 'RoundedMplus1c', sans-serif;
   display: flex;
   flex-direction: row;
   align-items: center;
+  height: 6*$bigStep;
+  border-bottom: solid 1px $lightGray2;
 
   .items-lists-toggle {
     padding: $bigStep;
 
     .container {
+      position: relative;
       display: flex;
       flex-direction: row;
       border: solid $lightGray3 1px;
@@ -219,82 +244,60 @@ $appHeader: normal 20px/32px 'RoundedMplus1c', sans-serif;
       background-color: $lightGray1;
 
       .toggle-button {
-        width: 4*$bigStep;
-        height: 4*$bigStep;
+        width: 4*$bigStep - 2px;
+        height: 4*$bigStep - 2px;
         fill: $gray2;
         display: flex;
         align-items: center;
         justify-content: center;
+        z-index: 2;
+        cursor: default;
 
         &:hover {
           fill: $darkGray2;
         }
 
-        &.active-page {
-          fill: $darkGray2
+        &.active {
+          fill: $darkGray2;
         }
       }
     }
   }
-  .nav-option {
 
-  }
-}
-
-.sidebar {
-  width: $sidebarWidth;
-  height: 100%;
-  background-color: $lightGray1;
-  border-right: solid 1px $lightGray2;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-
-  .side-header {
+  .bread-crumbs {
+    position: relative;
     display: flex;
     flex-direction: row;
-    width: 100%;
-    height: 7*$bigStep;
-    padding: $bigStep 0;
-    align-items: center;
+    height: 100%;
+    padding: $bigStep;
 
-    span {
-      display: block;
-      flex: 1;
-      padding-left: 2*$bigStep;
-      font: $sidebarHeader;
+    .nav {
+      display: flex;
+      align-items: center;
+      font: $navbar;
+      color: $gray2;
+      z-index: 1;
+      cursor: default;
+
+      &.option {
+      padding: 0 2*$bigStep;
+      text-decoration: none;
+
+        &.active, &:hover {
+          color: $darkGray2;
+        }
+      }
     }
-  }
-
-  .side-nav {
-    width: 100%;
-    height: fit-content;
-    font: $action;
-    padding: 15px 2*$bigStep;
-    display: flex;
-    align-items: center;
-    text-decoration: none;
-    color: $gray2;
-    z-index: 1;
-
-    &.active, &:hover {
-      color: $darkGray2;
-    }
-  }
-
-  .divider {
-    width: 100%;
-    height: 2*$bigStep;
-    border-bottom: 1px solid $lightGray2;
   }
 }
 
 .work-space {
-  padding: $bigStep 10*$bigStep 0;
+  padding: 2*$bigStep 10*$bigStep 0;
   width: 100%;
   height: 100%;
   background-color: white;
   overflow-y: scroll;
+  overflow: overlay;
 }
 
 .wish-card {
