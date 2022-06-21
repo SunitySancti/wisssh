@@ -1,3 +1,5 @@
+import React, { useLayoutEffect } from 'react';
+import { useDispatch } from 'react-redux'
 import { Routes, Route, Navigate } from 'react-router-dom'
 
 import './App.scss';
@@ -7,8 +9,15 @@ import { MultiColumnTapeLayout } from 'containers/MultiColumnTapeLayout'
 import { WishPage } from 'pages/WishPage'
 import { WishListPage } from 'pages/WishListPage'
 import { ListOfListsPage } from 'pages/ListOfListsPage'
+import { fetchWishes } from 'store/wishesSlice'
 
-function App() {
+const App = () => {
+  const dispatch = useDispatch();
+  const loadWishes = () => dispatch(fetchWishes());
+  useLayoutEffect(() => {
+      loadWishes();
+  },[])
+
   return (
     <Routes>
         <Route path='/' element={ <AppHeader/> } >
@@ -18,7 +27,9 @@ function App() {
             <Route path='actual' element={ <MultiColumnTapeLayout/> } />
             <Route path='completed' element={ <MultiColumnTapeLayout/> } />
             <Route path='all' element={ <MultiColumnTapeLayout/> } />
-            <Route path=':wishId' element={ <WishPage/> } />
+            <Route path='actual/:wishId' element={ <WishPage/> } />
+            <Route path='completed/:wishId' element={ <WishPage/> } />
+            <Route path='all/:wishId' element={ <WishPage/> } />
           </Route>
           <Route path='my-wishes/lists/' element={ <NavBar/> } >
             <Route index element={ <ListOfListsPage/> } />
@@ -30,7 +41,9 @@ function App() {
             <Route path='reserved' element={ <MultiColumnTapeLayout/> } />
             <Route path='presented' element={ <MultiColumnTapeLayout/> } />
             <Route path='all' element={ <MultiColumnTapeLayout/> } />
-            <Route path=':wishId' element={ <WishPage/> } />
+            <Route path='reserved/:wishId' element={ <WishPage/> } />
+            <Route path='presented/:wishId' element={ <WishPage/> } />
+            <Route path='all/:wishId' element={ <WishPage/> } />
           </Route>
           <Route path='my-invites/lists/' element={ <NavBar/> } >
             <Route index element={ <ListOfListsPage/> } />
