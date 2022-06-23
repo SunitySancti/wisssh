@@ -99,16 +99,21 @@ $darkGray2: #505050;
 // Shadows:
 $lyingCard: 0 1px 4px 0 rgba(0,0,0,.17), 0 3px 6px 0 rgba(0,0,0,.1);
 $flyingAbove: 0 8px 15px 0 rgba(0,0,0,.17), 0 10px 30px 0 rgba(0,0,0,.07);
-$glow: 0 0 $bigStep 0 rgba(243,230,114,.7);
+$scrollOverlay: 0 6px 6px 0 rgba(0,0,0,.09), 0 11px 11px 0 rgba(0,0,0,.04);
+$glow: 0px 0px 11px $primary;
 
 //fonts
 $general: 400 16px/22px 'Lato', sans-serif;
 $appHeader: 400 20px/32px 'RoundedMplus1c', sans-serif;
-$navbar: 400 18px/22px 'Lato', sans-serif;
+$navbar: 400 18px/22px 'RoundedMplus1c', sans-serif;
 $action: 400 16px/30px 'GothamPro', sans-serif;
 $wishHeader: 500 18px/32px 'GothamPro', sans-serif;
+$wishPageHeader: 500 30px/44px 'RoundedMplus1c', sans-serif;
 $price: 400 18px/32px 'GothamPro', sans-serif;
-$link: 400 18px/33px 'Lato', sans-serif;
+
+html {
+  font-size: 11px;
+}
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -136,17 +141,18 @@ $link: 400 18px/33px 'Lato', sans-serif;
   }
 }
 
-.link {
-  font: $link;
+.inline-link {
+  font: $general;
   letter-spacing: 1px;
   &:link {
-    color: $darkGray1;
+    color: $darkGray2;
   }
   &:visited {
-    color: $gray1;
+    color: $gray2;
   }
   &:hover {
     color: $darkGray2;
+    text-decoration: none;
   }
 }
 
@@ -157,12 +163,21 @@ $link: 400 18px/33px 'Lato', sans-serif;
   gap: 6px;
   width: 100%;
   height: 4*$bigStep;
-  background-color: $lightGray2;
+  padding: 0 2rem;
   border: none;
   font: $action;
   letter-spacing: -0.5px;
   color: $darkGray2;
   fill: currentColor;
+  transition: all ease-in-out .12s;
+
+  &.primary {
+    background-color: $primary;
+  }
+
+  &.secondary {
+    background-color: $lightGray2;
+  }
 
   &:hover {
     background-color: $primaryHover;
@@ -197,6 +212,22 @@ $link: 400 18px/33px 'Lato', sans-serif;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.user {
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  gap: 1rem;
+  
+  img {
+    border-radius: 50%;
+  }
+
+  span {
+    font: $general;
+    color: $darkGray2;
+  }
 }
 
 .highlighter {
@@ -276,15 +307,37 @@ $link: 400 18px/33px 'Lato', sans-serif;
 }
 
 .content-header {
+  position: relative;
   width: 100%;
   padding: 0 10*$bigStep;
+
+  &::before, &::after {
+    content: '';
+    position: absolute;
+    background-color: white;
+    width: 10rem;
+    height: 100%;
+    top: 0;
+  }
+  &::before {
+    left: 0;
+  }
+  &::after {
+    right: 0;
+  }
 }
+
 .nav-bar {
   display: flex;
   flex-direction: row;
   align-items: center;
   height: 6*$bigStep;
   border-bottom: solid 1px $lightGray2;
+  transition: all ease-in-out .15s;
+  
+  &.with-shadow {
+    box-shadow: $scrollOverlay;
+  }
 
   .items-lists-toggle {
     padding: $bigStep;
@@ -342,6 +395,10 @@ $link: 400 18px/33px 'Lato', sans-serif;
         }
       }
     }
+  }
+
+  .shadow {
+    background: linear-gradient(to bottom, black 20%, black 0%);
   }
 }
 
@@ -411,4 +468,143 @@ $link: 400 18px/33px 'Lato', sans-serif;
       border-color: $primaryHover;
     }
   }
+}
+
+.wish-page {
+  display: flex;
+  flex-flow: row nowrap;
+  gap: 6rem;
+
+  .img-block {
+    width: calc(50% - 3rem);
+    flex: none;
+    img {
+      max-width: 100%;
+      float: right;
+    }
+  }
+
+  .content-block {
+    display: flex;
+    flex-flow: column nowrap;
+    gap: 6rem;
+    width: calc(50% - 3rem);
+    flex: none;
+    padding: 2rem 0;
+
+    .header {
+      display: flex;
+      flex-flow: row wrap;
+      align-items: baseline;
+
+      .title {
+        font: $wishPageHeader;
+        color: $darkGray2;
+        margin-right: 4rem;
+        margin-bottom: 1rem;
+      }
+
+      a {
+        display: flex;
+        flex-flow: row nowrap;
+      }
+    }
+
+    .info {
+      display: flex;
+      flex-flow: column nowrap;
+      gap: 1rem;
+
+      .info-field {
+        position: relative;
+        display: flex;
+        flex-flow: row nowrap;
+        align-items: center;
+        gap: 2rem;
+
+        .label {
+          font: $general;
+          color: $gray2;
+        }
+
+        .links {
+          display: flex;
+          flex-flow: row wrap;
+        }
+      }
+
+      .description {
+        position: relative;
+        display: inline-block;
+        filter: drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.12)) drop-shadow(0px 2px 5px rgba(0, 0, 0, 0.06));
+
+        .description-pointer {
+          height: 2rem;
+          fill: $primaryLight;
+        }
+
+        .container {
+          width: fit-content;
+          font: $general;
+          color: $darkGray2;
+          background-color: $primaryLight;
+          padding: 1rem 2rem;
+          border-radius: 2rem;
+        }
+      }
+    }
+
+    .actions {
+      width: fit-content;
+      display: flex;
+      flex-flow: column nowrap;
+      gap: 2rem;
+
+      .price {
+        font: $wishPageHeader;
+        color: $darkGray2;
+      }
+
+      button {
+        border-radius: $smallStep;
+      }
+    }
+  }
+}
+
+.wishlist-line {
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  gap: 2rem;
+
+  .title-container {
+    position: relative;
+    height: 4rem;
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    background-color: $lightGray2;
+    border-radius: 2rem;
+
+    svg {
+      z-index: 1;
+      position: absolute;
+      left: -1rem;
+      top: 0;
+      fill: $lightGray2;
+    }
+
+    .title {
+      z-index: 2;
+      font: $wishHeader;
+    }
+  }
+}
+
+.list-of-lists-page {
+  display: flex;
+  flex-flow: column nowrap;
+  gap: 1rem;
 }
