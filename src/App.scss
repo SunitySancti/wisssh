@@ -403,9 +403,8 @@ html {
 }
 
 .work-space {
-  padding: 2*$bigStep 10*$bigStep 0;
+  padding: 2rem 10rem 10rem;
   width: 100%;
-  height: 100%;
   background-color: white;
   overflow-y: scroll;
   overflow: overlay;
@@ -577,6 +576,7 @@ html {
   flex-flow: row nowrap;
   align-items: center;
   gap: 2rem;
+  padding: 0.5rem 2rem;
 
   .title-container {
     position: relative;
@@ -586,14 +586,15 @@ html {
     align-items: center;
     white-space: nowrap;
     background-color: $lightGray2;
+    fill: $lightGray2;
     border-radius: 2rem;
+    transition: all ease-in-out .15s;
 
     svg {
       z-index: 1;
       position: absolute;
       left: -1rem;
       top: 0;
-      fill: $lightGray2;
     }
 
     .title {
@@ -601,10 +602,81 @@ html {
       font: $wishHeader;
     }
   }
+
+  .description {
+    font: $general;
+    color: $darkGray2;
+    flex-grow: 1;
+    padding: 0 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .time-info {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    gap: 1rem;
+    
+    .small {
+      font: $general;
+    }
+    .big {
+      font: 400 2rem 'Lato', sans-serif;
+    }
+    &.future {
+      color: $darkGray2;
+    }
+    &.soon {
+      color: $negative;
+    }
+    &.past {
+      color: $gray1;
+    }
+
+  }
+
+  &:hover {
+    background-color: $lightGray1;
+    cursor: pointer;
+
+    .title-container {
+      background-color: $primaryHover;
+      fill: $primaryHover;
+    }
+  }
+
 }
 
 .list-of-lists-page {
   display: flex;
   flex-flow: column nowrap;
-  gap: 1rem;
+
+  .group-header {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 9rem;
+    font: $navbar;
+    color: $gray1;
+
+    &::before {
+      content: '';
+      position: absolute;
+      background-color: $lightGray2;
+      height: 1px;
+      width: 100%;
+      z-index: 1;
+    }
+
+    span {
+      display: block;
+      background-color: white;
+      z-index: 2;
+      padding: 0 2rem;
+      white-space: nowrap;
+    }
+  }
 }
