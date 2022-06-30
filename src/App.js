@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useLayoutEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux'
 import { Routes, Route, Navigate } from 'react-router-dom'
 
@@ -20,7 +20,8 @@ const App = () => {
   const filterWishes = () => dispatch(filterWishesByUser(currentUser));
   const filterWishlists = () => dispatch(filterWishlistsByUser(currentUser));
 
-  useEffect(() => {
+  useLayoutEffect(() => {
+    console.log('wishes are loading')
     loadWishes();
   },[currentUser]);
 
