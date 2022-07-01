@@ -126,6 +126,11 @@ html {
   }
 }
 
+.fade-in {
+  animation: fadeIn ease .3s;
+}
+
+
 ::-webkit-scrollbar {
   position: absolute;
   width: 22px;
@@ -396,6 +401,10 @@ html {
         }
       }
     }
+
+    // .highlighter {
+    //   transition: none !important;
+    // }
   }
 }
 
@@ -413,7 +422,7 @@ html {
   border-radius: $bigStep;
   overflow: hidden;
   box-shadow: $lyingCard;
-  transition: all .2s ease-out;
+  transition: all .2s ease-in-out;
 
   &:hover {
     box-shadow: $flyingAbove;
@@ -712,4 +721,29 @@ html {
       white-space: nowrap;
     }
   }
+}
+
+@keyframes fadeIn {
+  0% { opacity:0; }
+  100% { opacity:1; }
+}
+
+@-moz-keyframes fadeIn {
+  0% { opacity:0; }
+  100% { opacity:1; }
+}
+
+@-webkit-keyframes fadeIn {
+  0% { opacity:0; }
+  100% { opacity:1; }
+}
+
+@-o-keyframes fadeIn {
+  0% { opacity:0; }
+  100% { opacity:1; }
+}
+
+@-ms-keyframes fadeIn {
+  0% { opacity:0; }
+  100% { opacity:1; }
 }
