@@ -21,13 +21,11 @@ const App = () => {
   const filterWishlists = () => dispatch(filterWishlistsByUser(currentUser));
 
   useLayoutEffect(() => {
-    console.log('wishes are loading')
     loadWishes();
   },[currentUser]);
 
   useEffect(() => {
     filterWishes();
-    console.log('filtration of wishes finished successfully: ', wishes.ofCurrentUser)
   },[wishes.all]);
 
   useEffect(() => {

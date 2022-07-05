@@ -241,7 +241,10 @@ html {
   background-color: $primary;
   border-radius: 2*$bigStep;
   z-index: 1;
-  transition: all 0.3s ease-in-out;
+
+  &.animated {
+    transition: all 0.3s ease-in-out;
+  }
 }
 
 .app-layout {
@@ -260,7 +263,13 @@ html {
   flex-direction: row;
   justify-content: center;
 
+  .goo-highlighters {
+    width: 0;
+    z-index: 1;
+  }
+
   .center-group {
+    position: relative;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -273,7 +282,8 @@ html {
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: 0 2*$bigStep;
+      width: 18rem;
+      height: 6rem;
 
       .logo-back {
         fill: $primary;
@@ -287,7 +297,7 @@ html {
       }
     }
 
-    .header-nav {
+    .section {
       display: flex;
       align-items: center;
       height: 6 * $bigStep;
@@ -401,10 +411,10 @@ html {
         }
       }
     }
+  }
 
-    // .highlighter {
-    //   transition: none !important;
-    // }
+  .highlighter {
+    transition: all 0.3s ease-in-out;
   }
 }
 
