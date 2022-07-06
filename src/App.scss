@@ -243,7 +243,7 @@ html {
   z-index: 1;
 
   &.animated {
-    transition: all 0.3s ease-in-out;
+    transition: all 0.6s ease-in-out;
   }
 }
 
@@ -255,6 +255,7 @@ html {
 }
 
 .app-header {
+  position: relative;
   width: 100%;
   height: $appHeaderHeight;
   background-color: $lightGray1;
@@ -264,14 +265,25 @@ html {
   justify-content: center;
 
   .goo-highlighters {
-    width: 0;
+    position: absolute;
+    left: calc(50% - 9rem);
+    top: 1rem;
+    width: 18rem;
+    height: 6rem;
     z-index: 1;
+    filter: url('#goo');
+
+    .logo-back {
+      position: absolute;
+      fill: $primary;
+    }
   }
 
   .center-group {
     position: relative;
     display: flex;
     flex-direction: row;
+    gap: 1rem;
     align-items: center;
     height: 100%;
     padding: $bigStep 2*$bigStep;
@@ -285,15 +297,9 @@ html {
       width: 18rem;
       height: 6rem;
 
-      .logo-back {
-        fill: $primary;
-      }
       .logo-icon {
         position: absolute;
         fill: $darkGray2;
-      }
-      &:hover .logo-back {
-        fill: $primaryHover;
       }
     }
 
