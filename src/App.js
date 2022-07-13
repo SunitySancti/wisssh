@@ -1,6 +1,7 @@
 import React, { useEffect, useLayoutEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux'
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { useLocation } from 'react-router'
 
 import './App.scss';
 import { AppHeader } from 'containers/AppHeader'
@@ -11,8 +12,10 @@ import { WishlistPage } from 'pages/WishlistPage'
 import { ListOfListsPage } from 'pages/ListOfListsPage'
 import { fetchWishes, filterWishesByUser } from 'store/wishesSlice'
 import { filterWishlistsByUser } from 'store/wishlistSlice'
+import { updateHistory } from 'store/historySlice'
 
 const App = () => {
+  const loca = useLocation().pathname;
   const currentUser = useSelector(state => state.users.current);
   const wishes = useSelector(state => state.wishes);
   const dispatch = useDispatch();
@@ -31,6 +34,10 @@ const App = () => {
   useEffect(() => {
     filterWishlists();
   },[]);
+
+  useEffect(() => {
+    dispatch(updateHistory(loca));
+  },[loca]);
 
   return (
     <Routes>

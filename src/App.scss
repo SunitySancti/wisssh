@@ -162,38 +162,44 @@ html {
   }
 }
 
-.button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  width: 100%;
-  height: 4*$bigStep;
-  padding: 0 2rem;
+button {
+  background: none;
   border: none;
-  font: $action;
-  letter-spacing: -0.5px;
-  color: $darkGray2;
-  fill: currentColor;
-  transition: all ease-in-out .12s;
+  
+    &.button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    height: 4*$bigStep;
+    padding: 0 2rem;
+    font: $action;
+    letter-spacing: -0.5px;
+    color: $darkGray2;
+    fill: currentColor;
+    transition: all ease-in-out .12s;
 
-  &.primary {
-    background-color: $primary;
-  }
+    &.primary {
+      background-color: $primary;
+    }
 
-  &.secondary {
-    background-color: $lightGray2;
-  }
+    &.secondary {
+      background-color: $lightGray2;
+    }
 
-  &:hover {
-    background-color: $primaryHover;
-    border-color: $primaryHover;
-    cursor: pointer;
-  }
+    &:hover {
+      background-color: $primaryHover;
+      border-color: $primaryHover;
+      cursor: pointer;
+    }
 
-  &:disabled {
-    background-color: $lightGray1;
-    color: $gray2;
+    &:disabled {
+      background: none;
+      border: solid 1px $lightGray3;
+      color: $gray2;
+      cursor: default;
+    }
   }
 }
 
@@ -242,8 +248,12 @@ html {
   border-radius: 2*$bigStep;
   z-index: 1;
 
-  &.animated {
+  &.animated-long {
     transition: all 0.6s ease-in-out;
+  }
+
+  &.animated-short {
+    transition: all 0.3s ease-in-out;
   }
 }
 
@@ -266,7 +276,7 @@ html {
 
   .goo-highlighters {
     position: absolute;
-    left: calc(50% - 9rem);
+    // left: calc(50% - 9rem);
     top: 1rem;
     width: 18rem;
     height: 6rem;
@@ -418,10 +428,6 @@ html {
       }
     }
   }
-
-  .highlighter {
-    transition: all 0.3s ease-in-out;
-  }
 }
 
 .work-space {
@@ -489,10 +495,8 @@ html {
   }
 
   .button {
-    border-top: solid 1px $lightGray3;
-    &:hover {
-      border-color: $primaryHover;
-    }
+    border: none !important;
+    border-top: solid 1px $lightGray3 !important;
   }
 }
 
