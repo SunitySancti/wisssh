@@ -77,9 +77,10 @@
 // Sizes:
 $smallStep: 4px;
 $bigStep: 11px;
-$sidebarWidth: 22*$bigStep;
 $appHeaderHeight: 8*$bigStep;
-
+:root {
+  --app-body-padding: 10rem;
+}
 // Colors:
 $primary: #F3E672;
 $primaryHover: #F8ED8F;
@@ -338,16 +339,16 @@ button {
   min-height: 1px;
 }
 
-.content-header {
+.nav-container {
   position: relative;
   width: 100%;
-  padding: 0 10*$bigStep;
+  padding: 0 var(--app-body-padding);
 
   &::before, &::after {
     content: '';
     position: absolute;
     background-color: white;
-    width: 10rem;
+    width: var(--app-body-padding);
     height: 100%;
     top: 0;
   }
@@ -357,81 +358,86 @@ button {
   &::after {
     right: 0;
   }
-}
 
-.nav-bar {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  height: 6*$bigStep;
-  border-bottom: solid 1px $lightGray2;
-  transition: all ease-in-out .15s;
+  .nav-bar {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 6*$bigStep;
+    border-bottom: solid 1px $lightGray2;
+    transition: all ease-in-out .15s;
+    
+    &.with-shadow {
+      box-shadow: $scrollOverlay;
+    }
   
-  &.with-shadow {
-    box-shadow: $scrollOverlay;
-  }
-
-  .items-lists-toggle {
-    padding: $bigStep;
-
-    .container {
-      position: relative;
-      display: flex;
-      flex-direction: row;
-      border: solid $lightGray3 1px;
-      border-radius: 2*$bigStep;
-      background-color: $lightGray1;
-
-      .toggle-button {
-        width: 4*$bigStep - 2px;
-        height: 4*$bigStep - 2px;
-        fill: $gray2;
+    .items-lists-toggle {
+      padding: $bigStep;
+  
+      .container {
+        position: relative;
         display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 2;
-        cursor: default;
-
-        &:hover {
-          fill: $darkGray2;
-        }
-
-        &.active {
-          fill: $darkGray2;
+        flex-direction: row;
+        border: solid $lightGray3 1px;
+        border-radius: 2*$bigStep;
+        background-color: $lightGray1;
+  
+        .toggle-button {
+          width: 4*$bigStep - 2px;
+          height: 4*$bigStep - 2px;
+          fill: $gray2;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 2;
+          cursor: default;
+  
+          &:hover {
+            fill: $darkGray2;
+          }
+  
+          &.active {
+            fill: $darkGray2;
+          }
         }
       }
     }
-  }
-
-  .bread-crumbs {
-    position: relative;
-    display: flex;
-    flex-direction: row;
-    height: 100%;
-    padding: $bigStep;
-
-    .nav {
+  
+    .bread-crumbs {
+      position: relative;
       display: flex;
-      align-items: center;
-      font: $navbar;
-      color: $gray2;
-      z-index: 1;
-      cursor: default;
-
-      &.option {
-      padding: 0 2*$bigStep;
-      text-decoration: none;
-
-        &.active, &:hover {
-          color: $darkGray2;
+      flex-direction: row;
+      height: 100%;
+      padding: $bigStep;
+  
+      .nav {
+        display: flex;
+        align-items: center;
+        font: $navbar;
+        color: $gray2;
+        z-index: 1;
+        cursor: default;
+  
+        &.option {
+        padding: 0 2*$bigStep;
+        text-decoration: none;
+  
+          &.active, &:hover {
+            color: $darkGray2;
+          }
         }
       }
+    }
+
+    .overflow-detector {
+      flex: 1;
+      height: 100%;
     }
   }
 }
 
 .work-space {
-  padding: 2rem 10rem 10rem;
+  padding: 2rem var(--app-body-padding) 10rem;
   width: 100%;
   background-color: white;
   overflow-y: scroll;
