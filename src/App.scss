@@ -166,6 +166,7 @@ html {
 button {
   background: none;
   border: none;
+  padding: 0;
   
     &.button {
     display: flex;
@@ -205,6 +206,7 @@ button {
 }
 
 .icon-button {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -216,8 +218,36 @@ button {
     fill: $darkGray2;
   }
 
-  &:disabled {
-    fill: $gray1;
+  &:disabled svg {
+    fill: $gray1 !important;
+  }
+
+  &.nav-scroll {
+    position: absolute;
+    z-index: 2;
+    &::after {
+      content: '';
+      position: absolute;
+      width: 4rem;
+      height: 4rem;
+    }
+    &.left {
+      left: 0;
+      &::after {
+        left: 4rem;
+        background: linear-gradient(to right, rgba(255,255,255,1), rgba(255,255,255,0));
+      }
+    }
+    &.right {
+      right: 0;
+      &::after {
+        right: 4rem;
+        background: linear-gradient(to left, rgba(255,255,255,1), rgba(255,255,255,0));
+      }
+    }
+    &.hidden::after {
+      visibility: hidden;
+    }
   }
 }
 
@@ -247,7 +277,7 @@ button {
   position: absolute;
   background-color: $primary;
   border-radius: 2*$bigStep;
-  z-index: 1;
+  z-index: 0;
 
   &.animated-long {
     transition: all 0.6s ease-in-out;
@@ -360,13 +390,27 @@ button {
   }
 
   .nav-bar {
+    // z-index: auto;
     display: flex;
     flex-direction: row;
     align-items: center;
     height: 6*$bigStep;
     border-bottom: solid 1px $lightGray2;
     transition: all ease-in-out .15s;
-    
+    overflow: hidden;
+
+    &.overflowed {
+      &::before, &::after {
+        content: '';
+        position: absolute;
+        right: 4rem;
+        width: 4rem;
+        height: 4rem;
+        background: linear-gradient(to left, rgba(255,255,255,1), rgba(255,255,255,0));
+        z-index: 1;
+      }
+    }
+      
     &.with-shadow {
       box-shadow: $scrollOverlay;
     }
@@ -421,6 +465,7 @@ button {
         &.option {
         padding: 0 2*$bigStep;
         text-decoration: none;
+        white-space: nowrap;
   
           &.active, &:hover {
             color: $darkGray2;
