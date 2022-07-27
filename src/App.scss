@@ -221,40 +221,17 @@ button {
   &:disabled svg {
     fill: $gray1 !important;
   }
-
-  &.nav-scroll {
-    position: absolute;
-    z-index: 2;
-    &::after {
-      content: '';
-      position: absolute;
-      width: 4rem;
-      height: 4rem;
-    }
-    &.left {
-      left: 0;
-      &::after {
-        left: 4rem;
-        background: linear-gradient(to right, rgba(255,255,255,1), rgba(255,255,255,0));
-      }
-    }
-    &.right {
-      right: 0;
-      &::after {
-        right: 4rem;
-        background: linear-gradient(to left, rgba(255,255,255,1), rgba(255,255,255,0));
-      }
-    }
-    &.hidden::after {
-      visibility: hidden;
-    }
-  }
 }
 
 .icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: relative;
+
+  svg {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    left: 50%;
+    top: 50%;
+  }
 }
 
 .user {
@@ -303,7 +280,7 @@ button {
   border-bottom: solid 1px $lightGray2;
   display: flex;
   flex-direction: row;
-  justify-content: center;
+  justify-content: space-between;
 
   .goo-highlighters {
     position: absolute;
@@ -320,6 +297,15 @@ button {
     }
   }
 
+  .left-group, .right-group {
+    display: flex;
+    flex-flow: row nowrap;
+    height: 100%;
+    align-items: center;
+    gap: 1rem;
+    padding: 0 1rem;
+  }
+
   .center-group {
     position: relative;
     display: flex;
@@ -327,7 +313,7 @@ button {
     gap: 1rem;
     align-items: center;
     height: 100%;
-    padding: $bigStep 2*$bigStep;
+    padding: 1rem 2rem;
     transition: all 1s ease-in-out;
     z-index: 2;
 
@@ -347,12 +333,13 @@ button {
     .section {
       display: flex;
       align-items: center;
-      height: 6 * $bigStep;
-      padding: 0 $bigStep;
+      height: 6rem;
+      padding: 0 1rem;
       font: $appHeader;
       text-decoration: none;
       color: $gray2;
       cursor: default;
+      white-space: nowrap;
     }
 
     a.active, a:hover {
@@ -390,7 +377,6 @@ button {
   }
 
   .nav-bar {
-    // z-index: auto;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -477,6 +463,34 @@ button {
     .overflow-detector {
       flex: 1;
       height: 100%;
+    }
+
+    .icon-button.nav-scroll {
+      position: absolute;
+      z-index: 2;
+      &::after {
+        content: '';
+        position: absolute;
+        width: 4rem;
+        height: 4rem;
+      }
+      &.left {
+        left: calc(var(--app-body-padding) - 4rem);
+        &::after {
+          left: 4rem;
+          background: linear-gradient(to right, rgba(255,255,255,1), rgba(255,255,255,0));
+        }
+      }
+      &.right {
+        right: calc(var(--app-body-padding) - 4rem);
+        &::after {
+          right: 4rem;
+          background: linear-gradient(to left, rgba(255,255,255,1), rgba(255,255,255,0));
+        }
+      }
+      &.hidden::after {
+        visibility: hidden;
+      }
     }
   }
 }

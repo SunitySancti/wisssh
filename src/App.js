@@ -13,6 +13,7 @@ import { ListOfListsPage } from 'pages/ListOfListsPage'
 import { fetchWishes, filterWishesByUser } from 'store/wishesSlice'
 import { filterWishlistsByUser } from 'store/wishlistSlice'
 import { updateHistory } from 'store/historySlice'
+import { IconSet } from 'components/Icon'
 
 const App = () => {
   const loca = useLocation().pathname;
@@ -72,6 +73,7 @@ const App = () => {
             <Route path=':wishlistId/:wishId' element={ <SingleWishPage/> } />
           </Route>
         </Route>
+        <Route path='/icon-set' element={ <IconSet/> } />
     </Routes>
   );
 }
