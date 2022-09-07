@@ -6,14 +6,17 @@ import { useLocation } from 'react-router'
 import './App.scss';
 import { AppHeader } from 'containers/AppHeader'
 import { NavBar } from 'containers/NavBar'
+import { NotFoundPage } from 'pages/NotFoundPage'
 import { WishesPage } from 'pages/WishesPage'
 import { SingleWishPage } from 'pages/SingleWishPage'
+import { NewWishPage } from 'pages/NewWishPage'
 import { WishlistPage } from 'pages/WishlistPage'
 import { ListOfListsPage } from 'pages/ListOfListsPage'
+import { IconSet } from 'components/Icon'
+
 import { fetchWishes, filterWishesByUser } from 'store/wishesSlice'
 import { filterWishlistsByUser } from 'store/wishlistSlice'
 import { updateHistory } from 'store/historySlice'
-import { IconSet } from 'components/Icon'
 
 const App = () => {
   const loca = useLocation().pathname;
@@ -46,9 +49,10 @@ const App = () => {
           <Route index element={ <Navigate to='/my-wishes/items/actual' replace/> } />
           <Route path='my-wishes/items/' element={ <NavBar/> } >
             <Route index element={ <Navigate to='/my-wishes/items/actual' replace/> } />
-            <Route path='actual' element={ <WishesPage/> } />
-            <Route path='completed' element={ <WishesPage/> } />
-            <Route path='all' element={ <WishesPage/> } />
+            <Route path='new' element={ <NewWishPage/> } />
+            <Route path=':tabName' element={ <WishesPage/> } />
+            {/* <Route path='completed' element={ <WishesPage/> } />
+            <Route path='all' element={ <WishesPage/> } /> */}
             <Route path='actual/:wishId' element={ <SingleWishPage/> } />
             <Route path='completed/:wishId' element={ <SingleWishPage/> } />
             <Route path='all/:wishId' element={ <SingleWishPage/> } />
@@ -60,9 +64,9 @@ const App = () => {
           </Route>
           <Route path='my-invites/items' element={ <NavBar/> } >
             <Route index element={ <Navigate to='/my-invites/items/reserved' replace/> } />
-            <Route path='reserved' element={ <WishesPage/> } />
-            <Route path='completed' element={ <WishesPage/> } />
-            <Route path='all' element={ <WishesPage/> } />
+            <Route path=':tabName' element={ <WishesPage/> } />
+            {/* <Route path='completed' element={ <WishesPage/> } />
+            <Route path='all' element={ <WishesPage/> } /> */}
             <Route path='reserved/:wishId' element={ <SingleWishPage/> } />
             <Route path='completed/:wishId' element={ <SingleWishPage/> } />
             <Route path='all/:wishId' element={ <SingleWishPage/> } />
@@ -74,6 +78,7 @@ const App = () => {
           </Route>
         </Route>
         <Route path='/icon-set' element={ <IconSet/> } />
+        <Route path='*' element={ <NotFoundPage/> } />
     </Routes>
   );
 }

@@ -89,9 +89,10 @@ $positive: #BCF4AB;
 $positiveHover: #CBFABC;
 $negative: #F34358;
 $negativeHover: #F85669;
+$negativeLight: #f8e2e4;
 $lightGray1: #FAFAFA;
-$lightGray2: #EEEEEE;
-$lightGray3: #E3E3E3;
+$lightGray2: #ebebeb;
+$lightGray3: #d4d4d4;
 $gray1: #C5C5C5;
 $gray2: #999999;
 $darkGray1: #777777;
@@ -102,6 +103,7 @@ $lyingCard: 0 1px 4px 0 rgba(0,0,0,.17), 0 3px 6px 0 rgba(0,0,0,.1);
 $flyingAbove: 0 8px 15px 0 rgba(0,0,0,.17), 0 10px 30px 0 rgba(0,0,0,.07);
 $scrollOverlay: 0 6px 6px 0 rgba(0,0,0,.09), 0 11px 11px 0 rgba(0,0,0,.04);
 $glow: 0px 0px 11px $primary;
+$insetGlow: inset 0px 0px 11px rgba(243, 230, 114, 0.3);
 
 //fonts
 $general: 400 16px/22px 'Lato', sans-serif;
@@ -117,7 +119,7 @@ html {
   scroll-behavior: smooth;
 }
 
-*, *::before, *::after {
+*, *:before, *:after {
   box-sizing: border-box;
   scrollbar-color: white $gray1;
   scrollbar-width: 2*$bigStep;
@@ -148,6 +150,15 @@ html {
   }
 }
 
+.invis {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  padding: 0;
+  border: none;
+}
+
 .inline-link {
   font: $general;
   letter-spacing: 1px;
@@ -167,41 +178,47 @@ button {
   background: none;
   border: none;
   padding: 0;
-  
-    &.button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    width: 100%;
-    height: 4*$bigStep;
-    padding: 0 2rem;
-    font: $action;
-    letter-spacing: -0.5px;
-    color: $darkGray2;
-    fill: currentColor;
-    transition: all ease-in-out .12s;
+}
 
-    &.primary {
-      background-color: $primary;
-    }
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: max-content;
+  height: 4*$bigStep;
+  padding: 0 2rem;
+  font: $action;
+  letter-spacing: -0.5px;
+  color: $darkGray2;
+  fill: currentColor;
+  outline: none;
+  border: none;
+  transition: all ease-in-out .12s;
 
-    &.secondary {
-      background-color: $lightGray2;
-    }
+  &.rounded {
+    border-radius: 4px;
+  }
 
-    &:hover {
-      background-color: $primaryHover;
-      border-color: $primaryHover;
-      cursor: pointer;
-    }
+  &.primary {
+    background-color: $primary;
+  }
 
-    &:disabled {
-      background: none;
-      border: solid 1px $lightGray3;
-      color: $gray2;
-      cursor: default;
-    }
+  &.secondary {
+    background-color: $lightGray2;
+  }
+
+  &:hover {
+    background-color: $primaryHover;
+    border-color: $primaryHover;
+    cursor: pointer;
+  }
+
+  &:disabled {
+    background: none;
+    border: solid 1px $lightGray3;
+    color: $gray2;
+    cursor: default;
   }
 }
 
@@ -213,6 +230,7 @@ button {
   fill: $gray2;
   border: none;
   background: none;
+  cursor: pointer;
 
   &:hover svg {
     fill: $darkGray2;
@@ -250,6 +268,363 @@ button {
   }
 }
 
+label.text {
+  position: relative;
+  display: flex;
+  flex-flow: row nowrap;
+  padding: 1rem 2rem 1rem 0;
+  width: max-content;
+
+  > span {
+    font: $general;
+
+    &:first-child {
+      color: $darkGray1;
+    }
+    &:last-child {
+      position: absolute;
+      top: 3rem;
+      color: $lightGray3
+    }
+  }
+
+  > .icon {
+    min-width: 2rem;
+    fill: $negative;
+  }
+}
+
+.text-input {
+  position: relative;
+  display: flex;
+  flex-flow: row nowrap;
+  width: 100%;
+
+  > input {
+    height: 4rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  > textarea {
+    height: 12rem;
+    min-height: 6rem;
+    &::-webkit-resizer {
+      display: none;
+    }
+    + .icon {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      background: none;
+      pointer-events: none;
+      fill: $gray1;
+    }
+  }
+  
+  > input, textarea {
+    flex: 1;
+    padding: 11px 22px;
+    border: 1px solid;
+    border-color: $gray1;
+    border-radius: 2rem;
+    outline: none;
+    font: $general;
+    color: $darkGray2;
+
+    &:default {
+      border-color: $gray1;
+    }
+    &:hover:not(:disabled) {
+      border-color: $darkGray1;
+    }
+    &:active:not(:disabled), &:focus:not(:disabled) {
+      border: 1px solid $primary;
+      box-shadow: $insetGlow;
+
+      &::placeholder {
+        color: $lightGray3;
+      }
+    }
+
+    &::placeholder {
+      color: $gray1;
+    }
+
+    &:invalid {
+      border-color: $negative;
+    }
+
+    :disabled {
+      background-color: $lightGray1;
+      pointer-events: none;
+    }
+  }
+}
+
+.select-box {
+  display: flex;
+  flex-flow: row nowrap;
+  flex: 1 1;
+}
+
+.image-input {
+  position: relative;
+  width: 100%;
+  background-color: $lightGray1;
+  border: 1px solid $lightGray2;
+  border-radius: 2rem;
+
+  .label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 4*$bigStep;
+    padding: 0 2rem 0 1.5rem;
+    background-color: rgba(0, 0, 0, 0.06);
+    font: $action;
+    letter-spacing: -0.5px;
+    color: $darkGray2;
+    fill: currentColor;
+    transition: all ease-in-out .12s;
+    border-radius: 4px;
+
+    &:hover {
+      background-color: $primaryHover;
+      cursor: pointer;
+    }
+  }
+
+  &:hover {
+    cursor: pointer;
+    .label {
+      background-color: $primaryHover;
+    }
+  }
+  > svg {
+    fill: rgba(0, 0, 0, 0.06);
+  }
+
+  > span {
+    font: $general;
+    color: rgba(0, 0, 0, 0.3);
+  }
+
+  &.droppable {
+    background-color: $primaryLight;
+    border-color: $primaryHover;
+
+    > svg {
+      fill: $primaryHover;
+    }
+  }
+
+  &.rejected {
+    background-color: $negativeLight;
+  }
+
+  &.placeholder {
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    gap: 2rem;
+  }
+  
+  &.preview {
+    background: none;
+    border: none;
+    padding: 0;
+
+    img {
+      object-fit: contain;
+      max-width: 100%;
+    }
+    
+    .transparent-icon {
+      position: absolute;
+      transition: all ease-in-out .5s;
+      svg {
+        fill: black;
+        fill-opacity: 0.3;
+        stroke-width: 1.5;
+        stroke: white;
+        stroke-opacity: 0.3;
+        paint-order: stroke;
+      }
+
+      &.change-btn {
+        transform: translate(-50%, -50%) scale(3);
+        left: 50%;
+        top: 50%;
+      }
+      &.close-btn {
+        transform: scale(1.5);
+        right: 0;
+        top: 0;
+        &:hover svg {
+          fill: $negativeHover;
+          fill-opacity: 1;
+          stroke-opacity: 0.7;
+        }
+      }
+    }
+
+    &:hover .change-btn, &.droppable .change-btn {
+      transform: translate(-50%, -50%) scale(4) rotate(180deg);
+      cursor: pointer;
+
+      svg {
+        fill-opacity: 0.7;
+        stroke-opacity: 0.7;
+      }
+    }
+  }
+}
+
+.toggle-input {
+  display: flex;
+  flex-flow: row nowrap;
+
+  .toggle-button {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 4rem;
+    height: 4rem;
+
+    > * {
+      position: absolute;
+    }
+
+    > input {
+      opacity: 0;
+    }
+
+    > svg {
+      fill: $primary;
+      z-index: 0;
+    }
+
+    > label {
+      z-index: 1;
+      font: $general;
+      color: $darkGray2;
+    }
+
+    &:hover, &:hover > * {
+      cursor: pointer;
+    }
+  }
+
+  
+}
+
+.star-rating {
+  display: flex;
+  flex-flow: row nowrap;
+  
+  .star {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    > * {
+      position: absolute;
+    }
+
+    > input {
+      opacity: 0;
+    }
+
+    &.editable:hover {
+      cursor: pointer;
+      
+      > svg {
+        transform: scale(1.1);
+        transition: all ease-in-out 0.2s;
+      }
+    }
+  }
+}
+
+.new-wish-page > form {
+  display: flex;
+  gap: 6rem;
+  justify-content: center;
+
+  > div {
+    flex: 1 1 auto;
+    max-width: 63rem;
+
+    &.right {
+      display: flex;
+      flex-flow: column;
+      gap: 2rem;
+
+      > .line-container {
+        width: 100%;
+        display: flex;
+        flex-flow: row nowrap;
+        justify-content: flex-end;
+        gap: 2rem;
+
+        &.btn-group {
+          margin-top: 3rem;
+        }
+      }
+    }
+  }
+
+  .select-box {
+    width: 100%;
+  }
+
+  &.landscape {
+    flex-direction: row;
+    > div {
+      width: calc(50% - 6rem);
+    }
+    .image-input.preview > .container {
+      position: absolute;
+      right: 0;
+      top: 0;
+      img {
+        max-height: calc(100vh - 260px);
+        min-width: 42rem;
+        min-height: 28rem;
+      }
+    }
+  }
+  &.portrait {
+    flex-direction: column;
+    align-items: center;
+    > div {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .image-input.preview {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      > .container {
+      width: fit-content;
+      position: relative;
+      img {
+        min-height: 40rem;
+        min-width: 42rem;
+        max-height: calc(100vh - 400px);
+      }
+    }}
+  }
+}
+
 .highlighter {
   position: absolute;
   background-color: $primary;
@@ -282,6 +657,15 @@ button {
   flex-direction: row;
   justify-content: space-between;
 
+  .icon-link {
+    &:not(:hover) {
+      fill: $gray2;
+    }
+    &:hover {
+      fill: $darkGray2;
+    }
+  }
+
   .goo-highlighters {
     position: absolute;
     // left: calc(50% - 9rem);
@@ -303,7 +687,7 @@ button {
     height: 100%;
     align-items: center;
     gap: 1rem;
-    padding: 0 1rem;
+    padding: 0 2rem;
   }
 
   .center-group {
@@ -354,6 +738,7 @@ button {
   flex-direction: column;
   flex: 1;
   min-height: 1px;
+  overflow: visible;
 }
 
 .nav-container {
@@ -496,7 +881,7 @@ button {
 }
 
 .work-space {
-  padding: 2rem var(--app-body-padding) 10rem;
+  padding: 2rem var(--app-body-padding) 20rem;
   width: 100%;
   background-color: white;
   overflow-y: scroll;
@@ -520,11 +905,17 @@ button {
     position: relative;
     width: 100%;
 
-    img {
+    img, svg {
       position: absolute;
       width: 100%;
       height: 100%;
     }
+
+    svg {
+      padding: 15%;
+      fill: $lightGray2
+    }
+
   }
 
   .wishcard-content {
@@ -562,6 +953,7 @@ button {
   .button {
     border: none !important;
     border-top: solid 1px $lightGray3 !important;
+    width: 100%;
   }
 }
 
@@ -576,6 +968,12 @@ button {
     img {
       max-width: 100%;
       float: right;
+    }
+    svg {
+      width: 100%;
+      height: fit-content;
+      padding: 10% 25% ;
+      fill: $lightGray2;
     }
   }
 
