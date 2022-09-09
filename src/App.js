@@ -10,8 +10,9 @@ import { NotFoundPage } from 'pages/NotFoundPage'
 import { WishesPage } from 'pages/WishesPage'
 import { SingleWishPage } from 'pages/SingleWishPage'
 import { NewWishPage } from 'pages/NewWishPage'
-import { WishlistPage } from 'pages/WishlistPage'
 import { ListOfListsPage } from 'pages/ListOfListsPage'
+import { WishlistPage } from 'pages/WishlistPage'
+import { NewListPage } from 'pages/NewListPage'
 import { IconSet } from 'components/Icon'
 
 import { fetchWishes, filterWishesByUser } from 'store/wishesSlice'
@@ -51,25 +52,18 @@ const App = () => {
             <Route index element={ <Navigate to='/my-wishes/items/actual' replace/> } />
             <Route path='new' element={ <NewWishPage/> } />
             <Route path=':tabName' element={ <WishesPage/> } />
-            {/* <Route path='completed' element={ <WishesPage/> } />
-            <Route path='all' element={ <WishesPage/> } /> */}
-            <Route path='actual/:wishId' element={ <SingleWishPage/> } />
-            <Route path='completed/:wishId' element={ <SingleWishPage/> } />
-            <Route path='all/:wishId' element={ <SingleWishPage/> } />
+            <Route path=':tabName/:wishId' element={ <SingleWishPage/> } />
           </Route>
           <Route path='my-wishes/lists/' element={ <NavBar/> } >
             <Route index element={ <ListOfListsPage/> } />
+            <Route path='new' element={ <NewListPage/> } />
             <Route path=':wishlistId/' element={ <WishlistPage/> } />
             <Route path=':wishlistId/:wishId' element={ <SingleWishPage/> } />
           </Route>
           <Route path='my-invites/items' element={ <NavBar/> } >
             <Route index element={ <Navigate to='/my-invites/items/reserved' replace/> } />
             <Route path=':tabName' element={ <WishesPage/> } />
-            {/* <Route path='completed' element={ <WishesPage/> } />
-            <Route path='all' element={ <WishesPage/> } /> */}
-            <Route path='reserved/:wishId' element={ <SingleWishPage/> } />
-            <Route path='completed/:wishId' element={ <SingleWishPage/> } />
-            <Route path='all/:wishId' element={ <SingleWishPage/> } />
+            <Route path=':tabName/:wishId' element={ <SingleWishPage/> } />
           </Route>
           <Route path='my-invites/lists/' element={ <NavBar/> } >
             <Route index element={ <ListOfListsPage/> } />

@@ -83,9 +83,9 @@ $appHeaderHeight: 8*$bigStep;
 }
 // Colors:
 $primary: #F3E672;
-$primaryHover: #F8ED8F;
+$primaryHover: #f8ed8f;
 $primaryLight: #FBF8DD;
-$positive: #BCF4AB;
+$positive: #6fc555;
 $positiveHover: #CBFABC;
 $negative: #F34358;
 $negativeHover: #F85669;
@@ -107,6 +107,7 @@ $insetGlow: inset 0px 0px 11px rgba(243, 230, 114, 0.3);
 
 //fonts
 $general: 400 16px/22px 'Lato', sans-serif;
+$small: 400 13px/16px 'Lato', sans-serif;
 $appHeader: 400 20px/32px 'RoundedMplus1c', sans-serif;
 $navbar: 400 18px/22px 'RoundedMplus1c', sans-serif;
 $action: 400 16px/30px 'GothamPro', sans-serif;
@@ -171,6 +172,9 @@ html {
   &:hover {
     color: $darkGray2;
     text-decoration: none;
+  }
+  .icon {
+    margin-left: 1rem;
   }
 }
 
@@ -540,13 +544,117 @@ label.text {
     > input {
       opacity: 0;
     }
+  }
 
-    &.editable:hover {
-      cursor: pointer;
-      
-      > svg {
-        transform: scale(1.1);
-        transition: all ease-in-out 0.2s;
+  &.editable .star:hover {
+    cursor: pointer;
+    
+    > svg {
+      transform: scale(1.1);
+      transition: all ease-in-out 0.2s;
+    }
+  }
+}
+
+.date-select {
+  display: flex;
+  flex-flow: row nowrap;
+  flex: 1 1;
+
+  .text-input {
+    position: relative;
+    .icon-button {
+      position: absolute;
+      right: 0;
+      transition: all ease-in-out .3s;
+
+      &.rotate {
+        transform: rotate(180deg);
+      }
+    }
+  }
+
+  .custom-header {
+    display: flex;
+    flex-flow: row nowrap;
+    padding: 0 1rem;
+    font: $general;
+    color: $darkGray2;
+    span {
+      flex: 1;
+      line-height: 4rem;
+    }
+  }
+
+  .custom-calendar {
+    border-radius: 2rem;
+    border-color: $lightGray3;
+    box-shadow: $flyingAbove;
+    overflow: hidden;
+    .react-datepicker__month-container {
+
+      .react-datepicker__header {
+        background-color: $lightGray1;
+        border-color: $lightGray3;
+        padding-top: 0;
+        .react-datepicker__day-names {
+          display: flex;
+          flex-flow: row nowrap;
+          padding: 6px;
+          .react-datepicker__day-name {
+            width: 30px;
+            margin: 0;
+            font: $small;
+            color: $gray2;
+          }
+        }
+      }
+      .react-datepicker__month {
+        padding: 6px;
+        margin: 0;
+
+        .react-datepicker__week {
+          display: flex;
+          flex-flow: row nowrap;
+
+          .react-datepicker__day {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            margin: 0;
+            padding-top: 3px;
+            border-radius: 0;
+            vertical-align: middle;
+            font: $small;
+            color: $darkGray2;
+            &:hover {
+              background-color: $primaryHover;
+              color: black;
+            }
+          }
+          .react-datepicker__day--today {
+            background-color: $primaryLight;
+            color: black;
+            font-weight: bold;
+          }
+          .react-datepicker__day--outside-month {
+            color: $gray1;
+          }
+          .react-datepicker__day--weekend {
+            color: $negative !important;
+          }
+          .react-datepicker__day--selected {
+            background-color: $primary;
+            color: black;
+          }
+          .react-datepicker__day--disabled {
+            color: black;
+            opacity: 0.33;
+            pointer-events: none;
+          }
+        }
       }
     }
   }
@@ -570,10 +678,10 @@ label.text {
         width: 100%;
         display: flex;
         flex-flow: row nowrap;
-        justify-content: flex-end;
         gap: 2rem;
 
         &.btn-group {
+          justify-content: flex-end;
           margin-top: 3rem;
         }
       }
@@ -623,6 +731,39 @@ label.text {
       }
     }}
   }
+}
+
+.new-list-page > form {
+  display: flex;
+  flex-flow: column;
+  gap: 3rem;
+
+  .divider {
+    width: 100%;
+    height: 1px;
+    background-color: $lightGray2;
+  }
+  
+  .inputs {
+    display: flex;
+    gap: 2rem;
+    flex-flow: column;
+
+    label.text {
+      white-space: nowrap;
+    }
+  }
+
+  .line-container {
+    display: flex;
+    gap: 2rem;
+    flex-flow: row;
+
+    &.btn-group {
+      justify-content: flex-end;
+    }
+  }
+  
 }
 
 .highlighter {
@@ -895,10 +1036,45 @@ label.text {
   overflow: hidden;
   box-shadow: $lyingCard;
   transition: all .2s ease-in-out;
+  position: relative;
+
+  &.view {
+    &:hover {
+      cursor: url("data:image/svg+xml,%3Csvg width='22' height='22' viewBox='0 0 22 22' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M10.9926 8.99259C12.0976 8.99259 12.9926 9.88759 12.9926 10.9926C12.9926 12.0951 12.0976 12.9926 10.9926 12.9926C9.88759 12.9926 8.99259 12.0951 8.99259 10.9926C8.99259 9.88759 9.88759 8.99259 10.9926 8.99259ZM18.9926 10.9926C17.4926 13.9926 14.9926 15.9926 10.9951 15.9926C6.99258 15.9926 4.49259 13.9926 2.99259 10.9926C4.49259 7.99259 6.99258 5.99259 10.9951 5.99259C14.9926 5.99259 17.4926 7.99259 18.9926 10.9926Z' fill='white'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M10.9926 8.99259C12.0976 8.99259 12.9926 9.88759 12.9926 10.9926C12.9926 12.0951 12.0976 12.9926 10.9926 12.9926C9.88759 12.9926 8.99259 12.0951 8.99259 10.9926C8.99259 9.88759 9.88759 8.99259 10.9926 8.99259ZM18.9926 10.9926C16.9926 7.99259 13.9926 5.99259 10.9951 5.99259C8.00758 5.98009 4.99259 7.99259 2.99259 10.9926C4.99259 13.9926 7.99258 15.9926 10.9951 15.9926C13.9926 15.9926 16.9926 13.9926 18.9926 10.9926ZM19.9926 10.9926C18.4926 13.9926 14.9926 16.9926 10.9951 16.9926C6.99255 16.9926 3.49255 13.9926 1.99255 10.9926C3.49255 7.99255 6.99255 4.99255 10.9951 4.99255C14.9926 4.99255 18.4926 7.99255 19.9926 10.9926Z' fill='black'/%3E%3C/svg%3E%0A") 11 11, default;
+    }
+  }
+
+  &.input {
+    &:hover {
+      cursor: pointer;
+    }
+    .selection-mask {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: 1px solid $primary;
+      border-radius: 1rem;
+      background-color: rgba(248, 237, 143, 0.15);
+      box-shadow: $insetGlow;
+    }
+  }
 
   &:hover {
     box-shadow: $flyingAbove;
-    cursor: url("data:image/svg+xml,%3Csvg width='22' height='22' viewBox='0 0 22 22' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M10.9926 8.99259C12.0976 8.99259 12.9926 9.88759 12.9926 10.9926C12.9926 12.0951 12.0976 12.9926 10.9926 12.9926C9.88759 12.9926 8.99259 12.0951 8.99259 10.9926C8.99259 9.88759 9.88759 8.99259 10.9926 8.99259ZM18.9926 10.9926C17.4926 13.9926 14.9926 15.9926 10.9951 15.9926C6.99258 15.9926 4.49259 13.9926 2.99259 10.9926C4.49259 7.99259 6.99258 5.99259 10.9951 5.99259C14.9926 5.99259 17.4926 7.99259 18.9926 10.9926Z' fill='white'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M10.9926 8.99259C12.0976 8.99259 12.9926 9.88759 12.9926 10.9926C12.9926 12.0951 12.0976 12.9926 10.9926 12.9926C9.88759 12.9926 8.99259 12.0951 8.99259 10.9926C8.99259 9.88759 9.88759 8.99259 10.9926 8.99259ZM18.9926 10.9926C16.9926 7.99259 13.9926 5.99259 10.9951 5.99259C8.00758 5.98009 4.99259 7.99259 2.99259 10.9926C4.99259 13.9926 7.99258 15.9926 10.9951 15.9926C13.9926 15.9926 16.9926 13.9926 18.9926 10.9926ZM19.9926 10.9926C18.4926 13.9926 14.9926 16.9926 10.9951 16.9926C6.99255 16.9926 3.49255 13.9926 1.99255 10.9926C3.49255 7.99255 6.99255 4.99255 10.9951 4.99255C14.9926 4.99255 18.4926 7.99255 19.9926 10.9926Z' fill='black'/%3E%3C/svg%3E%0A") 11 11, default;
+    .star-rating {
+      opacity: 1;
+    }
+  }
+
+  .star-rating {
+    position: absolute;
+    left: 1rem;
+    top: 1rem;
+    z-index: 1;
+    opacity: 0.5;
+    transition: opacity ease-in-out 0.2s;
   }
 
   .img-wrapper {
