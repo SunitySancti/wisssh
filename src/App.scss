@@ -87,7 +87,7 @@ $primaryHover: #f8ed8f;
 $primaryLight: #FBF8DD;
 $positive: #6fc555;
 $positiveHover: #CBFABC;
-$negative: #F34358;
+$negative: rgb(243, 67, 88);
 $negativeHover: #F85669;
 $negativeLight: #f8e2e4;
 $lightGray1: #FAFAFA;
@@ -104,6 +104,7 @@ $flyingAbove: 0 8px 15px 0 rgba(0,0,0,.17), 0 10px 30px 0 rgba(0,0,0,.07);
 $scrollOverlay: 0 6px 6px 0 rgba(0,0,0,.09), 0 11px 11px 0 rgba(0,0,0,.04);
 $glow: 0px 0px 11px $primary;
 $insetGlow: inset 0px 0px 11px rgba(243, 230, 114, 0.3);
+$insetNegativeGlow: inset 0px 0px 11px rgba(243, 67, 88, 0.2);
 
 //fonts
 $general: 400 16px/22px 'Lato', sans-serif;
@@ -245,6 +246,55 @@ button {
   }
 }
 
+.dropdown {
+  position: relative;
+
+  .dd-trigger {
+    z-index: -1;
+  }
+
+  .dd-container {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    transform: translate(0, 100%);
+    display: flex;
+    flex-flow: column;
+    background-color: white;
+    padding: 1rem 0;
+    border-radius: 1rem;
+    box-shadow: $flyingAbove;
+  }
+
+  .dd-option {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 0 6px;
+    height: 4rem;
+    color: $darkGray2;
+    fill: currentColor;
+    user-select: none;
+
+    > span {
+      padding: 4px 1.5rem 0 0;
+      font: $general;
+      white-space: nowrap;
+    }
+
+    &:hover {
+      background-color: $primaryHover;
+      cursor: pointer;
+      color: black;
+    }
+
+    &:active {
+      background-color: $primary;
+    }
+  }
+}
+
 .icon {
   position: relative;
 
@@ -310,6 +360,7 @@ label.text {
     overflow: hidden;
     text-overflow: ellipsis;
   }
+
   > textarea {
     height: 12rem;
     min-height: 6rem;
@@ -341,6 +392,7 @@ label.text {
     }
     &:hover:not(:disabled) {
       border-color: $darkGray1;
+      box-shadow: none;
     }
     &:active:not(:disabled), &:focus:not(:disabled) {
       border: 1px solid $primary;
@@ -355,14 +407,24 @@ label.text {
       color: $gray1;
     }
 
-    &:invalid {
+    &:invalid, &.error {
       border-color: $negative;
+      box-shadow: $insetNegativeGlow;
     }
 
     :disabled {
       background-color: $lightGray1;
       pointer-events: none;
     }
+  }
+  
+
+  span.error-message {
+    position: absolute;
+    bottom: -20px;
+    right: 0;
+    font: $small;
+    color: $negative;
   }
 }
 
@@ -660,6 +722,24 @@ label.text {
   }
 }
 
+.card-select {
+  width: 100%;
+  display: flex;
+  flex-flow: column;
+  gap: 2rem;
+  .line-container {
+    display: flex;
+    gap: 2rem;
+    flex-flow: row;
+    
+    > span {
+      font: $general;
+      display: flex;
+      align-items: center;
+    }
+  }
+}
+
 .new-wish-page > form {
   display: flex;
   gap: 6rem;
@@ -733,37 +813,44 @@ label.text {
   }
 }
 
-.new-list-page > form {
+.new-list-page {
   display: flex;
   flex-flow: column;
-  gap: 3rem;
+  align-items: center;
 
-  .divider {
-    width: 100%;
-    height: 1px;
-    background-color: $lightGray2;
-  }
-  
-  .inputs {
+  > form {
     display: flex;
-    gap: 2rem;
     flex-flow: column;
+    gap: 3rem;
+    max-width: 132rem;
 
-    label.text {
-      white-space: nowrap;
+    .divider {
+      width: 100%;
+      height: 1px;
+      background-color: $lightGray2;
     }
-  }
+    
+    .inputs {
+      display: flex;
+      gap: 2rem;
+      flex-flow: column;
 
-  .line-container {
-    display: flex;
-    gap: 2rem;
-    flex-flow: row;
-
-    &.btn-group {
-      justify-content: flex-end;
+      label.text {
+        white-space: nowrap;
+      }
     }
+
+    .line-container {
+      display: flex;
+      gap: 2rem;
+      flex-flow: row;
+
+      &.btn-group {
+        justify-content: flex-end;
+      }
+    }
+    
   }
-  
 }
 
 .highlighter {
@@ -1034,9 +1121,22 @@ label.text {
   flex: 1 1;
   border-radius: $bigStep;
   overflow: hidden;
-  box-shadow: $lyingCard;
   transition: all .2s ease-in-out;
   position: relative;
+
+  &:not(.selected) {
+    box-shadow: $lyingCard;
+  }
+
+  &:hover {
+    &:not(.selected) {
+      box-shadow: $flyingAbove;
+    }
+
+    .star-rating {
+      opacity: 1;
+    }
+  }
 
   &.view {
     &:hover {
@@ -1047,6 +1147,9 @@ label.text {
   &.input {
     &:hover {
       cursor: pointer;
+      .selection-mask {
+        background-color: rgba(248, 237, 143, 0.05);
+      }
     }
     .selection-mask {
       position: absolute;
@@ -1058,13 +1161,6 @@ label.text {
       border-radius: 1rem;
       background-color: rgba(248, 237, 143, 0.15);
       box-shadow: $insetGlow;
-    }
-  }
-
-  &:hover {
-    box-shadow: $flyingAbove;
-    .star-rating {
-      opacity: 1;
     }
   }
 
@@ -1248,7 +1344,6 @@ label.text {
   align-items: center;
   gap: 2rem;
   padding: 0.5rem 2rem;
-  z-index: 1;
   transition: all ease-in-out .15s;
 
   .title-container {
@@ -1262,17 +1357,18 @@ label.text {
     border-radius: 2rem;
     transition: all ease-in-out .15s;
 
-    svg {
-      z-index: 1;
+    > svg {
+      // z-index: 1;
       position: absolute;
       left: -1rem;
       top: 0;
     }
 
     .title {
-      z-index: 2;
+      z-index: 1;
       font: $wishHeader;
       color: $darkGray2;
+      min-width: 2rem;
     }
   }
 
@@ -1310,6 +1406,12 @@ label.text {
 
   }
 
+  .dropdown {
+    position: absolute;
+    right: -4rem;
+    z-index: 2;
+  }
+
   &:not(.on-wishlist-page) {
     padding: 0.5rem 2rem;
 
@@ -1329,16 +1431,18 @@ label.text {
   }
 
   &.selected {
-    background-color: $lightGray2;
+    background-color: $lightGray1;
 
     .title-container {
       background-color: $primary;
       fill: $primary;
+      filter: drop-shadow(0 0 10px rgb(255, 255, 255));
     }
 
     &.on-wishlist-page {
       padding: 1rem 2rem;
       top: -2rem;
+      border-bottom: solid 1px $lightGray2;
     }
   }
 
