@@ -1,4 +1,5 @@
 import React from 'react'
+import Symbol_observable from 'symbol-observable';
 import { createRoot } from 'react-dom/client'
 import { Provider } from 'react-redux'
 import { persistStore } from 'redux-persist'

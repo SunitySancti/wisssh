@@ -727,6 +727,7 @@ label.text {
   display: flex;
   flex-flow: column;
   gap: 2rem;
+  
   .line-container {
     display: flex;
     gap: 2rem;
@@ -822,7 +823,9 @@ label.text {
     display: flex;
     flex-flow: column;
     gap: 3rem;
-    max-width: 132rem;
+    width: 100%;
+    max-width: 150rem;
+    align-items: center;
 
     .divider {
       width: 100%;
@@ -834,16 +837,24 @@ label.text {
       display: flex;
       gap: 2rem;
       flex-flow: column;
+      width: 100%;
+      max-width: 132rem;
 
       label.text {
         white-space: nowrap;
       }
     }
 
+    .card-select {
+      align-items: center;
+    }
+
     .line-container {
       display: flex;
       gap: 2rem;
       flex-flow: row;
+      width: 100%;
+      max-width: 132rem;
 
       &.btn-group {
         justify-content: flex-end;
@@ -1295,6 +1306,11 @@ label.text {
         .links {
           display: flex;
           flex-flow: row wrap;
+        }
+
+        .wishlist-not-found {
+          font: $general;
+          color: $negative;
         }
       }
 
