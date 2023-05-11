@@ -1,0 +1,24 @@
+@import '../../_style-config';
+
+.password-input {
+    position: relative;
+    width: 100%;
+
+    > .icon {
+        position: absolute;
+        right: 0;
+        top: 0;
+
+        &:not(:hover) {
+            fill: $gray2;
+        }
+
+        &:hover {
+            fill: $darkGray2;
+        }
+    }
+
+    input {
+        padding-right: 4rem;
+    }
+}

@@ -1,0 +1,134 @@
+@import '../../_style-config';
+
+.image-input {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    min-width: 30rem;
+
+    .container {
+        width: 100%;
+        min-height: 30rem;
+        overflow: hidden;
+
+        svg.placeholder {
+            display: block;
+            width: 100%;
+        }
+    
+        img {
+            width: 100%;
+            height: 100%;
+        }
+    }
+
+    &.user-avatar,
+    &.wish-cover.no-image {
+        width: 100%;
+
+        .container {
+            aspect-ratio: 1;
+            max-width: 40rem;
+            max-height: 40rem;
+        }
+    }
+
+    &.wish-cover.preview {
+        max-height: calc(100vh - 20rem);
+    }
+
+    &.user-avatar {
+        &.preview, img {
+            border-radius: 50%;
+            object-fit: cover;
+        }
+    }
+
+    &.wish-cover {
+        &.preview, img {
+            border-radius: 1rem;
+            object-fit: contain;
+        }
+    }
+
+    &.no-image {
+        display: flex;
+        flex-flow: column;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 2rem;
+        position: relative;
+        fill: rgba(0, 0, 0, 0.06);
+
+        &.user-avatar .container {
+            border-radius: 50%;
+        }
+        &.wish-cover .container {
+            border-radius: 16.67%;
+        }
+    }
+    
+    &.preview {
+        background: none;
+        border: none;
+        padding: 0;
+        
+        .transparent-icon {
+            position: absolute;
+            transition: all ease-in-out .5s;
+
+            svg {
+                fill: black;
+                fill-opacity: 0.3;
+                stroke-width: 1.5;
+                stroke: white;
+                stroke-opacity: 0.3;
+                paint-order: stroke;
+            }
+    
+            &.change-btn {
+                transform: translate(-50%, -50%) scale(3);
+                left: 50%;
+                top: 50%;
+            }
+
+            &.close-btn {
+                transform: scale(1.5);
+                right: 0;
+                top: 0;
+
+                &:hover svg {
+                    fill: $negativeHover;
+                    fill-opacity: 1;
+                    stroke-opacity: 0.7;
+                }
+            }
+        }
+    
+        &:hover:not(.ignore-hover) .change-btn,
+        &.droppable .change-btn {
+            transform: translate(-50%, -50%) scale(4) rotate(180deg);
+            svg {
+                fill-opacity: 0.7;
+                stroke-opacity: 0.7;
+            }
+        }
+    }
+  
+    &:hover {
+        cursor: pointer;
+        .button {
+            background-color: $primaryHover;
+        }
+    }
+  
+    &.droppable svg.placeholder {
+        background-color: $primaryLight;
+        fill: $primaryHover;
+    }
+  
+    &.rejected .no-image {
+        background-color: $negativeLight;
+    }
+}

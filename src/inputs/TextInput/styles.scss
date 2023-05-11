@@ -1,0 +1,87 @@
+@import '../../_style-config';
+
+.text-input {
+    position: relative;
+    display: flex;
+    flex-flow: row nowrap;
+    width: 100%;
+  
+    > input {
+        height: 4rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+  
+    > textarea {
+        height: 12rem;
+        min-height: 6rem;
+
+        &::-webkit-resizer {
+            display: none;
+        }
+        
+        + .icon {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            background: none;
+            pointer-events: none;
+            fill: $gray1;
+        }
+    }
+    
+    > input, textarea {
+        flex: 1;
+        padding: 11px 22px;
+        border: 1px solid;
+        border-color: $gray1;
+        border-radius: 2rem;
+        outline: none;
+        font: $general;
+        color: $darkGray2;
+    
+        &:default {
+            border-color: $gray1;
+        }
+
+        &:hover:not(:disabled) {
+            border-color: $darkGray1;
+            box-shadow: none;
+        }
+
+        &:active:not(:disabled),
+        &:focus:not(:disabled) {
+            border: 1px solid $primary;
+            box-shadow: $insetGlow;
+    
+            &::placeholder {
+            color: $lightGray3;
+            }
+        }
+    
+        &::placeholder {
+            color: $gray1;
+        }
+    
+        &:invalid,
+        &.error {
+            border-color: $negative;
+            box-shadow: $insetNegativeGlow;
+        }
+    
+        :disabled {
+            background-color: $lightGray1;
+            pointer-events: none;
+        }
+    }
+    
+    span.error-message {
+        position: absolute;
+        bottom: -20px;
+        right: 0;
+        font: $small;
+        color: $negative;
+        padding-right: 1rem;
+    }
+}

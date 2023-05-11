@@ -1,0 +1,117 @@
+@import '../../_style-config';
+
+.date-select {
+  display: flex;
+  flex-flow: row nowrap;
+  flex: 1 1;
+
+    .text-input {
+        position: relative;
+
+        .icon-button {
+            position: absolute;
+            right: 0;
+            transition: all ease-in-out .3s;
+
+            &.rotate {
+                transform: rotate(180deg);
+            }
+        }
+    }
+
+    .custom-header {
+        display: flex;
+        flex-flow: row nowrap;
+        padding: 0 1rem;
+        font: $general;
+        color: $darkGray2;
+
+        span {
+            flex: 1;
+            line-height: 4rem;
+        }
+    }
+
+    .custom-calendar {
+        border-radius: 2rem;
+        border-color: $lightGray3;
+        box-shadow: $flyingAbove;
+        overflow: hidden;
+
+        .react-datepicker__month-container {
+
+            .react-datepicker__header {
+                background-color: $lightGray1;
+                border-color: $lightGray3;
+                padding-top: 0;
+
+                .react-datepicker__day-names {
+                    display: flex;
+                    flex-flow: row nowrap;
+                    padding: 6px;
+
+                    .react-datepicker__day-name {
+                        width: 30px;
+                        margin: 0;
+                        font: $small;
+                        color: $gray2;
+                    }
+                }
+            }
+
+            .react-datepicker__month {
+                padding: 6px;
+                margin: 0;
+
+                .react-datepicker__week {
+                    display: flex;
+                    flex-flow: row nowrap;
+
+                    .react-datepicker__day {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        width: 30px;
+                        height: 30px;
+                        margin: 0;
+                        padding-top: 3px;
+                        border-radius: 0;
+                        vertical-align: middle;
+                        font: $small;
+                        color: $darkGray2;
+
+                        &:hover {
+                            background-color: $primaryHover;
+                            color: black;
+                        }
+                    }
+
+                    .react-datepicker__day--today {
+                        background-color: $primaryLight;
+                        color: black;
+                        font-weight: bold;
+                    }
+
+                    .react-datepicker__day--outside-month {
+                        color: $gray1;
+                    }
+
+                    .react-datepicker__day--weekend {
+                        color: $negative !important;
+                    }
+
+                    .react-datepicker__day--selected {
+                        background-color: $primary;
+                        color: black;
+                    }
+
+                    .react-datepicker__day--disabled {
+                        color: black;
+                        opacity: 0.33;
+                        pointer-events: none;
+                    }
+                }
+            }
+        }
+    }
+}

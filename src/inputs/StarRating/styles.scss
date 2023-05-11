@@ -1,0 +1,30 @@
+@import '../../_style-config';
+
+.star-rating {
+    display: flex;
+    flex-flow: row nowrap;
+    
+    .star {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    
+        > * {
+            position: absolute;
+        }
+    
+        > input {
+            opacity: 0;
+        }
+    }
+  
+    &.editable .star:hover {
+        cursor: pointer;
+        
+        > svg {
+            transform: scale(1.1);
+            transition: all ease-in-out 0.2s;
+        }
+    }
+}

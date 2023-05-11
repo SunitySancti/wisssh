@@ -1,0 +1,46 @@
+@import '../../_style-config';
+
+.dropdown-trigger {
+    display: flex;
+}
+
+.dropdown {
+    position: absolute;
+    display: flex;
+    flex-flow: column;
+    width: fit-content;
+    height: fit-content;
+    margin: 4px 0;
+    padding: 1rem 0;
+    background-color: white;
+    border-radius: 1rem;
+    box-shadow: $flyingAbove;
+  
+    .dropdown-option {
+        display: flex;
+        flex-flow: row nowrap;
+        align-items: center;
+        justify-content: flex-start;
+        padding: 0 6px;
+        height: 4rem;
+        color: $darkGray2;
+        fill: currentColor;
+        user-select: none;
+    
+        > span {
+            padding: 4px 1.5rem 0 0;
+            font: $general;
+            white-space: nowrap;
+        }
+    
+        &:hover {
+            background-color: $primaryHover;
+            cursor: pointer;
+            color: black;
+        }
+    
+        &:active {
+            background-color: $primary;
+        }
+    }
+}

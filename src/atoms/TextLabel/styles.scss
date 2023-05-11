@@ -1,0 +1,28 @@
+@import '../../_style-config';
+
+.text-label {
+    position: relative;
+    display: flex;
+    flex-flow: row nowrap;
+    padding: 1rem 2rem 1rem 0;
+    width: max-content;
+  
+    > span {
+        white-space: nowrap;
+        font: $general;
+    
+        &:first-child {
+            color: $darkGray1;
+        }
+        &:last-child {
+            position: absolute;
+            top: 3rem;
+            color: $lightGray3
+        }
+    }
+  
+    > .icon {
+        min-width: 2rem;
+        fill: $negative;
+    }
+}

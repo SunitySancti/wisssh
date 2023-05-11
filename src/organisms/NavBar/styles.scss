@@ -1,0 +1,25 @@
+@import '../../_style-config';
+
+.navbar {
+    position: relative;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    height: fit-content;
+    transition: all ease-in-out .15s;
+    
+    .with-shadow {
+        box-shadow: $scrollOverlay;
+    }
+
+    .content {
+        border-bottom: solid 1px $lightGray2;
+    }
+}
+
+.work-space {
+    padding: 2rem var(--app-body-padding) 20rem;
+    width: 100%;
+    background-color: white;
+    overflow: overlay;
+}

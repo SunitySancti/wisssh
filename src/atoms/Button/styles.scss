@@ -1,0 +1,84 @@
+@import '../../_style-config';
+
+.button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    width: max-content;
+    height: 4rem;
+    padding: 0 2rem;
+    font: $action;
+    letter-spacing: -0.5px;
+    fill: currentColor;
+    outline: none;
+    border: none;
+    transition: all ease-in-out .12s;
+
+    &:not(:disabled):hover {
+        cursor: pointer;
+    }
+
+    &:disabled {
+        cursor: default;
+    }
+    
+    &:not(.clear){
+        &:not(:disabled) {
+            color: $darkGray2;
+        }
+    
+        &:disabled {
+            background: none;
+            border: solid 1px $lightGray3;
+            color: $gray2;
+        }
+
+        &.secondary {
+            background-color: $lightGray1;
+            border: solid 1px $lightGray2;
+        }
+
+        &:not(.negative) {
+            &.primary {
+                background-color: $primary;
+
+                &:hover {
+                    background-color: $primaryHover;
+                    border-color: $primaryHover;
+                }
+            }
+
+            &.secondary:hover {
+                background-color: $lightGray2;
+            }
+        }
+
+        &.negative {
+            color: white;
+
+            &.primary {
+                background-color: $negative;
+            }
+            &:hover {
+                background-color: $negativeHover;
+            }
+        }
+    }
+
+    &.clear {
+        background: none;
+        
+        &:not(:disabled):not(:hover) {
+            color: $gray2;
+        }
+
+        &:hover, &:focus {
+            color: $darkGray2;
+        }
+
+        &:disabled {
+            color: rgba(0,0,0,0.2);
+        }
+    }
+}

@@ -1,0 +1,47 @@
+@import '../../_style-config';
+
+.app-layout {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.scroll-container {
+    display: flex;
+    flex-shrink: 0;
+    overflow-x: overlay;
+    width: inherit;
+}
+  
+.app-header {
+    position: relative;
+    width: fit-content;
+    height: $appHeaderHeight;
+    background-color: $primaryLight;
+    border-bottom: solid 1px $lightGray2;
+    display: flex;
+    flex-shrink: 0;
+    flex-grow: 1;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  
+    .icon-link {
+        &:not(:hover) {
+            fill: $gray2;
+        }
+        &:hover {
+            fill: $darkGray2;
+        }
+    }
+
+    > div {
+        display: flex;
+        flex-flow: row nowrap;
+        gap: 1rem;
+        align-items: center;
+        height: 100%;
+        padding: 0 1rem;
+    }
+}

@@ -1,0 +1,13 @@
+@import '../../_style-config';
+
+.user-group {
+    .login-btn {
+        &:not(:hover) {
+            fill: $darkGray1;
+        }
+        &:hover {
+            fill: $darkGray2;
+            cursor: pointer;
+        }
+    }
+}

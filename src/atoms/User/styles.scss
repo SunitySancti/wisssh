@@ -1,0 +1,27 @@
+@import '../../_style-config';
+
+.user {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    gap: 1rem;
+
+    svg {
+        &:not(:hover) {
+            fill: $gray2;
+        }
+        &:hover {
+            fill: $darkGray1;
+            cursor: pointer;
+        }
+    }
+    
+    img {
+      border-radius: 50%;
+    }
+  
+    span {
+      font: $general;
+      color: $darkGray2;
+    }
+  }

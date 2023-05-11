@@ -1,0 +1,20 @@
+@import '../../_style-config';
+
+.icon-button {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    fill: $gray2;
+    border: none;
+    background: none;
+    cursor: pointer;
+  
+    &:hover svg {
+        fill: $darkGray2;
+    }
+  
+    &:disabled svg {
+        fill: $gray1 !important;
+    }
+}

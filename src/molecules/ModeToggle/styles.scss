@@ -1,0 +1,43 @@
+@import '../../_style-config';
+
+$sliderPadding: 3px;
+
+.mode-toggle {
+    margin: 0 1rem 1rem;
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    height: 4rem;
+    border: solid $lightGray3 1px;
+    border-radius: 2rem;
+    background-color: $lightGray1;
+
+    .toggle-button {
+        width: calc(4rem - 2px);
+        height: calc(4rem - 2px);
+        fill: $gray2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2;
+        cursor: default;
+
+        &:hover {
+            fill: $darkGray2;
+        }
+
+        &.active {
+            fill: $darkGray2;
+        }
+    }
+
+    .mt-slider {
+        position: absolute;
+        background-color: $primary;
+        border-radius: 2rem;
+        margin: $sliderPadding;
+        width: calc(50% - $sliderPadding);
+        height: calc(100% - 2 * $sliderPadding);
+        transition: all 0.3s ease-in-out;
+    }
+}

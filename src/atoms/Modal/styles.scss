@@ -1,0 +1,79 @@
+@import '../../_style-config';
+
+#modal-root {
+    .background {
+        width: 100%;
+        height: 100%;
+        background-color: #00000080;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+
+        &.hidden {
+            visibility: hidden;
+            pointer-events: none;
+        }
+        &.visible {
+            visibility: visible;
+            pointer-events: all;
+        }
+
+        .modal-window {
+            position: relative;
+            border-radius: 1rem;
+            background-color: white;
+            display: flex;
+            flex-flow: column;
+            width: 50vw;
+            max-width: 55rem;
+            box-shadow: $flyingAbove;
+            cursor: auto;
+
+            .header {
+                padding: 1rem 2rem 0.5rem;
+                background: linear-gradient(135deg, $primaryHover, $primary);
+                border-bottom: solid 1px $primaryDark1;
+                border-radius: 1rem 1rem 0 0;
+                font: $general;
+                color: $primaryDark2;
+            }
+
+            .body {
+                padding: 4rem 6rem;
+                background-color: white;
+                font: $general;
+                color: $darkGray2;
+            }
+
+            .actions {
+                display: flex;
+                flex-flow: row nowrap;
+                border-radius: 0 0 1rem 1rem;
+                overflow: hidden;
+
+                .button {
+                    flex: 1
+                }
+            }
+
+            .icon-button {
+                position: absolute;
+                top: -4rem;
+                right: -4rem;
+                pointer-events: none;
+            }
+
+            .icon-button svg {
+                fill: white !important;
+            }
+            &:hover .icon-button svg {
+                opacity: 0.5;
+            }
+            &:not(:hover) .icon-button svg,
+            .icon-button:hover svg {
+                opacity: 1;
+            }
+        }
+    }
+}

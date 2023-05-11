@@ -1,0 +1,16 @@
+@import '../../_style-config';
+
+
+.new-wish-page > form > .double-column-layout {
+    .column > .line-container {
+        width: 100%;
+        display: flex;
+        flex-flow: row nowrap;
+        gap: 2rem;
+    }
+  
+    .select-box {
+      width: 100%;
+    }
+}
+  

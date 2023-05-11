@@ -1,0 +1,38 @@
+@import '../../_style-config';
+
+.toggle-input {
+    display: flex;
+    flex-flow: row nowrap;
+  
+    .toggle-button {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 4rem;
+        height: 4rem;
+    
+        > * {
+            position: absolute;
+        }
+    
+        > input {
+            opacity: 0;
+        }
+    
+        > svg {
+            fill: $primary;
+            z-index: 0;
+        }
+    
+        > label {
+            z-index: 1;
+            font: $general;
+            color: $darkGray2;
+        }
+    
+        &:hover, &:hover > * {
+            cursor: pointer;
+        }
+    }
+}

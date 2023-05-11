@@ -1,0 +1,122 @@
+@import '../../_style-config';
+
+
+.wish-page {
+    .first.column .container {
+        width: 100%;
+        min-height: 30rem;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+
+        svg.placeholder {
+            display: block;
+            width: 100%;
+            fill: $lightGray2;
+        }
+    
+        img {
+            object-fit: contain;
+            width: 100%;
+            height: 100%;
+        }
+    }
+    .second.column {
+        display: flex;
+        flex-flow: column nowrap;
+        gap: 5rem;
+        padding: 2rem 0;
+    
+        .header {
+            display: flex;
+            flex-flow: row wrap;
+            align-items: baseline;
+            position: relative;
+    
+            .title {
+                font: $wishPageHeader;
+                color: $darkGray2;
+                margin: 0 4rem 1rem 0;
+                white-space: pre-line;
+                text-indent: 6rem;
+            }
+    
+            a {
+                display: flex;
+                flex-flow: row nowrap;
+            }
+
+            .dropdown-trigger {
+                position: absolute;
+                top: -2px;
+                display: inline !important;
+            }
+        }
+    
+        .info {
+            display: flex;
+            flex-flow: column nowrap;
+            gap: 1rem;
+    
+            .info-field {
+                position: relative;
+                display: flex;
+                flex-flow: row nowrap;
+                align-items: center;
+                gap: 2rem;
+        
+                .label {
+                    font: $general;
+                    color: $gray2;
+                }
+        
+                .links {
+                    display: flex;
+                    flex-flow: row wrap;
+                }
+        
+                .wishlist-not-found {
+                    font: $general;
+                    color: $negative;
+                }
+            }
+    
+            .description {
+                position: relative;
+                display: inline-block;
+                filter: drop-shadow(0px 1px 2px rgba(0, 0, 0, 0.12)) drop-shadow(0px 2px 5px rgba(0, 0, 0, 0.06));
+        
+                .description-pointer {
+                    height: 2rem;
+                    fill: $primaryLight;
+                }
+        
+                .container {
+                    width: fit-content;
+                    font: $general;
+                    color: $darkGray2;
+                    background-color: $primaryLight;
+                    padding: 1rem 2rem;
+                    border-radius: 2rem;
+                }
+            }
+        }
+    
+        .actions {
+            width: fit-content;
+            display: flex;
+            flex-flow: column nowrap;
+            gap: 2rem;
+    
+            .price {
+                font: $wishPageHeader;
+                color: $darkGray2;
+            }
+    
+            button {
+                border-radius: $smallStep;
+            }
+        }
+    }
+}

@@ -1,0 +1,50 @@
+@font-face {
+    font-family: 'Lato';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Lato'), local('lato'),
+      url('/fonts/Lato/Lato-Regular.woff2') format('woff2'),
+      url('/fonts/Lato/Lato-Regular.woff') format('woff'),
+      url('/fonts/Lato/Lato-Regular.ttf') format('ttf'),
+      url('/fonts/Lato/Lato-Regular.eot') format('eot');
+}
+@font-face {
+    font-family: 'RoundedMplus1c';
+    font-style: normal;
+    font-weight: 400;
+    src: local('MPLUSRounded1c'), local('RoundedMplus1c'),
+    url('/fonts/RoundedMplus1c/RoundedMplus1c-Regular.woff2') format('woff2'),
+    url('/fonts/RoundedMplus1c/RoundedMplus1c-Regular.woff') format('woff'),
+    url('/fonts/RoundedMplus1c/RoundedMplus1c-Regular.ttf') format('ttf'),
+    url('/fonts/RoundedMplus1c/RoundedMplus1c-Regular.eot') format('eot');
+}
+@font-face {
+    font-family: 'RoundedMplus1c';
+    font-style: normal;
+    font-weight: 500;
+    src: local('MPLUSRounded1c'), local('RoundedMplus1c'),
+    url('/fonts/RoundedMplus1c/RoundedMplus1c-Medium.woff2') format('woff2'),
+    url('/fonts/RoundedMplus1c/RoundedMplus1c-Medium.woff') format('woff'),
+    url('/fonts/RoundedMplus1c/RoundedMplus1c-Medium.ttf') format('ttf'),
+    url('/fonts/RoundedMplus1c/RoundedMplus1c-Medium.eot') format('eot');
+}
+@font-face {
+    font-family: 'GothamPro';
+    font-style: normal;
+    font-weight: 400;
+    src: local('GothamPro'),
+    url('/fonts/GothamPro/GothamPro.woff') format('woff'),
+    url('/fonts/GothamPro/GothamPro.ttf') format('ttf'),
+    url('/fonts/GothamPro/GothamPro.otf') format('otf'),
+    url('/fonts/GothamPro/GothamPro.eot') format('eot');
+}
+@font-face {
+    font-family: 'GothamPro';
+    font-style: normal;
+    font-weight: 500;
+    src: local('GothamPro'),
+    url('/fonts/GothamProMedium/GothamProMedium.woff') format('woff'),
+    url('/fonts/GothamProMedium/GothamProMedium.ttf') format('ttf'),
+    url('/fonts/GothamProMedium/GothamProMedium.otf') format('otf'),
+    url('/fonts/GothamProMedium/GothamProMedium.eot') format('eot');
+}

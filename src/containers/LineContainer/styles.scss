@@ -1,0 +1,13 @@
+@import '../../_style-config';
+
+.line-container {
+    display: flex;
+    gap: 2rem;
+    flex-flow: row nowrap;
+    width: 100%;
+    // align-items: center;
+
+    &.align-right {
+        justify-content: flex-end;
+    }
+}
