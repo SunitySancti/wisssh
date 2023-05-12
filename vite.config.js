@@ -11,17 +11,13 @@ export default defineConfig({
   },
   server: {
     host:"localhost",
-    // host: '0.0.0.0',
-    // host:"192.168.1.101",
     port:3000,
     strictPort: true,
     // https: false,
-    // cors: false,
+    cors: true,
     hmr: {
-        host:"localhost",
-        // host: '0.0.0.0',
-        // host:"192.168.1.101",
-        // clientPort: 443 // Run the websocket server on the SSL port
+        // host:"localhost",
+        clientPort: 443 // Run the websocket server on the SSL port
     },
     proxy: {
         '/api': 'https://wissshapi-1-u7107658.deta.app'

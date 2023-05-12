@@ -8,7 +8,7 @@ import { json,
 async function fetchImage(id, drive) {
     if(!id) return;
 
-    const url = await fetch(`/api/images/${drive}/${id}`)
+    const url = await fetch(`https://wissshapi-1-u7107658.deta.app/api/images/${drive}/${id}`)
         .then(checkStatus)
         .then(res => res.blob())
         .then(blob => {

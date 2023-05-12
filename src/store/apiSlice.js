@@ -4,7 +4,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 export const apiSlice = createApi({
     reducerPath: 'api',
     baseQuery: fetchBaseQuery({
-        baseUrl: '/api/',
+        baseUrl: 'https://wissshapi-1-u7107658.deta.app/api/',
         prepareHeaders: (headers,{ getState }) => {
             const token = getState().auth.token;
             if(token) {
