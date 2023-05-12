@@ -1,3 +1,4 @@
-node_modules
-build
+.env
 .glitchdotcom.json
+build
+node_modules

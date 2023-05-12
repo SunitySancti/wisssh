@@ -4,11 +4,14 @@ import { createSlice,
 import { json,
          checkStatus } from 'utils'
 
+const apiUrl = import.meta.env.VITE_API_URL;
+
 
 async function fetchImage(id, drive) {
     if(!id) return;
+    const endpoint = [apiUrl, 'images', drive, id].join('/');
 
-    const url = await fetch(`/api/images/${drive}/${id}`)
+    const url = await fetch(endpoint)
         .then(checkStatus)
         .then(res => res.blob())
         .then(blob => {
@@ -34,11 +37,13 @@ export const postImage = createAsyncThunk(
     'images/postImage',
     async ({ id, file, drive }) => {
         if(!id || !file || !drive) return;
+        
+        const endpoint = [apiUrl, 'images', drive, id].join('/');
 
         const formData = new FormData();
         formData.append('file', file)
 
-        return await fetch(`https://wissshapi-1-u7107658.deta.app/api/images/${drive}/${id}`,{
+        return await fetch(endpoint, {
             'method': 'POST',
             'body': formData
         })
