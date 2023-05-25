@@ -1,6 +1,26 @@
 @import '../../_style-config';
 
+.icon-button {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    fill: $gray2;
+    border: none;
+    background: none;
+    cursor: pointer;
+  
+    &:hover svg {
+        fill: $darkGray2;
+    }
+  
+    &:disabled svg {
+        fill: $gray1 !important;
+    }
+}
+
 .button {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -14,6 +34,12 @@
     outline: none;
     border: none;
     transition: all ease-in-out .12s;
+
+    &.round {
+        border-radius: 6px;
+    }
+
+    // переписать в стиле kind/state
 
     &:not(:disabled):hover {
         cursor: pointer;
@@ -49,6 +75,24 @@
                 }
             }
 
+            &.accent {
+                background-color: $accent;
+                color: white;
+                border: none;
+
+                &:hover:not(:disabled),
+                &:active:not(:disabled),
+                &:focus:not(:disabled) {
+                    background-color: $accentHover;
+                }
+
+                &:disabled {
+                    background-color: rgba(199, 109, 241, 0.33);
+                    color: rgba(255, 255, 255, 0.5);
+                    pointer-events: none;
+                }
+            }
+
             &.secondary:hover {
                 background-color: $lightGray2;
             }
@@ -69,11 +113,13 @@
     &.clear {
         background: none;
         
-        &:not(:disabled):not(:hover) {
+        &:not(:disabled):not(:hover):not(:focus):not(:active) {
             color: $gray2;
         }
 
-        &:hover, &:focus {
+        &:hover:not(:disabled),
+        &:active,
+        &:focus {
             color: $darkGray2;
         }
 

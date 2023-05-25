@@ -1,0 +1,60 @@
+@import '../../_style-config';
+
+.checkbox {
+    position: relative;
+    display: flex;
+    flex-flow: row nowrap;
+    cursor: pointer;
+
+    > .box {
+        margin: 0;
+        width: 2rem;
+        height: 2rem;
+        border-radius: 4px;
+        outline-width: 2px;
+        outline-style: solid;
+        transition: all 0.2s ease-in-out;
+
+        &.checked::after {
+            content: "";
+            display: block;
+            position: relative;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: calc(2rem - 9px);
+            height: calc(2rem - 9px);
+            background-color: $primary;
+            border-radius: 2px;
+        }
+    }
+
+    > .label {
+        padding-left: 1rem;
+        font: $general;
+        transition: all 0.2s ease-in-out;
+    }
+
+    &:not(:hover) {
+        .box {
+            outline-color: rgba(0, 0, 0, 0.1);
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+        .label {
+            color: rgba(0,0,0,0.6);
+        }
+    }
+
+    &:hover,
+    &:focus {
+        outline: none;
+
+        .box{
+            outline-color: rgba(0, 0, 0, 0.3);
+            background-color: white;
+        }
+        .label {
+            color: rgba(0,0,0,0.75)
+        }
+    }
+}

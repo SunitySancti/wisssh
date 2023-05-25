@@ -17,7 +17,6 @@ import { Icon,
 import { User } from 'atoms/User'
 import { Button,
          WishButton } from 'atoms/Button'
-import { IconButton } from 'atoms/IconButton'
 import { WithDropDown } from 'atoms/WithDropDown'
 import { Modal } from 'atoms/Modal'
 
@@ -84,12 +83,12 @@ export const SingleWishPage = () => {
     }];
 
     const modalActions = [{
-        leftIcon: 'cancel',
+        icon: 'cancel',
         text: 'Отмена',
         onClick: () => modalRef.current?.hideModal()
     },{
         kind: 'negative primary',
-        leftIcon: 'delete',
+        icon: 'delete',
         text: 'Удалить навсегда',
         onClick: () => deleteWish(wish.id)
     }];
@@ -226,7 +225,7 @@ export const SingleWishPage = () => {
                     <span>Желание не найдено 😥</span>
                     <Button
                         kind='primary'
-                        leftIcon='plus'
+                        icon='plus'
                         text='Ко всем желаниям'
                         onClick={() => navigate(`/${ section }/items/all`)}
                         round
@@ -249,10 +248,7 @@ export const SingleWishPage = () => {
                     <>
                         <div className='header'>
                             <WithDropDown
-                                trigger={ <IconButton
-                                    icon='kebap'
-                                    size={ 4 }
-                                /> }
+                                trigger={ <Button icon='kebap' size={ 4 }/> }
                                 options={ menuOptions }
                             />
                             <span className='title'>{ wish?.title }</span>
@@ -284,4 +280,5 @@ export const SingleWishPage = () => {
                 }
             />
         </div>
-);}
+    )
+}

@@ -33,7 +33,7 @@ export const WishlistPage = () => {
                         <span>Вишлист не найден 😥</span>
                         <Button
                             kind='primary'
-                            leftIcon='plus'
+                            icon='plus'
                             text='К списку вишлистов'
                             onClick={() => navigate(`/${ section }/lists`)}
                             round

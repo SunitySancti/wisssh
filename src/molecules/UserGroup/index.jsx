@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 
 import './styles.scss'
-import { IconButton } from 'atoms/IconButton'
+import { Button } from 'atoms/Button'
 import { CurrentUserPic } from 'atoms/CurrentUserPic'
 
 import { logout } from 'store/authSlice'
@@ -12,26 +12,35 @@ import { logout } from 'store/authSlice'
 export const UserGroup = ({ isShort }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const currentUserId = useSelector(state => state.auth?.user?.id);
+    const currentUserId = useSelector(state => state.auth?.userId);
+
+    function goToLogin() {
+        navigate('/login')
+    }
+    function goToProfile() {
+        navigate('/profile')
+    }
+    function logoutAndGoToLogin() {
+        dispatch(logout());
+        goToLogin()
+    }
 
     return (
         <div className='user-group'>
-            
-            
             { currentUserId
               ? <>
-                    <IconButton
+                    <Button
                         icon='logout'
-                        onClick={ () => dispatch(logout()) }
+                        onClick={ logoutAndGoToLogin }
                     />
-                    <IconButton
+                    <Button
                         icon='settings'
-                        onClick={ () => navigate('/profile') }/>
+                        onClick={ goToProfile }/>
                     <CurrentUserPic/>
                 </>
-              : <IconButton
+              : <Button
                     icon='login'
-                    onClick={ () => navigate('/login') }
+                    onClick={ goToLogin }
                 />
             }
         </div>

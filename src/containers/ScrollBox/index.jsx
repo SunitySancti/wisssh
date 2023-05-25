@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 
 import './styles.scss'
-import { IconButton } from 'atoms/IconButton'
+import { Button } from 'atoms/Button'
 
 export const ScrollBox = ({ children }) => {
     const [scrollPosition, setScrollPosition] = useState(0);
@@ -70,7 +70,7 @@ export const ScrollBox = ({ children }) => {
                 className={ leftOverflow ? 'left field masked' : 'left field' }
             >
                 { (leftOverflow || rightOverflow) && (
-                    <IconButton
+                    <Button
                         icon='arrowLeft'
                         onClick={ scrollLeft }
                         disabled={ scrollPosition === 0 }
@@ -86,7 +86,7 @@ export const ScrollBox = ({ children }) => {
                 className={ rightOverflow ? 'right field masked' : 'right field' }
             >
                 { (leftOverflow || rightOverflow) && (
-                    <IconButton
+                    <Button
                         icon='arrowRight'
                         onClick={ scrollRight }
                         disabled={ scrollPosition >= contentRef.current?.scrollWidth - contentRef.current?.clientWidth }

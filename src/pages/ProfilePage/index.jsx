@@ -186,7 +186,7 @@ export const ProfilePage = () => {
                                         type='submit'
                                         kind='primary'
                                         text='Сохранить изменения'
-                                        leftIcon='ok'
+                                        icon='ok'
                                         round
                                         disabled={
                                             !formState.isValid ||

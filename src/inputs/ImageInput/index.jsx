@@ -9,7 +9,6 @@ import './styles.scss'
 import { Icon,
          WishPlaceholder,
          UserPlaceholder } from 'atoms/Icon'
-import { IconButton } from 'atoms/IconButton'
 import { Button } from 'atoms/Button'
 
 export const ImageInput = ({
@@ -87,7 +86,7 @@ export const ImageInput = ({
                         name='change'
                         className={'transparent-icon change-btn'}
                     />
-                    <IconButton
+                    <Button
                         icon='close'
                         className='transparent-icon close-btn'
                         onClick={ deleteImage }
@@ -103,7 +102,7 @@ export const ImageInput = ({
                 </div>
                 <Button
                     text='Загрузить изображение'
-                    leftIcon='upload'
+                    icon='upload'
                     round
                 />
             </>

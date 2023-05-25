@@ -8,9 +8,115 @@ export function checkStatus(res) {
 
 export const json = res => res.json()
 
-export const generateId = () => {
-    const alphabet = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const idLength = 6;
+// takes string or number, returns digits array. 'ff' => [15, 15] ; 10 => [1, 0]
+export function stringOrNumberToDecimalDigitsArray(
+    input,
+    inputAlphabet = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+) {
+    if(typeof(input) !== 'number' && typeof(input) !== 'string') return []
+
+    let string = input + '';
+    const output = [];
+    for(let i = 0; i < string.length; i++) {
+        output.push(inputAlphabet.indexOf(string[i]))
+    }
+    return output
+}
+
+export function decimalDigitsArrayToAlphabetString(
+    digitsArray,
+    outputAlphabet = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+) {
+    if(typeof(digitsArray) === 'object' || digitsArray?.length) {
+        const output = digitsArray.map(digit => outputAlphabet[digit]).join('');
+        return output
+    } else return ''
+}
+
+// as input takes array of input value's digits in decimal notation: [15, 15], 16 => 255
+export function decimalDigitsArrayToDecimalNumber(digitsArray, radix) {
+    if(!(typeof(digitsArray) === 'object' && digitsArray?.length) || typeof(radix) !== 'number') return NaN
+
+    let reminder = [...digitsArray];
+    let accumulator = 0;
+    for(let i = 0, current; i < digitsArray.length; i++) {
+        current = reminder.pop();
+        if(current >= radix) return NaN
+        accumulator += current * radix ** i
+    }
+    return accumulator
+}
+
+// takes string or number as input, numbers as radices
+// optional parameter "keyString" sets the correspondence between the index of the digit and the symbol
+export function numberSystemConverter(
+    input,
+    inputRadix,
+    outputRadix,
+    inputAlphabet = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
+    outputAlphabet = inputAlphabet
+) {
+    if(typeof(input) !== 'number' && typeof(input) !== 'string' || typeof(inputRadix) !== 'number' || typeof(outputRadix) !== 'number' || (inputAlphabet && typeof(inputAlphabet) !== 'string') || (outputAlphabet && typeof(outputAlphabet) !== 'string')){
+         return { error: 'Wrong types!' }
+    }
+    if(inputRadix > inputAlphabet || outputRadix > outputAlphabet) {
+        return { error: 'Radix must to be less or equal to alphabet length' }
+    }
+    let reminder = input;
+    if(inputRadix !== 10) {
+        reminder = stringOrNumberToDecimalDigitsArray(reminder, inputAlphabet);
+        reminder = decimalDigitsArrayToDecimalNumber(reminder, inputRadix)
+    }
+    if(outputRadix === 10) {
+        return reminder + ''
+    }
+
+    let accumulator = [];
+    while(reminder !== 0) {
+        accumulator.unshift(reminder % outputRadix);
+        reminder = Math.floor(reminder / outputRadix)
+    }
+    return decimalDigitsArrayToAlphabetString(accumulator, outputAlphabet || inputAlphabet)
+}
+
+// takes string as input and number as partLength, return array of strings
+export function separateString(input, partLength) {
+    if(typeof(input) !== 'string' || typeof(partLength) !== 'number') {
+        return { error: 'Wrong types!' }
+    }
+    let reminder = input;
+    let accumulator = [];
+    let part;
+    while(reminder.length) {
+        part = reminder.slice(0, partLength);
+        accumulator.push(part);
+        reminder = reminder.replace(part, '')
+    }
+    return accumulator
+}
+
+export function encodeEmail(email) {
+    if(email.length < 6) return ''
+    const emailChars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ ?^_~.,:;@!#$%&*+-={}()[]<>'`\"/|\\";
+    // check chars
+    return separateString(email, 7)
+        .map(part => numberSystemConverter(part, 95, 62, emailChars))
+        .join('+');
+}
+
+export function decodeEmail(encodedEmail) {
+    if(encodedEmail.length < 6) return ''
+    const emailChars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ ?^_~.,:;@!#$%&*+-={}()[]<>'`\"/|\\";
+    // check chars
+    return encodedEmail
+        .split('+')
+        .map(part => numberSystemConverter(part, 62, 95, emailChars))
+        .join('')
+}
+
+export const generateId = (keyString, length) => {
+    const alphabet = keyString || '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const idLength = length || 6;
 
     let id = '';
     for (var i = 0; i < idLength; i++) {
@@ -19,9 +125,9 @@ export const generateId = () => {
     return id
 }
 
-export const generateUniqueId = async () => {
-    const alphabet = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const idLength = 6;
+export const generateUniqueId = async (keyString, length) => {
+    const alphabet = keyString || '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const idLength = length || 6;
     const idList = await fetch('/api/ids/all')
         .then(checkStatus)
         .then(json)

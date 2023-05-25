@@ -6,7 +6,7 @@ import ru from 'date-fns/locale/ru'
 
 import './styles.scss'
 import { TextLabel } from 'atoms/TextLabel'
-import { IconButton } from 'atoms/IconButton'
+import { Button } from 'atoms/Button'
 import { formatDateToArray } from 'utils'
 
 export const DateSelect = ({
@@ -27,7 +27,7 @@ export const DateSelect = ({
                 value={value}
                 readOnly
             />
-            <IconButton
+            <Button
                 icon='chevronDown'
                 onClick={onClick}
                 type='button'
@@ -43,7 +43,7 @@ export const DateSelect = ({
     }) => {
         return (
             <div className='custom-header'>
-                <IconButton
+                <Button
                     icon='arrowLeft'
                     onClick={decreaseMonth}
                     disabled={prevMonthButtonDisabled}
@@ -51,7 +51,7 @@ export const DateSelect = ({
                 <span>
                     {months.at(date.getMonth())}
                 </span>
-                <IconButton
+                <Button
                     icon='arrowRight'
                     onClick={increaseMonth}
                     disabled={nextMonthButtonDisabled}

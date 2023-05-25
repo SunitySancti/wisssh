@@ -1,8 +1,7 @@
 import { createSlice,
          createAsyncThunk } from '@reduxjs/toolkit'
 
-import { json,
-         checkStatus } from 'utils'
+import { json } from 'utils'
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
@@ -12,7 +11,6 @@ async function fetchImage(id, drive) {
     const endpoint = [apiUrl, 'images', drive, id].join('/');
 
     const url = await fetch(endpoint)
-        .then(checkStatus)
         .then(res => res.blob())
         .then(blob => {
             if(blob.size) return URL.createObjectURL(blob)
@@ -47,7 +45,6 @@ export const postImage = createAsyncThunk(
             'method': 'POST',
             'body': formData
         })
-            .then(checkStatus)
             .then(json)
     }
 );

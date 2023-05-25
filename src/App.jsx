@@ -15,6 +15,7 @@ import { NewWishPage } from 'pages/NewWishPage'
 import { NewListPage } from 'pages/NewListPage'
 import { LoginPage } from 'pages/LoginPage'
 import { ProfilePage } from 'pages/ProfilePage'
+import { PasswordResetEmail } from 'emails/PasswordResetEmail'
 
 import { updateHistory,
          clearHistory } from 'store/historySlice'
@@ -31,11 +32,12 @@ import { mergeArrays } from 'utils'
 function App() {
     const location = useLocation().pathname;
     const dispatch = useDispatch();
-    const isLogged = !!useSelector(state => state.auth?.token);
-    const currentUserId = useSelector(state => state.auth?.user?.id);
+    const currentUserId = useSelector(state => state.auth?.userId);
 
     const { data: currentUser,
-            isSuccess: currentUserHasLoaded } = useGetSingleUserQuery(currentUserId);
+            isSuccess: currentUserHasLoaded } = useGetSingleUserQuery(currentUserId,
+          { skip: !currentUserId }
+    );
 
     const { data: userWishes,
             isSuccess: userWishesHaveLoaded } = useGetSomeWishesQuery(currentUser?.wishes,
@@ -58,12 +60,10 @@ function App() {
                 friendsWishlists?.map(list => list.author),
                 {skip: !friendsWishlistsHaveLoaded}
     );
-            
+
     useEffect(() => {
-        if(isLogged) {
-            dispatch(fetchUserAvatar(currentUser?.id))
-        }
-    },[ isLogged, currentUser ])
+        if(currentUserId) dispatch(fetchUserAvatar(currentUserId))
+    },[ currentUserId ])
     
     useEffect(() => {
         if(!userWishes || !userWishes?.length) return
@@ -103,11 +103,7 @@ function App() {
 
     const state = useSelector(state => state)
     const handleLogoClick = async () => {
-        // console.log(state);
-        const imageList = await fetch('/api/images/getfilelist')
-            .then(res => res.json())
-
-        console.log(imageList)
+        console.log(state);
     }
 
     return (
@@ -141,7 +137,8 @@ function App() {
                 <Route path='profile' element={ <ProfilePage/> } />
             </Route>
             <Route path='/icon-set' element={ <IconSet/> } />
-            <Route path='/login' element={ <LoginPage/> } />
+            <Route path='/login/:encodedEmail?' element={ <LoginPage/> } />
+            <Route path='/email-preview' element={ <PasswordResetEmail/> } />
             <Route path='*' element={ <Navigate to='/my-wishes/items/actual' replace/> } />
         </Routes>
     );

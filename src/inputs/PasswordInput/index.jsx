@@ -4,16 +4,17 @@ import './styles.scss'
 import { TextInput } from 'inputs/TextInput'
 import { Icon } from 'atoms/Icon'
 
-export const PasswordInput = (props) => {
+export const PasswordInput = ({ className, name, autoComplete, label, ...rest }) => {
     const [passwordInputType, setPasswordInputType] = useState('password');
 
     return (
-        <div className='password-input'>
+        <div className={'password-input ' + className}>
             <TextInput
-                name='password'
+                name={name || 'password'}
                 type={ passwordInputType }
-                label='Password'
-                {...props}
+                label={label || 'Password'}
+                autoComplete={autoComplete || name || "password"}
+                {...rest}
             />
             <Icon
                 name='lookPass'

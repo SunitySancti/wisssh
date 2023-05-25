@@ -6,15 +6,12 @@
     flex-flow: row nowrap;
     padding: 1rem 2rem 1rem 0;
     width: max-content;
+    color: $darkGray2;
   
     > span {
         white-space: nowrap;
         font: $general;
-    
-        &:first-child {
-            color: $darkGray1;
-        }
-        &:last-child {
+        &.optional {
             position: absolute;
             top: 3rem;
             color: $lightGray3

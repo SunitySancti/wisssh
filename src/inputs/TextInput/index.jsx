@@ -1,9 +1,10 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 
 import './styles.scss'
 import { generateId } from 'utils'
 import { Icon } from 'atoms/Icon'
 import { TextLabel } from 'atoms/TextLabel'
+
 
 export const TextInput = ({
     register,
@@ -18,6 +19,10 @@ export const TextInput = ({
     formState,
     warningMessage,
     onChange,
+    onBlur,
+    className,
+    rightAlignedComponent,
+    autoComplete,
     ...rest
 }) => {
     const id = generateId();
@@ -46,7 +51,7 @@ export const TextInput = ({
         : null
 
     return (
-        <div className='text-input'>
+        <div className={className ? 'text-input ' + className : 'text-input'}>
             { label && (
                 <TextLabel
                     htmlFor={id}
@@ -63,9 +68,11 @@ export const TextInput = ({
                             required,
                             maxLength,
                             pattern,
-                            onChange
+                            onChange,
+                            onBlur
                         })}
                         className={ shouldShowError ? 'error' : null }
+                        autoComplete={ autoComplete || name || 'off' }
                         {...rest}
                     />
                     <Icon name='resizer' size='22'/>
@@ -77,11 +84,18 @@ export const TextInput = ({
                         required,
                         maxLength,
                         pattern,
-                        onChange
+                        onChange,
+                        onBlur
                     })}
                     className={ shouldShowError ? 'error' : null }
+                    autoComplete={ autoComplete || name || 'off' }
                     {...rest}
                 />
+            }
+            { rightAlignedComponent &&
+                <div className='right-aligned-component'>
+                    {rightAlignedComponent}
+                </div>
             }
             { shouldShowError &&
                 <span className='error-message'>{ warningMessage || errorMessage }</span>

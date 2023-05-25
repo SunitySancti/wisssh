@@ -1,13 +1,11 @@
 import   React,
        { useState,
-         useEffect,
          useRef,
          forwardRef,
          useImperativeHandle } from 'react'
 
 import './styles.scss'
 import { Button } from 'atoms/Button'
-import { IconButton } from 'atoms/IconButton'
 import { Portal } from 'containers/Portal'
 
 export const Modal = forwardRef(({
@@ -48,13 +46,10 @@ export const Modal = forwardRef(({
                     />
                     <div className='actions' >
                         { actions?.map((action, index) => (
-                            <Button
-                                key={ index }
-                                { ...action }
-                            />
+                            <Button key={ index } { ...action } />
                         ))}
                     </div>
-                    <IconButton icon='close'/>
+                    <Button icon='close'/>
                 </div>
             </div>
         </Portal>

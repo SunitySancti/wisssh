@@ -1,54 +1,76 @@
-import React from 'react'
+import   React,{
+         useMemo} from 'react'
 import { useLocation } from 'react-router'
 
 import './styles.scss'
 import { Icon } from 'atoms/Icon'
+import { Spinner } from 'atoms/Spinner'
+
 
 export const Button = ({
-    kind,
+    kind,           // primary || secondary || accent || clear 
     text,
-    type,
-    leftIcon,
-    rightIcon,
-    round,
+    type,           // submit || button
+    icon,           // iconName
+    round,          // Boolean
+    disabled,
+    size,           // this prop for icon button
+    className,
+    style,
+    isLoading,      // Boolean
+    spinnerSize,    // in rem
+    spinnerTheme,   // primary || light || dark
+    spinnerWidth,   // in px
     ...rest
 }) => {
-    const renderLeftIcon = leftIcon && (
-        <Icon
-            name={ leftIcon }
-            size='22'
-        />
-    );
-    const renderRightIcon = rightIcon && (
-        <Icon
-            name={ rightIcon }
-            size='22'
-        />
-    );
+    const classes = useMemo(() => {
+        if(!text) {
+            return className ? 'icon-button ' + className : 'icon-button'
+        };
+        let result = 'button';
+        if(kind) { result += ' ' + kind } else { result += ' secondary' };
+        if(round) result += ' round';
+        if(isLoading) result += ' loading';
+        return result
+    },[ text, kind, round, isLoading ]);
+    
+    const spinnerProps = {
+        size: spinnerSize || 4,
+        colorTheme: spinnerTheme || 'dark',
+        strokeWidth: spinnerWidth || 6,
+    }
+    const styles = text
+        ? style
+        : {
+            width: `${size || 4}rem`,
+            height: `${size || 4}rem`,
+            ...style
+        }
 
     return (
         <button
-            className={ 'button' + ( kind ? ` ${kind}` : ' secondary')}
-            style={ round ? {borderRadius: '6px'} : null}
+            className={ classes }
+            style={ styles }
             type={ type || 'button' }
+            disabled={ isLoading || disabled }
             {...rest}
         >
-            { renderLeftIcon }
-            { text }
-            { renderRightIcon }
+            { icon && <Icon name={ icon } size={ size ? size : '22' }/> }
+            { text && text }
+            { isLoading && <Spinner {...spinnerProps}/> }
         </button>
-    );
+    )
 }
 
 export const WishButton = ({ wish, kind }) => {
     const loca = useLocation().pathname;
     const isMyWish = loca.split('/').at(1) === 'my-wishes';
 
-    const content = (wish.state === 'actual' && isMyWish)
+    const buttonProps = (wish.state === 'actual' && isMyWish)
         ? {
             icon: 'ok',
             text: 'Отметить исполненным',
-            handleClick: (e) => { e.stopPropagation() },
+            onClick: (e) => { e.stopPropagation() },
         }
         : (wish.state === 'actual' && !isMyWish)
         ? {
@@ -67,17 +89,9 @@ export const WishButton = ({ wish, kind }) => {
             text: 'Желание исполнено',
             disabled: true,
         }
-        : undefined
+        : {}
 
-    if(!content) return null;
+    if(!buttonProps) return null;
 
-    return (
-        <Button
-            kind={ kind || 'secondary' }
-            leftIcon={ content.icon }
-            text={ content.text }
-            disabled={ !!content.disabled }
-            onClick={ content.handleClick }
-        />
-    );
+    return <Button kind={ kind } {...buttonProps} />
 }

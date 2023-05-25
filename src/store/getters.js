@@ -11,7 +11,7 @@ import { useGetUsersQuery,
 
 
 export const getCurrentUser = () => {
-    const currentUserId = useSelector(state => state.auth?.user?.id);
+    const currentUserId = useSelector(state => state.auth?.userId);
     const { data: currentUser } = useGetSingleUserQuery(currentUserId);
 
     return currentUser || {}
@@ -32,7 +32,7 @@ export const getUserWishes = () => {
 }
 
 export const getFriendsWishes = () => {
-    const userId = useSelector(state => state.auth?.user?.id);
+    const userId = useSelector(state => state.auth?.userId);
     const { data: user,
             isSuccess: userHasLoaded } = useGetSingleUserQuery(userId);
 
@@ -57,7 +57,7 @@ export const getWishById = (id) => {
 }
 
 export const getUserWishlists = () => {
-    const userId = useSelector(state => state.auth?.user?.id);
+    const userId = useSelector(state => state.auth?.userId);
     const { data: user,
             isSuccess: userHasLoaded } = useGetSingleUserQuery(userId);
 
@@ -69,7 +69,7 @@ export const getUserWishlists = () => {
 }
 
 export const getFriendsWishlists = () => {
-    const userId = useSelector(state => state.auth?.user?.id);
+    const userId = useSelector(state => state.auth?.userId);
     const { data: user,
             isSuccess: userHasLoaded } = useGetSingleUserQuery(userId);
 
@@ -94,7 +94,7 @@ export const getWishlistsByIdList = (ids) => {
 
 
 export const getFriends = () => {
-    const userId = useSelector(state => state.auth?.user?.id);
+    const userId = useSelector(state => state.auth?.userId);
     const { data: user,
             isSuccess: userHasLoaded } = useGetSingleUserQuery(userId);
 

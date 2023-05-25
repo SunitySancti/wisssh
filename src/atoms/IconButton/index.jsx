@@ -11,7 +11,7 @@ export const IconButton = ({ icon, size, type, style, className, ...rest }) => {
     }
     return (
         <button
-            className={ 'icon-button' + (className ? ' ' + className : '') }
+            className={className ? 'icon-button ' + className : 'icon-button'}
             style={ styles }
             type={ type || 'button' }
             {...rest}

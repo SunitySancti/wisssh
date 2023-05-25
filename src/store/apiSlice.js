@@ -25,7 +25,7 @@ export const apiSlice = createApi({
                 method: 'POST',
                 body: credentials,
                 validateStatus: (response, result) => {
-                    return (response.status === 200 && result.token)
+                    return (response.status === 200 && result.token && result.userId)
                 }
             }),
             invalidatesTags: ['User']
@@ -35,6 +35,9 @@ export const apiSlice = createApi({
                 url: 'auth/signup',
                 method: 'POST',
                 body: { name, email, password },
+                validateStatus: (response, result) => {
+                    return (response.status === 200 && result.token && result.userId)
+                }
             }),
             invalidatesTags: ['User']
         }),
@@ -128,15 +131,6 @@ export const apiSlice = createApi({
         }),
     })
 });
-
-export const checkPassword = async ({ id, password }) => {
-    return await fetch('api/auth/check-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, password })
-    })
-        .then(res => res.json())
-}
 
 export const {
     useLoginMutation,

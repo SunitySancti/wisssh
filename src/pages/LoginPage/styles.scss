@@ -1,5 +1,8 @@
 @import '../../_style-config';
 
+$mainText: rgba(0,0,0,0.6);
+$hoverMainText: rgba(0,0,0,0.75);
+
 .login-page {
     display: flex;
     flex-flow: column;
@@ -18,44 +21,104 @@
         display: flex;
         flex-flow: column;
         align-items: center;
-        gap: 4rem;
+        gap: 3rem;
         width: fit-content;
 
         .message-line {
             font: $general;
-            color: $darkGray1;
             display: flex;
             flex-direction: row;
             align-items: flex-start;
             justify-content: flex-start;
             width: 100%;
             padding: 1rem 0;
+
+            &:not(.error) {
+                color: $mainText;
+            }
+            &.error {
+                color: $negative;
+            }
         }
 
         > .inputs {
             display: flex;
             flex-direction: column;
-            gap: 1rem;
-            width: 400px;
-            transition: all 2s ease-in;
+            gap: 1.5rem;
+            width: 40rem;
+
+            .text-label:not(:hover) {
+                color: $mainText;
+            }
+            .text-input:hover .text-label {
+                color: $hoverMainText;
+            }
+                    
 
             input {
                 border: none !important;
+                transition: all 0.2s ease-in-out;
 
                 &:not(:focus) {
                     opacity: 0.8;
                 }
+                &:-webkit-autofill,
+                &:-webkit-autofill:active {
+                    transition: background-color 5000s ease-in-out 0s;
+                    -webkit-box-shadow:0 0 0 50px white inset;
+                    -webkit-text-fill-color: $darkGray2;
+                }
 
+                &:-webkit-autofill:hover,
+                &:hover:not(:disabled) {
+                    opacity: 0.9;
+                }
+
+                &:-webkit-autofill:focus,
                 &:focus:not(:disabled) {
                     opacity: 1;
                     box-shadow: $weakShadow;
                 }
+
+                &:disabled {
+                    background-color: rgba(0, 0, 0, 0.06);
+                }
+                &:-webkit-autofill:disabled {
+                    -webkit-box-shadow:0 0 0 50px #e9de7a inset;
+                    -webkit-text-fill-color: #8c8862;
+                    opacity: 1 !important;
+                }
+            }
+            
+            >.collapsed {
+                opacity: 0;
+                height: 0;
+                margin-top: -1.5rem;
+                transition: margin-top 0.5s ease-in-out 0.5s,
+                            height 0.5s ease-in-out 0.5s,
+                            opacity 0.5s ease-in-out;
+            }
+            >.visible {
+                opacity: 1;
+                height: 4rem;
+                margin-top: 0;
+                transition: margin-top 0.5s ease-in-out,
+                            height 0.5s ease-in-out,
+                            opacity 0.5s ease-in-out 0.5s;
             }
         }
 
-        .free-space {
+        .btn-group {
+            display: flex;
+            flex-flow: row nowrap;
+            gap: 2rem;
             width: 100%;
-            height: 0rem;
+
+            > .button,
+            > .button-with-spinner {
+                flex: 1;
+                white-space: nowrap;
+            }
         }
 
         .button span.active {

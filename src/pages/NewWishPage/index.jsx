@@ -2,7 +2,6 @@ import   React,
        { useState,
          useEffect,
          useRef,
-         useCallback, 
          useMemo} from 'react'
 import { useDispatch,
          useSelector } from 'react-redux'
@@ -12,7 +11,6 @@ import { useLocation,
 
 import './styles.scss'
 import { Button } from 'atoms/Button'
-import { IconButton } from 'atoms/IconButton'
 import { ImageInput } from 'inputs/ImageInput'
 import { TextInput } from 'inputs/TextInput'
 import { SelectBox } from 'inputs/SelectBox'
@@ -21,7 +19,6 @@ import { ToggleInput } from 'inputs/ToggleInput'
 import { LineContainer } from 'containers/LineContainer'
 import { DoubleColumnAdaptiveLayout } from 'containers/DoubleColumnAdaptiveLayout'
 
-import { generateUniqueId } from 'utils'
 import { getUserWishlists,
          getWishById,
          getUserWishes } from 'store/getters'
@@ -33,9 +30,9 @@ export const NewWishPage = () => {
     const navigate = useNavigate();
     const imageInputRef = useRef({});
 
-    const [ postWish, postWishReturn ] = usePostWishMutation();
+    const [ postWish,{ data: postWishResponse, error: postWishError, isLoading: awaitPostWish }] = usePostWishMutation();
     const userWishes = getUserWishes();
-    const currentUserId = useSelector(state => state.auth?.user?.id);
+    const currentUserId = useSelector(state => state.auth?.userId);
 
     useEffect(() => {
         if(!currentUserId) navigate('/login')
@@ -48,7 +45,7 @@ export const NewWishPage = () => {
 
     const wishValues = isEditingPage ? getWishById(editingWishId) : null;
     const defaultValues = {
-        id: '',
+        id: undefined,
         author: currentUserId,
         inWishlists: [],
         reservedBy: '',
@@ -104,18 +101,10 @@ export const NewWishPage = () => {
         setImageFromURL()
     },[ currentImageURL ]);
 
-    //form methods:
-    
-    const setId = useCallback( async () => {
-        const id = await generateUniqueId();
-        setValue('id', id);
-        return id
-    },[]);
-    useEffect(() => { if(!isEditingPage) setId() },[]);
+    // FORM SUBMITTING
 
     const onSubmit = async (data, e) => { 
         e.preventDefault();
-        if(!data.id && !isEditingPage) data.id = await setId();
 
         postWish(data);
         if(image && (imageIsNew || !isEditingPage)) {
@@ -128,18 +117,18 @@ export const NewWishPage = () => {
     }
 
     useEffect(() => {
-        if(postWishReturn?.error) {
-            console.log(postWishReturn.error)
+        if(postWishError?.status) {
+            console.log(postWishError)
         } else {
             const wishKeys = userWishes.map(wish => wish.id);
-            const postedKey = postWishReturn.data?.id;
+            const postedKey = postWishResponse?.id;
 
             if(postedKey && wishKeys.includes(postedKey)) {
-                const tab = postWishReturn.data?.isCompleted ? 'completed' : 'actual';
+                const tab = postWishResponse?.isCompleted ? 'completed' : 'actual';
                 navigate(`/my-wishes/items/${ tab }/${ postedKey }`)
             }
         }
-    },[ postWishReturn, userWishes ])
+    },[ postWishResponse?.id, postWishError?.status, userWishes.length ])
 
     const cancelForm = (e) => {
         e.preventDefault();
@@ -151,7 +140,7 @@ export const NewWishPage = () => {
         imageInputRef.current.deleteImage();
     }
     
-    // align labels:
+    // ALIGNMENTS
 
     const [ maxLabelWidth, setMaxLabelWidth ] = useState(null);
 
@@ -162,8 +151,6 @@ export const NewWishPage = () => {
 
         setMaxLabelWidth(maxWidth);
     });
-
-    // align first column:
 
     const watchImageAR = watch('imageAR');
     
@@ -290,11 +277,11 @@ export const NewWishPage = () => {
                             <div className='divider'/>
 
                             <LineContainer className='align-right'>
-                                <IconButton
+                                <Button
                                     icon='clear'
                                     onClick={ resetForm }
                                 />
-                                <IconButton
+                                <Button
                                     icon='cancel'
                                     onClick={ cancelForm }
                                 />
@@ -302,13 +289,11 @@ export const NewWishPage = () => {
                                     type='submit'
                                     kind='primary'
                                     text='Сохранить желание'
-                                    leftIcon='ok'
+                                    icon='ok'
                                     round
                                     onClick={ handleSubmit(onSubmit) }
-                                    disabled={
-                                        !formState.isValid || formState.isSubmitting
-                                        //  || formState.isSubmitted
-                                        }
+                                    disabled={ !formState.isValid }
+                                    isLoading={ formState.isSubmitting || awaitPostWish }
                                 />
                             </LineContainer>
                         </>

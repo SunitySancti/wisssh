@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import './styles.scss'
 import { User } from 'atoms/User'
 import { WishlistLinePointer } from 'atoms/Icon'
-import { IconButton } from 'atoms/IconButton'
+import { Button } from 'atoms/Button'
 import { WithDropDown } from 'atoms/WithDropDown'
 
 import { getUserById } from 'store/getters'
@@ -108,7 +108,7 @@ export const WishlistLine = ({
             </span>
             <TimeInfo/>
             <WithDropDown
-                trigger={ <IconButton
+                trigger={ <Button
                     icon='kebap'
                     size={ 4 }
                 /> }

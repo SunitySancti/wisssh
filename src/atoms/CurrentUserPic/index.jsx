@@ -6,7 +6,7 @@ import { useSelector,
 import './styles.scss'
 import { UserPlaceholder } from 'atoms/Icon'
 import { WithDropDown } from 'atoms/WithDropDown'
-import { WithSpinner } from 'atoms/WithSpinner'
+import { WithSpinner } from 'atoms/Spinner'
 
 import { postImage,
          deleteImageURL } from 'store/imageSlice'
@@ -15,7 +15,7 @@ import { postImage,
 export const CurrentUserPic = () => {
     const dispatch = useDispatch();
     const dropdownRef = useRef(null);
-    const userId = useSelector(state => state.auth?.user.id)
+    const userId = useSelector(state => state.auth?.userId)
     const imageURL = useSelector(state => state.images?.imageURLs[userId]);
     const isLoading = useSelector(state => state.images?.loading[userId]);
     

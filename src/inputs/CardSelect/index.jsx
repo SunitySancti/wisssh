@@ -3,7 +3,6 @@ import { Controller } from 'react-hook-form'
 
 import './styles.scss'
 import { Button } from 'atoms/Button'
-import { IconButton } from 'atoms/IconButton'
 import { WishCard } from 'molecules/WishCard'
 import { MultiColumnLayout } from 'containers/MultiColumnLayout'
 import { LineContainer } from 'containers/LineContainer'
@@ -27,7 +26,7 @@ export const CardSelect = ({ control, name, options }) => {
                             }
                         />
                         { spacer }
-                        <IconButton
+                        <Button
                             icon='clear'
                             onClick={(e) => {
                                 e.preventDefault();

@@ -1,6 +1,5 @@
 import { React } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { useSelector } from 'react-redux'
 
 import './styles.scss'
 import { WishlistLine } from 'molecules/WishlistLine'
@@ -8,7 +7,6 @@ import { Button } from 'atoms/Button'
 import { LineContainer } from 'containers/LineContainer'
 
 import { getDaysToEvent, sortByDateAscend, sortByDateDescend } from 'utils'
-import { useGetSomeWishlistsQuery } from 'store/apiSlice'
 import { getUserWishlists,
          getFriendsWishlists } from 'store/getters'
 
@@ -26,6 +24,7 @@ export const ListOfListsPage = () => {
         case 'my-invites':
             wishlists = getFriendsWishlists();
     }
+    console.log('all wishlists: ', wishlists)
 
 
     if (!wishlists || !wishlists.length) {
@@ -34,7 +33,7 @@ export const ListOfListsPage = () => {
                             <span>У вас пока нет ни одного вишлиста</span>
                             <Button
                                 kind='primary'
-                                leftIcon='plus'
+                                icon='plus'
                                 text='Создать вишлист'
                                 onClick={() => navigate('/my-wishes/lists/new')}
                                 round

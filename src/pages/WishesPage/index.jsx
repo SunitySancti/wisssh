@@ -63,7 +63,7 @@ export const WishesPage = () => {
                     { (section === 'my-wishes') && (tabName === 'actual' || tabName === 'all') && (
                         <Button
                             kind='primary'
-                            leftIcon='plus'
+                            icon='plus'
                             text={ newWishButtonText }
                             onClick={() => navigate('/my-wishes/items/new')}
                             round
