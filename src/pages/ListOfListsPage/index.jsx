@@ -8,7 +8,7 @@ import { LineContainer } from 'containers/LineContainer'
 
 import { getDaysToEvent, sortByDateAscend, sortByDateDescend } from 'utils'
 import { getUserWishlists,
-         getFriendsWishlists } from 'store/getters'
+         getInvites } from 'store/getters'
 
 
 export const ListOfListsPage = () => {
@@ -16,15 +16,11 @@ export const ListOfListsPage = () => {
     const location = useLocation().pathname;
     const section = location.split('/').at(1);
 
-    let wishlists = [];
-    switch(section) {
-        case 'my-wishes':
-            wishlists = getUserWishlists();
-            break;
-        case 'my-invites':
-            wishlists = getFriendsWishlists();
-    }
-    console.log('all wishlists: ', wishlists)
+    const { userWishlists } = getUserWishlists();
+    const { invites } = getInvites();
+
+    const wishlists = (section === 'my-wishes') ? userWishlists
+                    : (section === 'my-invites') ? invites : []
 
 
     if (!wishlists || !wishlists.length) {
@@ -60,12 +56,12 @@ export const ListOfListsPage = () => {
     const handleClick = ( wishlistId ) => {
         const slashCorrection = location.at(-1) === '/' ? '' : '/'
         const path = location + slashCorrection;
-        const delayParams = [200, 300, 600];
+        const delayParams = [200, 400, 700];
 
         const thisNode = document.getElementById(wishlistId);
         const allNodes = document.querySelectorAll(`.list-of-lists-page > div`);
         const workSpace = document.querySelector('.work-space');
-        const navbar = document.querySelector('.navbar')
+        const navbar = document.querySelector('.navbar');
 
         const currentCoords = thisNode.getBoundingClientRect();
         const navbarCoords = navbar.getBoundingClientRect();
@@ -79,7 +75,7 @@ export const ListOfListsPage = () => {
                 position: fixed;
                 width: ${currentCoords.width}px;
                 top: ${currentCoords.y}px;
-                transition: all ease-in-out 240ms;
+                transition: all ease-out 400ms;
             `;
         }
         const thirdStep = () => {

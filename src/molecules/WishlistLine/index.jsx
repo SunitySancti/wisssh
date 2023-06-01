@@ -101,7 +101,7 @@ export const WishlistLine = ({
             />
             <div className='title-container'>
                 <WishlistLinePointer/>
-                <div className='title'>{ wishlist?.title }, {wishlist?.author}, {user.name}</div>
+                <div className='title'>{ wishlist?.title }</div>
             </div>
             <span className='description'>
                 { wishlist?.description }

@@ -8,7 +8,7 @@ import { LineContainer } from 'containers/LineContainer'
 import { Button } from 'atoms/Button'
 
 import { getWishlistById,
-         getAllRelevantWishes } from 'store/getters'
+         getWishesByWishlistId } from 'store/getters'
 
 export const WishlistPage = () => {
     const navigate = useNavigate();
@@ -20,8 +20,7 @@ export const WishlistPage = () => {
     const section = pathSteps[1];
 
     const wishlist = getWishlistById(wishlistId);
-    const wishes = getAllRelevantWishes()
-                  .filter(wish => wish.inWishlists.includes(wishlist?.id));
+    const wishes = getWishesByWishlistId(wishlistId);
 
     
     if (!wishlist) {

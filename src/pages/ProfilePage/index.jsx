@@ -21,7 +21,7 @@ import { postImage } from 'store/imageSlice'
 
 export const ProfilePage = () => {
     const dispatch = useDispatch();
-    const user = getCurrentUser();
+    const { user } = getCurrentUser();
     const [ updateProfile, updateProfileResponse ] = useUpdateProfileMutation();
 
     // setting form:

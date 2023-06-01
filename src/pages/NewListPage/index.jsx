@@ -2,7 +2,6 @@ import   React,
        { useState,
          useEffect } from 'react'
 import { useForm } from 'react-hook-form'
-import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router'
 
 import './styles.scss'
@@ -14,7 +13,8 @@ import { LineContainer } from 'containers/LineContainer'
 
 import { formatDateToArray } from 'utils'
 import { usePostWishlistMutation } from 'store/apiSlice'
-import { getUserWishes } from 'store/getters'
+import { getActualWishes,
+         getCurrentUser } from 'store/getters'
 
 export const NewListPage = () => {
     const navigate = useNavigate();
@@ -25,18 +25,14 @@ export const NewListPage = () => {
         isSuccess:  pwSuccess,
         isError:    pwWasCrashed,
         isLoading:  pwAwaiting      }] = usePostWishlistMutation();
-    const currentUserId = useSelector(state => state.auth?.userId);
-    const actualWishes = getUserWishes().filter(wish => !wish.isCompleted);
 
-    useEffect(() => {
-        if(!currentUserId) navigate('/login')
-    },[ currentUserId ])
+    const { actualWishes } = getActualWishes();
+    const { user } = getCurrentUser();
 
     // FORM SETTINGS
 
     const defaultValues = {
-        id: '',
-        author: currentUserId,
+        author: user?.id || '',
         wishes: [],
         title: '',
         description: '',
@@ -106,16 +102,9 @@ export const NewListPage = () => {
         <div className='new-list-page'>
             <form onSubmit={handleSubmit(onSubmit)} >
                 <div className='inputs'>
-                    <input
-                        className='invis'
-                        type='text'
-                        {...register('id')}
-                    />
-                    <input
-                        className='invis'
-                        type='text'
-                        {...register('author')}
-                    />
+
+                    <input className='invis' type='text' {...register('author')}/>
+
                     <LineContainer
                         style={ isLandscape ? null : { flexFlow: 'column'} }
                     >
@@ -137,6 +126,7 @@ export const NewListPage = () => {
                             formState={ formState }
                         />
                     </LineContainer> 
+
                     <TextInput
                         name='description'
                         register={ register }
@@ -146,13 +136,17 @@ export const NewListPage = () => {
                         multiline 
                     />
                 </div>
+
                 { divider }
+
                 <CardSelect
                     name='wishes'
                     control={ control }
                     options={ actualWishes }
                 />
+
                 { divider }
+                
                 <LineContainer className='align-right'>
                     <Button
                         icon='clear'

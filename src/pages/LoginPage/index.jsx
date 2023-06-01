@@ -1,12 +1,14 @@
-import   React, {
-         useState,
+import   React,
+       { useState,
          useEffect,
          useCallback } from 'react'
-import { useDispatch } from 'react-redux'
 import { useForm,
          useWatch } from 'react-hook-form'
-import { useNavigate, 
+import { useNavigate,
+         useLocation,
          useParams } from 'react-router-dom'
+import { useDispatch,
+         useSelector } from 'react-redux'
 
 import './styles.scss'
 import { LogoIcon } from 'atoms/Icon'
@@ -17,10 +19,11 @@ import { CheckBox } from 'inputs/CheckBox'
 import { sendPasswordResetEmail,
          verificateCode } from 'emails/PasswordResetEmail.tsx'
 
-import { useGetUsersQuery,
+import { getUserNameByEmail,
          useLoginMutation,
          useSignupMutation } from 'store/apiSlice'
-import { logout } from 'store/authSlice'
+import { setRemember } from 'store/authSlice'
+import { getAllUserNames } from 'store/getters'
 import { decodeEmail } from 'utils'
 
 
@@ -94,8 +97,19 @@ const ButtonGroup = ({
 
 export const LoginPage = () => {
     const navigate = useNavigate();
+    const { state } = useLocation();
     const dispatch = useDispatch();
     const { encodedEmail } = useParams();
+    const token = useSelector(state => state.auth?.token);
+    
+    // GET RESPONSE AND REDIRECT
+
+    useEffect(() => {
+        if(token) {
+            // console.log({ from: state.redirectedFrom })
+            navigate('/my-wishes/items/actual')
+        }
+    },[ token ]);
     
     // FORM SETTINGS
     
@@ -103,7 +117,7 @@ export const LoginPage = () => {
         email: '',
         password: '',
         nickname: '',
-        shallNotRemember: false,
+        shouldNotRemember: false,
         verificationCode: '',
         newPassword: ''
     }
@@ -124,24 +138,19 @@ export const LoginPage = () => {
     const isAnyError = connectionErrorMessage || emailErrorMessage || nicknameErrorMessage;
     
     const [autofilledEmail, setAutofilledEmail] = useState('');
-    const notRemember = watch('shallNotRemember');
     const maxLabelWidth = 121;
     
-    const {   data: allUsers,
-           refetch: refreshUsers,
-           isError: usersLoadingWasCrashed } = useGetUsersQuery();
+    const { allUserNames,
+            loadingAllUserNamesWasCrashed,
+            refreshAllUserNames } = getAllUserNames();
 
     const         [ login, {
-        data:       loginResponse,
         error:      loginError,
-        isSuccess:  loginSuccess,
         isError:    loginWasCrashed,
         isLoading:  loginAwait }] = useLoginMutation();
 
     const         [ signup, {
-        data:       signupResponse,
         error:      signupError,
-        isSuccess:  signupSuccess,
         isError:    signupWasCrashed,
         isLoading:  signupAwait }] = useSignupMutation();
 
@@ -153,12 +162,12 @@ export const LoginPage = () => {
         setNicknameErrorMessage('');
     },[]);
 
-    const goToLoginOrSignup = useCallback((email) => {
-        if(!allUsers || !email) return setFlowStep('start');
+    const goToLoginOrSignup = useCallback(async (email) => {
+        if(!email) return setFlowStep('start');
         if(autofilledEmail && email !== autofilledEmail) {
             setValue('password', '')    // null autofilled password
         };
-        const userName = allUsers.find(user => user.email === email)?.name;
+        const userName = await getUserNameByEmail(email);
         if(userName) {
             setFlowStep('login');
             setMessage(`Добрый день, ${userName}. Рады снова вас видеть!`)
@@ -166,7 +175,7 @@ export const LoginPage = () => {
             setFlowStep('signup');
             setMessage('Кажется, вы здесь впервые. Давайте зарегистрируемся!')
         }
-    },[ allUsers?.length, autofilledEmail ]);
+    },[ autofilledEmail ]);
 
     const goToResetRequest = useCallback(() => {
         setFlowStep('reset-request');
@@ -230,7 +239,7 @@ export const LoginPage = () => {
 
         switch(flowStep) {
             case 'start':
-                goToLoginOrSignup(email)
+                await goToLoginOrSignup(email)
                 break
             case 'login':
                 login({ email, password })
@@ -245,20 +254,6 @@ export const LoginPage = () => {
                 login({ email, newPassword });
         }
     }
-    
-    // GET RESPONSE AND REDIRECT
-
-    useEffect(() => {
-        const token = loginResponse?.token || signupResponse?.token;
-        const userId = loginResponse?.userId || signupResponse?.userId;
-        if(!token || !userId) return;
-        
-        const storage = notRemember ? sessionStorage : localStorage;
-        storage.setItem('token', token);
-        storage.setItem('userId', userId);
-        
-        navigate('/my-wishes/items/actual')
-    },[ loginSuccess, signupSuccess, notRemember ]);
 
     // ERROR HANDLERS
 
@@ -274,10 +269,10 @@ export const LoginPage = () => {
     },[ signupWasCrashed ])
 
     useEffect(() => {
-        if(usersLoadingWasCrashed) {
+        if(loadingAllUserNamesWasCrashed) {
             setConnectionErrorMessage('Сервер не отвечает, попробуйте перезагрузить страницу')
         } else setConnectionErrorMessage('')
-    },[ usersLoadingWasCrashed ]);
+    },[ loadingAllUserNamesWasCrashed ]);
 
     function handleEmailEvents(e) {
         if((e.type === 'keydown' && e.keyCode === 13) || (e.type === 'blur')) {
@@ -291,7 +286,7 @@ export const LoginPage = () => {
     function handleFormChange(e) {
         switch(e.target.name) {
             case 'nickname': // detect used nickname
-                const isUsed = allUsers?.find(user => user.name === e.target.value)?.name;
+                const isUsed = allUserNames.includes(e.target.value);
                 if(isUsed) setNicknameErrorMessage('Никнейм занят, попробуйте другой')
                 else setNicknameErrorMessage('')
                 break
@@ -314,8 +309,7 @@ export const LoginPage = () => {
     // CLEANUP
 
     useEffect(() => {
-        dispatch(logout());
-        refreshUsers();
+        refreshAllUserNames();
         setFocus('email', { shouldSelect: true })
         return () => {
             backToStart();
@@ -371,8 +365,8 @@ export const LoginPage = () => {
                         disabled={flowStep !== 'signup'}
                     />
                     <CheckBox
-                        control={ control }
-                        name='shallNotRemember'
+                        callback={(value) => dispatch(setRemember(!value))}
+                        name='shouldNotRemember'
                         label='не запоминать меня на этом устройстве'
                         className={(flowStep === 'login' || flowStep === 'signup') ? 'visible' : 'collapsed'}
                     />

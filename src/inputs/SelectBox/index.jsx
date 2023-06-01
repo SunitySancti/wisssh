@@ -182,11 +182,11 @@ export const SelectBox = ({
                         {...rest}
                         {...field}
 
-                        value={isMulti
-                            ? options.filter(option => field.value?.includes(option.value))
-                            : options.find(option => option.value === field.value)}
-                        onChange={isMulti
-                            ? options => field.onChange(options.map(option => option.value))
+                        value={ isMulti
+                            ? options?.filter(option => field.value?.includes(option.value))
+                            : options?.find(option => option.value === field.value)}
+                        onChange={ isMulti
+                            ? options => field.onChange(options?.map(option => option.value))
                             : option => field.onChange(option.value)}
 
                         components={{ DropdownIndicator, ClearIndicator, MultiValueRemove }}

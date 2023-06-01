@@ -1,110 +1,179 @@
-import { useSelector } from 'react-redux'
-
 import { mergeArrays } from 'utils'
-import { useGetUsersQuery,
-         useGetSomeWishesQuery,
-         useGetSingleWishQuery,
-         useGetSomeWishlistsQuery,
-         useGetSingleWishlistQuery,
-         useGetSingleUserQuery,
-         useGetSomeUsersQuery } from 'store/apiSlice'
+import { useGetCurrentUserQuery,
+         useGetAllUserNamesQuery,
+         useGetUsersQuery,
+         useGetWishesQuery,
+         useGetWishlistsQuery  } from 'store/apiSlice'
 
 
-export const getCurrentUser = () => {
-    const currentUserId = useSelector(state => state.auth?.userId);
-    const { data: currentUser } = useGetSingleUserQuery(currentUserId);
-
-    return currentUser || {}
+const getCurrentUser = () => {
+    const { data:       user,
+            isSuccess:  userHasLoaded } = useGetCurrentUserQuery();
+            
+    return { user, userHasLoaded }
 }
 
-export const getUserById = (id) => {
-    const { data: allUsers } = useGetUsersQuery();
-    const user = allUsers?.find(user => user.id === id);
 
-    return user || {}
-}
+const getUserWishlists = () => {
+    const { user, userHasLoaded } = getCurrentUser();
 
-export const getUserWishes = () => {
-    const user = getCurrentUser();
-    const { data: userWishes } = useGetSomeWishesQuery(user?.wishes);
-
-    return userWishes || []
-}
-
-export const getFriendsWishes = () => {
-    const userId = useSelector(state => state.auth?.userId);
-    const { data: user,
-            isSuccess: userHasLoaded } = useGetSingleUserQuery(userId);
-
-    const { data: friendsWishlists,
-            isSuccess: friendsWishlistsHaveLoaded } = useGetSomeWishlistsQuery(user?.invites,
-          { skip: !userHasLoaded }
+    const { data:       userWishlists,
+            error:      userWishlistsError,
+            isLoading:  awaitingUserWishlists,
+            isSuccess:  userWishlistsHaveLoaded,
+            isError:    loadingUserWishlistsWasCrashed,
+            refetch:    refreshUserWishlists } = useGetWishlistsQuery(
+                user?.wishlists,
+                { skip: !userHasLoaded || !user.wishlists?.length }
     );
 
-    const { data: friendsWishes } = useGetSomeWishesQuery(mergeArrays(friendsWishlists?.map(list => list.wishes)),
-          { skip: !friendsWishlistsHaveLoaded }
+    return { userWishlists, userWishlistsError, awaitingUserWishlists, userWishlistsHaveLoaded, loadingUserWishlistsWasCrashed, refreshUserWishlists }
+}
+
+const getInvites = () => {
+    const { user, userHasLoaded } = getCurrentUser();
+    
+    const { data:       invites,
+            error:      invitesError,
+            isLoading:  awaitingInvites,
+            isSuccess:  invitesHaveLoaded,
+            isError:    loadingInvitesWasCrashed,
+            refetch:    refreshInvites } = useGetWishlistsQuery(
+                user?.invites,
+                { skip: !userHasLoaded || !user.invites?.length }
     );
 
-    return friendsWishes || []
+    return { invites, invitesError, awaitingInvites, invitesHaveLoaded, loadingInvitesWasCrashed, refreshInvites }
 }
 
-export const getAllRelevantWishes = () => {
-    return getUserWishes().concat( getFriendsWishes() ) || []
+const getAllRelevantWishlists = () => {
+    const { userWishlists } = getUserWishlists();
+    const { invites } = getInvites();
+    return userWishlists?.concat(invites) || []
 }
 
-export const getWishById = (id) => {
-    return getAllRelevantWishes().find(wish => wish.id === id) || null
+const getWishlistById = (id) => {
+    return getAllRelevantWishlists()?.find(wishlist => wishlist?.id === id) || {}
 }
 
-export const getUserWishlists = () => {
-    const userId = useSelector(state => state.auth?.userId);
-    const { data: user,
-            isSuccess: userHasLoaded } = useGetSingleUserQuery(userId);
+const getWishlistsByIdList = (ids) => {
+    return getAllRelevantWishlists()?.filter(wishlist => ids?.includes(wishlist?.id)) || []
+}
 
-    const { data: userWishlists } = useGetSomeWishlistsQuery(user?.wishlists,
-          { skip: !userHasLoaded }
+
+const getUserWishes = () => {
+    const { user, userHasLoaded } = getCurrentUser();
+
+    const { data:       userWishes,
+            error:      userWishesError,
+            isLoading:  awaitingUserWishes,
+            isSuccess:  userWishesHaveLoaded,
+            isError:    loadingUserWishesWasCrashed,
+            refetch:    refreshUserWishes } = useGetWishesQuery(
+                user?.wishes,
+                { skip: !userHasLoaded }
     );
 
-    return userWishlists || []
+    return { userWishes, userWishesError, awaitingUserWishes, userWishesHaveLoaded, loadingUserWishesWasCrashed, refreshUserWishes }
 }
 
-export const getFriendsWishlists = () => {
-    const userId = useSelector(state => state.auth?.userId);
-    const { data: user,
-            isSuccess: userHasLoaded } = useGetSingleUserQuery(userId);
+const getFriendsWishes = () => {
+    const { invites, invitesHaveLoaded } = getInvites();
 
-    const { data: friendsWishlists } = useGetSomeWishlistsQuery(user?.invites,
-          { skip: !userHasLoaded }
+    const { data:       friendsWishes,
+            error:      friendsWishesError,
+            isLoading:  awaitingFriendsWishes,
+            isSuccess:  friendsWishesHaveLoaded,
+            isError:    loadingFriendsWishesWasCrashed,
+            refetch:    refreshFriendsWishes } = useGetWishesQuery(
+                mergeArrays(invites?.map(list => list?.wishes)),
+                { skip: !invitesHaveLoaded }
     );
 
-    return friendsWishlists || []
+    return { friendsWishes, friendsWishesError, awaitingFriendsWishes, friendsWishesHaveLoaded, loadingFriendsWishesWasCrashed, refreshFriendsWishes }
 }
 
-export const getAllRelevantWishlists = () => {
-    return getUserWishlists().concat( getFriendsWishlists() ) || []
+const getAllRelevantWishes = () => {
+    const { userWishes } = getUserWishes();
+    const { friendsWishes } = getFriendsWishes();
+    return userWishes?.concat(friendsWishes) || []
 }
 
-export const getWishlistById = (id) => {
-    return getAllRelevantWishlists().find(wishlist => wishlist.id === id) || null
+const getWishById = (id) => {
+    return getAllRelevantWishes()?.find(wish => wish?.id === id) || {}
 }
 
-export const getWishlistsByIdList = (ids) => {
-    return getAllRelevantWishlists().filter(wishlist => ids?.includes(wishlist.id)) || []
+const getWishesByIdList = (ids) => {
+    return getAllRelevantWishes()?.filter(wish => ids?.includes(wish?.id)) || []
+}
+
+const getActualWishes = () => {
+    const { userWishes } = getUserWishes();
+    return userWishes?.filter(wish => !wish?.isCompleted) || []
+}
+
+const getWishesByWishlistId = (wishlistId) => {
+    return getAllRelevantWishes()?.filter(wish => wish?.inWishlists?.includes(wishlistId))
 }
 
 
-export const getFriends = () => {
-    const userId = useSelector(state => state.auth?.userId);
-    const { data: user,
-            isSuccess: userHasLoaded } = useGetSingleUserQuery(userId);
+const getFriends = () => {
+    const { invites, invitesHaveLoaded } = getInvites();
 
-    const { data: friendsWishlists,
-            isSuccess: friendsWishlistsHaveLoaded } = useGetSomeWishlistsQuery(user?.invites,
-          { skip: !userHasLoaded });
-
-    const { data: friends } = useGetSomeUsersQuery(friendsWishlists?.map(list => list.author),
-          { skip: !friendsWishlistsHaveLoaded }
+    const { data:       friends,
+            error:      friendsError,
+            isLoading:  awaitingFriends,
+            isSuccess:  friendsHaveLoaded,
+            isError:    loadingFriendsWasCrashed,
+            refetch:    refreshFriends } = useGetUsersQuery(
+                invites?.map(list => list?.author),
+                { skip: !invitesHaveLoaded }
     );
 
-    return friends || []
+    return { friends, friendsError, awaitingFriends, friendsHaveLoaded, loadingFriendsWasCrashed, refreshFriends }
+}
+
+const getAllRelevantUsers = () => {
+    const { user } = getCurrentUser();
+    const { friends } = getFriends();
+    return [user].concat(friends) || []
+}
+
+const getUserById = (id) => {
+    return getAllRelevantUsers()?.find(user => user?.id === id) || {}
+}
+
+const getUsersByIdList = (ids) => {
+    return getAllRelevantUsers()?.filter(user => ids?.includes(user?.id)) || []
+}
+
+const getAllUserNames = () => {
+    const { data:       allUserNames,
+            error:      allUserNamesError,
+            isLoading:  awaitingAllUserNames,
+            isSuccess:  allUserNamesHaveLoaded,
+            isError:    loadingAllUserNamesWasCrashed,
+            refetch:    refreshAllUserNames } = useGetAllUserNamesQuery();
+
+    return { allUserNames, allUserNamesError, awaitingAllUserNames, allUserNamesHaveLoaded, loadingAllUserNamesWasCrashed, refreshAllUserNames }
+}
+
+export {
+    getCurrentUser,
+    getFriends,
+    getUserById,
+    getUsersByIdList,
+    getAllUserNames,
+
+    getUserWishlists,
+    getInvites,
+    getWishlistById,
+    getWishlistsByIdList,
+
+    getUserWishes,
+    getFriendsWishes,
+    getWishById,
+    getWishesByIdList,
+    getActualWishes,
+    getWishesByWishlistId,
 }

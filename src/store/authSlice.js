@@ -1,44 +1,93 @@
-import { createSlice } from '@reduxjs/toolkit'
+import { createSlice,
+         current } from '@reduxjs/toolkit'
 
 import { apiSlice } from 'store/apiSlice'
+
+const __API_URL__ = import.meta.env.VITE_API_URL;
+const __DEBUG__ = import.meta.env.VITE_DEBUG_MODE === 'true';
 
 
 const authSlice = createSlice({
     name: 'auth',
     initialState: {
-        token: sessionStorage.getItem('token') || localStorage.getItem('token') || undefined,
-        userId: sessionStorage.getItem('userId') || localStorage.getItem('userId') || undefined
+        token: sessionStorage.getItem('token') || localStorage.getItem('token') || '',
+        refreshToken: localStorage.getItem('refreshToken') || '',
+        remember: true
     },
     reducers: {
+        refresh(state,{ payload: { token, refreshToken } }) {
+            state.token = token;
+            state.refreshToken = refreshToken;
+        },
         logout(state) {
             sessionStorage.setItem('token', '');
-            sessionStorage.setItem('userId', '');
+            localStorage.setItem('token', '');
+            localStorage.setItem('refreshToken', '');
             state.token = '';
-            state.userId = '';
+            state.refreshToken = '';
+            state.remember = true
+        },
+        setRemember(state,{ payload }) {
+            state.remember = payload
         },
     },
-    extraReducers: builder => {
+    extraReducers: builder => { 
         builder.addMatcher(
             apiSlice.endpoints.login.matchFulfilled,
-            (state,{ payload:{ token, userId }}) => {
-                console.log({ token, userId })
+            (state,{ payload:{ token, refreshToken }}) => {
                 state.token = token;
-                state.userId = userId
+                state.refreshToken = refreshToken;
+                const storage = current(state).remember ? localStorage : sessionStorage;
+                storage.setItem('token', token);
+                localStorage.setItem('refreshToken', refreshToken)
             }
         );
         builder.addMatcher(
             apiSlice.endpoints.signup.matchFulfilled,
-            (state,{ payload:{ token, userId }}) => {
-                console.log({ token, userId })
+            (state,{ payload:{ token, refreshToken }}) => {
                 state.token = token;
-                state.userId = userId
+                state.refreshToken = refreshToken;
+                const storage = current(state).remember ? localStorage : sessionStorage;
+                storage.setItem('token', token);
+                localStorage.setItem('refreshToken', refreshToken)
             }
         );
     },
 });
 
+export async function reAuth(thunkApi) {
+    const { token, refreshToken } = thunkApi.getState().auth;
+
+    const refreshResult = await fetch(__API_URL__ + '/auth/refresh-token', {
+        'method': 'POST',
+        'headers': {
+            "Content-Type": "application/json",
+            "Authorization": token
+        },
+        'body': JSON.stringify({ refreshToken })
+    })
+        .then(res => res.json())
+        .then(obj => ({ data: obj }))
+        .catch(err => ({ error: err }))
+
+    const { data, error } = refreshResult;
+
+    if(data) {
+        __DEBUG__ && console.log('Re-auth data:', data)
+        thunkApi.dispatch(authSlice.actions.refresh(data))
+    } else if(error) {
+        __DEBUG__ && console.log('Re-auth error:', error)
+        thunkApi.dispatch(authSlice.actions.logout())
+    }
+
+    return({ reAuthSuccess: !!data })
+}
+
+
 export const {
-    logout
+    refresh,
+    logout,
+    setRemember
 } = authSlice.actions;
 
 export default authSlice.reducer;

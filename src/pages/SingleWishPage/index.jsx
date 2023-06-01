@@ -36,9 +36,9 @@ export const SingleWishPage = () => {
     const currentWishId = locationSteps.pop();
     
     const [ deleteWish, deleteWishReturn ] = useDeleteWishMutation();
-    const userWishes = getUserWishes();
+    const { userWishes } = getUserWishes();
     const wish = getWishById(currentWishId);
-    const user = getUserById(wish?.author);
+    const author = getUserById(wish?.author);
     const wishlists = getWishlistsByIdList(wish?.inWishlists);
     
     const [ pointerOffset, setPointerOffset ] = useState(69);
@@ -97,7 +97,7 @@ export const SingleWishPage = () => {
         if(deleteWishReturn?.error) {
             console.log(deleteWishReturn.error)
         } else {
-            const wishKeys = userWishes.map(wish => wish.id);
+            const wishKeys = userWishes?.map(wish => wish.id);
             const deletedKey = deleteWishReturn?.data;
             
             if(deletedKey && !wishKeys.includes(deletedKey)) {
@@ -171,11 +171,11 @@ export const SingleWishPage = () => {
     }
 
     const UserInfo = () => {
-        if(!user) return null;
+        if(!author) return null;
         return (
             <div className='info-field'>
                 <span className='label'>Желает</span>
-                <User picSize='4' user={ user }/>
+                <User picSize='4' user={ author }/>
             </div>
     )}
 

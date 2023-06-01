@@ -2,14 +2,14 @@ import   React from 'react'
 import { useLocation,
          useParams,
          useNavigate } from 'react-router'
-import { useSelector } from 'react-redux'
 
 import { MultiColumnLayout } from 'containers/MultiColumnLayout'
 import { LineContainer } from 'containers/LineContainer'
 import { Button } from 'atoms/Button'
 import { WishCard } from 'molecules/WishCard'
 
-import { getUserWishes,
+import { getCurrentUser,
+         getUserWishes,
          getFriendsWishes } from 'store/getters'
 
 
@@ -17,10 +17,10 @@ export const WishesPage = () => {
     const navigate = useNavigate();
     const section = useLocation().pathname.split('/').at(1);
     const { tabName } = useParams();
-    const currentUserId = useSelector(state => state.auth?.user?.id);
 
-    const userWishes = getUserWishes();
-    const friendsWishes = getFriendsWishes();
+    const { user } = getCurrentUser();
+    const { userWishes } = getUserWishes();
+    const { friendsWishes } = getFriendsWishes();
 
     const allWishes = (section === 'my-wishes')  ? userWishes
                     : (section === 'my-invites') ? friendsWishes : [];
@@ -35,7 +35,7 @@ export const WishesPage = () => {
             newWishButtonText = 'Новое желание';
             break;
         case 'reserved':
-            wishes = allWishes?.filter(wish => !wish.isCompleted && wish.reservedBy === currentUserId);
+            wishes = allWishes?.filter(wish => !wish.isCompleted && wish.reservedBy === user.id);
             noWishesMessage = 'В данный момент вы не исполняете ни одного желания';
             break;
         case 'completed':

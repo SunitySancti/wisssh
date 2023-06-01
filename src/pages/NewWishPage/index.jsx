@@ -19,7 +19,8 @@ import { ToggleInput } from 'inputs/ToggleInput'
 import { LineContainer } from 'containers/LineContainer'
 import { DoubleColumnAdaptiveLayout } from 'containers/DoubleColumnAdaptiveLayout'
 
-import { getUserWishlists,
+import { getCurrentUser,
+         getUserWishlists,
          getWishById,
          getUserWishes } from 'store/getters'
 import { usePostWishMutation } from 'store/apiSlice'
@@ -30,38 +31,41 @@ export const NewWishPage = () => {
     const navigate = useNavigate();
     const imageInputRef = useRef({});
 
-    const [ postWish,{ data: postWishResponse, error: postWishError, isLoading: awaitPostWish }] = usePostWishMutation();
-    const userWishes = getUserWishes();
-    const currentUserId = useSelector(state => state.auth?.userId);
-
-    useEffect(() => {
-        if(!currentUserId) navigate('/login')
-    },[ currentUserId ])
-    
-    // setting form:
-
     const [ , , , , editingWishId, editing ] = useLocation().pathname?.split('/');
     const isEditingPage = (editing === 'editing');
 
-    const wishValues = isEditingPage ? getWishById(editingWishId) : null;
-    const defaultValues = {
-        id: undefined,
-        author: currentUserId,
-        inWishlists: [],
-        reservedBy: '',
-        title: '',
-        description: '',
-        imageExtension: '',
-        imageAR: 1,
-        external: '',
-        price: '',
-        currency: 'rouble',
-        stars: 0,
-        isCompleted: ''
-    }
+    const { user } = getCurrentUser();
+    const { userWishes } = getUserWishes();
+    const { userWishlists } = getUserWishlists();
+    const editingWish = getWishById(editingWishId)
+    const [ postWish,{ data: postWishResponse, error: postWishError, isLoading: awaitPostWish }] = usePostWishMutation();
+
+    useEffect(() => {
+        console.log({user})
+        if(!user?.id) navigate('/login')
+    },[ user?.id ])
+    
+    // setting form:
+
+    const defaultValues = isEditingPage
+        ? editingWish
+        : {
+            author: user?.id,
+            inWishlists: [],
+            reservedBy: '',
+            title: '',
+            description: '',
+            imageExtension: '',
+            imageAR: 1,
+            external: '',
+            price: '',
+            currency: 'rouble',
+            stars: 0,
+            isCompleted: ''
+        }
     const { handleSubmit, register, setValue, reset, watch, control, formState } = useForm({
         mode: 'onChange',
-        defaultValues: wishValues || defaultValues
+        defaultValues: defaultValues
     });
     
     const statusOptions = [
@@ -73,7 +77,7 @@ export const NewWishPage = () => {
         {value: 'euro', label: '€'},
         {value: 'dollar', label: '$'},
     ];
-    const wishlistOptions = getUserWishlists().map(list => ({
+    const wishlistOptions = userWishlists?.map(list => ({
         value: list.id,
         label: list.title
     }))
@@ -82,7 +86,7 @@ export const NewWishPage = () => {
 
     const [ image, setImage ] = useState(null);
     const [ imageIsNew, setImageIsNew ] = useState(false);
-    const currentImageURL = useSelector(state => state.images?.imageURLs[wishValues?.id]);
+    const currentImageURL = useSelector(state => state.images?.imageURLs[editingWish?.id]);
     
     function setNewImage(file) {
         setImage(file);
@@ -120,7 +124,7 @@ export const NewWishPage = () => {
         if(postWishError?.status) {
             console.log(postWishError)
         } else {
-            const wishKeys = userWishes.map(wish => wish.id);
+            const wishKeys = userWishes?.map(wish => wish.id);
             const postedKey = postWishResponse?.id;
 
             if(postedKey && wishKeys.includes(postedKey)) {
@@ -128,7 +132,7 @@ export const NewWishPage = () => {
                 navigate(`/my-wishes/items/${ tab }/${ postedKey }`)
             }
         }
-    },[ postWishResponse?.id, postWishError?.status, userWishes.length ])
+    },[ postWishResponse?.id, postWishError?.status, userWishes?.length ])
 
     const cancelForm = (e) => {
         e.preventDefault();
@@ -181,16 +185,7 @@ export const NewWishPage = () => {
                     widthBreakpoint={ 1140 }
                     firstColumn={
                         <>
-                            <input
-                                className='invis'
-                                type='text'
-                                {...register('id')}
-                            />
-                            <input
-                                className='invis'
-                                type='text'
-                                {...register('author')}
-                            />
+                            <input className='invis' type='text' {...register('author')}/>
                             <ImageInput
                                 register={ register }
                                 setValue={ setValue }

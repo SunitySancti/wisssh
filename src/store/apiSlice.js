@@ -1,21 +1,57 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi,
+         fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { Mutex } from 'async-mutex'
+
+import { reAuth } from 'store/authSlice';
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
+
+const mutex = new Mutex();
+
+const baseQuery = fetchBaseQuery({
+    baseUrl: apiUrl + '/',
+    prepareHeaders: (headers,{ getState }) => {
+        const token = getState().auth?.token;
+        if(token) {
+            headers.set('Authorization', token)
+        }
+        headers.set('Access-Control-Request-Headers', 'Authorization,Content-Type');
+        return headers
+    }
+});
+const baseQueryWithReauth = async (args, api, extraOptions) => {
+    await mutex.waitForUnlock();
+    let result = await baseQuery(args, api, extraOptions);
+
+    if(result.error) {
+        console.log('Async error.', result.error);
+
+        if(result.error.status === 403) {
+            if (!mutex.isLocked()) {
+                const release = await mutex.acquire();
+                try {
+                    const { reAuthSuccess } = await reAuth(api);
+                    if(reAuthSuccess) {
+                        result = await baseQuery(args, api, extraOptions)
+                    }
+                } finally {
+                    release()
+                }
+            } else {
+                await mutex.waitForUnlock();
+                result = await baseQuery(args, api, extraOptions)
+            }
+        }
+    }
+    return result
+}
+
+
 export const apiSlice = createApi({
     reducerPath: 'api',
-    baseQuery: fetchBaseQuery({
-        baseUrl: apiUrl + '/',
-        prepareHeaders: (headers,{ getState }) => {
-            const token = getState().auth.token;
-            if(token) {
-                headers.set('Authorization', token)
-            }
-            headers.set('Access-Control-Request-Headers', 'Authorization,Content-Type')
-            return headers
-        }
-    }),
-    tagTypes: ['User', 'Wish', 'Wishlist', 'Id'],
+    baseQuery: baseQueryWithReauth,
+    tagTypes: ['Auth', 'User', 'Wish', 'Wishlist', 'Id'],
 
     endpoints: builder => ({
 
@@ -25,10 +61,10 @@ export const apiSlice = createApi({
                 method: 'POST',
                 body: credentials,
                 validateStatus: (response, result) => {
-                    return (response.status === 200 && result.token && result.userId)
+                    return (response.status === 200 && result.token)
                 }
             }),
-            invalidatesTags: ['User']
+            invalidatesTags: ['Auth']
         }),
         signup: builder.mutation({
             query: ({ name, email, password }) => ({
@@ -36,10 +72,17 @@ export const apiSlice = createApi({
                 method: 'POST',
                 body: { name, email, password },
                 validateStatus: (response, result) => {
-                    return (response.status === 200 && result.token && result.userId)
+                    return (response.status === 200 && result.token)
                 }
             }),
-            invalidatesTags: ['User']
+            invalidatesTags: ['Auth', 'User']
+        }),
+        refreshToken: builder.mutation({
+            query: ({ refreshToken }) => ({
+                url: 'auth/token/refresh',
+                method: 'POST',
+                body: { refreshToken }
+            })
         }),
 
 
@@ -59,6 +102,14 @@ export const apiSlice = createApi({
             }),
             invalidatesTags: ['Wish', 'Wishist', 'User', 'Id']
         }),
+        updateProfile: builder.mutation({
+            query: (profileData) => ({
+                url: 'users/update-profile',
+                method: 'POST',
+                body: profileData
+            }),
+            invalidatesTags: ['User']
+        }),
         deleteWish: builder.mutation({
             query: (id) => ({
                 url: `wishes/${ id }`,
@@ -73,64 +124,61 @@ export const apiSlice = createApi({
             }),
             invalidatesTags: ['Wish', 'Wishist', 'User', 'Id']
         }),
-        updateProfile: builder.mutation({
-            query: (profileData) => ({
-                url: 'users/update-profile',
-                method: 'POST',
-                body: profileData
-            }),
-            invalidatesTags: ['User']
+
+
+        getCurrentUser: builder.query({
+            query: () => 'users/single/current',
+            providesTags: ['Auth', 'User']
         }),
-
-
+        getAllUserNames: builder.query({
+            query: () => 'auth/get-all-usernames',
+            providesTags: ['User']
+        }),
         getUsers: builder.query({
-            query: () => 'users/all',
-            providesTags: ['User']
-        }),
-        getSomeUsers: builder.query({
             query: (idList) => `users/query/${idList?.join('+')}`,
-            providesTags: ['User']
+            providesTags: ['Auth', 'User']
         }),
-        getSingleUser: builder.query({
-            query: (id) => `users/${id}`,
-            providesTags: ['User']
-        }),
-
-
         getWishes: builder.query({
-            query: () => 'wishes/all',
-            providesTags: ['Wish']
-        }),
-        getSomeWishes: builder.query({
             query: (idList) => `wishes/query/${idList?.join('+')}`,
-            providesTags: ['Wish']
+            providesTags: ['Auth', 'Wish']
         }),
-        getSingleWish: builder.query({
-            query: (id) => `wishes/${id}`,
-            providesTags: ['Wish']
-        }),
-
-
         getWishlists: builder.query({
-            query: () => 'wishlists/all',
-            providesTags: ['Wishlist']
-        }),
-        getSomeWishlists: builder.query({
             query: (idList) => `wishlists/query/${idList?.join('+')}`,
-            providesTags: ['Wishlist']
-        }),
-        getSingleWishlist: builder.query({
-            query: (id) => `wishlists/${id}`,
-            providesTags: ['Wishlist']
+            providesTags: ['Auth', 'Wishlist']
         }),
 
 
-        getIdList: builder.query({
-            query: () => 'ids/all',
-            providesTags: ['Id']
-        }),
+        // getSingleUser: builder.query({
+        //     query: (id) => `users/single/${id}`,
+        //     providesTags: ['Auth', 'User']
+        // }),
+        // getSingleWish: builder.query({
+        //     query: (id) => `wishes/single/${id}`,
+        //     providesTags: ['Auth', 'Wish']
+        // }),
+        // getSingleWishlist: builder.query({
+        //     query: (id) => `wishlists/single/${id}`,
+        //     providesTags: ['Auth', 'Wishlist']
+        // }),
+        // getAllWishes: builder.query({
+        //     query: () => 'wishes/all',
+        //     providesTags: ['Auth', 'Wish']
+        // }),
+        // getAllWishlists: builder.query({
+        //     query: () => 'wishlists/all',
+        //     providesTags: ['Auth', 'Wishlist']
+        // }),
+        // getIdList: builder.query({
+        //     query: () => 'ids/all',
+        //     providesTags: ['Id']
+        // }),
     })
 });
+
+export const getUserNameByEmail = async (email) => {
+    return await fetch(apiUrl + '/auth/get-username-by-email/' + email)
+        .then(res => res.json())
+}
 
 export const {
     useLoginMutation,
@@ -142,17 +190,16 @@ export const {
     useDeleteWishlistMutation,
     useUpdateProfileMutation,
 
+    useGetCurrentUserQuery,
+    useGetAllUserNamesQuery,
     useGetUsersQuery,
-    useGetSomeUsersQuery,
-    useGetSingleUserQuery,
-    
     useGetWishesQuery,
-    useGetSomeWishesQuery,
-    useGetSingleWishQuery,
-    
     useGetWishlistsQuery,
-    useGetSomeWishlistsQuery,
-    useGetSingleWishlistQuery,
-
-    useGetIdListQuery,
+    
+    // useGetSingleUserQuery,
+    // useGetSingleWishQuery,
+    // useGetAllWishesQuery,
+    // useGetSingleWishlistQuery,
+    // useGetAllWishlistsQuery,
+    // useGetIdListQuery,
 } = apiSlice
