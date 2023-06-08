@@ -7,7 +7,7 @@ import { Icon, Gratitude } from 'atoms/Icon'
 export const CreationGroup = ({ isShort }) => {
     
     return (
-        <div>
+        <div className='creation-group'>
             <Gratitude />
             <Link
                 to='/my-wishes/items/new'

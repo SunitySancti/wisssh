@@ -13,6 +13,16 @@
     overflow-x: overlay;
     width: inherit;
 }
+
+.equalize-container {
+    z-index: 1;
+    display: flex;
+    flex-flow: row nowrap;
+
+    .space {
+        flex: 1
+    }
+}
   
 .app-header {
     position: relative;
@@ -36,7 +46,9 @@
         }
     }
 
-    > div {
+    .user-group,
+    .section-switcher,
+    .creation-group {
         display: flex;
         flex-flow: row nowrap;
         gap: 1rem;

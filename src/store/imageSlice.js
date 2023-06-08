@@ -1,18 +1,21 @@
 import { createSlice,
-         createAsyncThunk } from '@reduxjs/toolkit'
+         createAsyncThunk, 
+         current} from '@reduxjs/toolkit'
 import { Mutex } from 'async-mutex'
 
-import { reAuth } from 'store/authSlice';
+import { reAuth } from 'store/authSlice'
+import { apiSlice } from 'store/apiSlice'
 
-const apiUrl = import.meta.env.VITE_API_URL;
+const __API_URL__ = import.meta.env.VITE_API_URL;
+const __DEV_MODE__ = import.meta.env.VITE_DEV_MODE === 'true';
 
 
 const mutex = new Mutex();
 
-async function fetchImage(id, drive, getState) {
+async function fetchImage(name, drive, getState) {
     const { token } = getState().auth;
-    if(!id) return;
-    const endpoint = [apiUrl, 'images', drive, id].join('/');
+    if(!name) return;
+    const endpoint = [__API_URL__, 'images', drive, name ].join('/');
 
     return await fetch(endpoint,{
         'headers': {
@@ -23,48 +26,42 @@ async function fetchImage(id, drive, getState) {
             if(blob.size) return URL.createObjectURL(blob)
             else return null
         })
-        .then(url => ({ data: { id, url }}))
+        .then(url => ({ data: { id: name.split('.')[0], url, drive }}))
         .catch(err => ({ error: err }))
 }
 
-async function fetchImageWithReauth(id, drive, thunkApi) {
+async function fetchImageWithReauth(name, drive, thunkApi) {
     await mutex.waitForUnlock();
-    let result = await fetchImage(id, drive, thunkApi.getState);
-
+    let result = await fetchImage(name, drive, thunkApi.getState);
     if(result.error) {
-        console.log('Async error (image).', result.error)
-
+        if(__DEV_MODE__) {
+            console.log('Error in image fetch.', result.error)
+        }
         if(result.error.status === 403) {
             if (!mutex.isLocked()) {
                 const release = await mutex.acquire();
                 try {
                     const { reAuthSuccess } = await reAuth(thunkApi);
                     if(reAuthSuccess) {
-                        result = await fetchImage(id, drive, thunkApi.getState)
+                        result = await fetchImage(name, drive, thunkApi.getState)
                     }
                 } finally {
                     release()
                 }
             } else {
                 await mutex.waitForUnlock();
-                result = await fetchImage(id, drive, thunkApi.getState);
+                result = await fetchImage(name, drive, thunkApi.getState);
             }
         }
     }
     return result
 }
 
-export const fetchUserAvatar = createAsyncThunk(
-    'images/fetchUserAvatar',
-    async (id, thunkApi) => {
-        return await fetchImageWithReauth(id, 'avatars', thunkApi)
-    }
-);
 
-export const fetchWishCover = createAsyncThunk(
+export const getImage = createAsyncThunk(
     'images/fetchWishCover',
-    async (id, thunkApi) => {
-        return await fetchImageWithReauth(id, 'covers', thunkApi)
+    async ({ id, ext, type }, thunkApi) => {
+        return await fetchImageWithReauth(id + '.' + ext, type + 's', thunkApi)
     }
 );
 
@@ -73,7 +70,7 @@ export const postImage = createAsyncThunk(
     async ({ id, file, drive },{ getState }) => {
         if(!id || !file || !drive) return;
         
-        const endpoint = [apiUrl, 'images', drive, id].join('/');
+        const endpoint = [__API_URL__, 'images', drive, id].join('/');
         const token = getState().auth?.token;
 
         const formData = new FormData();
@@ -91,18 +88,20 @@ export const postImage = createAsyncThunk(
 );
 
 
+const defaultState = {
+    imageURLs: {},
+    backupURLs: {},
+    loading: {},
+    queue: [],      // [...QueueItems]
+    prior: [],      // { id: 'Kj1s9g', ext: 'jpg', type: 'avatar' }
+}
+
 const imageSlice = createSlice({
     name: 'images',
-    initialState: {
-        imageURLs: {},
-        backupURLs: {},
-        loading: {}
-    },
+    initialState: defaultState,
     reducers: {
         resetImageStore(state) {
-            state.imageURLs = {};
-            state.backupURLs = {};
-            state.loading = {}
+            state = defaultState
         },
         addImageURL(state,{ payload }) {
             const { id, url } = payload;
@@ -113,34 +112,43 @@ const imageSlice = createSlice({
         deleteImageURL(state,{ payload: id }) {
             state.imageURLs[id] = null
         },
+        promoteImages(state,{ payload }) { // imageId or [...imageIds]
+            if(!payload || !payload?.length) return state
+            
+            const { queue, prior } = current(state);
+            const queueIds = queue?.map(item => item?.id)
+            const priorIds = prior?.map(item => item?.id)
+
+            const newPrior = [];
+            function pickPriors(id) {
+                if(queueIds?.includes(id) && !priorIds?.includes(id)) {
+                    newPrior?.push(queue?.find(item => item.id === id))
+                }
+            }
+            if(payload instanceof Array && payload.length) {
+                payload.forEach(pickPriors)
+            } else if(payload) {
+                pickPriors(payload)
+            }
+            const newPriorIds = newPrior?.map(item => item.id);
+            state.prior = prior?.concat(newPrior);
+            state.queue = queue?.filter(item => !newPriorIds?.includes(item.id))
+        }
     },
     extraReducers: builder => {
-        builder.addCase(fetchUserAvatar.pending, (state,{ meta:{ arg: id }}) => {
-            state.loading[id] = true;
-        });
-        builder.addCase(fetchUserAvatar.fulfilled, (state,{ payload:{ data } }) => {
-            if(!data) return state;
-            const { id, url } = data;
-            state.imageURLs[id] = url
-            delete state.loading[id];
-        });
-        builder.addCase(fetchUserAvatar.rejected, (state,{ meta:{ arg: id }}) => {
-            delete state.loading[id];
-            console.log('fetching user avatar was rejected');
-        });
 
-
-        builder.addCase(fetchWishCover.pending, (state,{ meta:{ arg: id }}) => {
+        builder.addCase(getImage.pending, (state,{ meta:{ arg:{ id }}}) => {
             state.loading[id] = true;
+            state.queue = current(state).queue.filter(item => item.id !== id);
+            state.prior = current(state).prior.filter(item => item.id !== id);
         });
-        builder.addCase(fetchWishCover.fulfilled, (state,{ payload:{ data } }) => {
-            if(!data) return state;
-            const { id, url } = data;
-            state.imageURLs[id] = url
-        });
-        builder.addCase(fetchWishCover.rejected, (state,{ meta:{ arg: id }}) => {
+        builder.addCase(getImage.fulfilled, (state,{ payload:{ data:{ id, url }}}) => {
+            if(!id || !url) return state;
+            state.imageURLs[id] = url;
             delete state.loading[id];
-            console.log('fetching wish cover was rejected')
+        });
+        builder.addCase(getImage.rejected, (state,{ meta:{ arg:{ id }}}) => {
+            delete state.loading[id];
         });
 
 
@@ -160,8 +168,43 @@ const imageSlice = createSlice({
             state.imageURLs[id] = state.backupURLs[id];
             delete state.backupURLs[id];
             delete state.loading[id];
-            console.log('posting image was rejected')
         });
+
+
+        [ apiSlice.endpoints.getCurrentUser,
+          apiSlice.endpoints.getFriends,
+          apiSlice.endpoints.getUserWishes,
+          apiSlice.endpoints.getFriendWishes ].forEach(endpoint => {
+
+            builder.addMatcher(
+                endpoint.matchFulfilled,
+                (state,{ payload }) => {
+                    if(payload instanceof Array && payload.length) {
+                        const type = payload[0]?.title ? 'cover' : 'avatar'
+                        payload.forEach(item => {
+                            if(item?.imageExtension) {
+
+                                state.queue.push({
+                                    id: item.id,
+                                    ext: item.imageExtension,
+                                    type
+                                })
+                            }
+                        })
+                    } else if(payload && typeof payload === 'object') {
+                        const type = payload.title ? 'cover' : 'avatar'
+                        if(payload.imageExtension) {
+
+                            state.queue.push({
+                                id: payload.id,
+                                ext: payload.imageExtension,
+                                type
+                            })
+                        }
+                    }
+                }
+            )
+        })
     }
 });
 
@@ -169,6 +212,7 @@ export const {
     resetImageStore,
     addImageURL,
     deleteImageURL,
+    promoteImages,
 } = imageSlice.actions;
 
 export default imageSlice.reducer;

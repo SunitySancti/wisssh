@@ -1,9 +1,21 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import   React,
+       { useState,
+         useEffect,
+         useMemo,
+         useRef } from 'react'
+import { Link,
+         useLocation,
+         useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 
 import './styles.scss'
-import { LogoBack, LogoIcon, Goo } from 'atoms/Icon'
+import { LogoBack,
+         LogoIcon,
+         Goo } from 'atoms/Icon'
+         
+const __API_URL__ = import.meta.env.VITE_API_URL;
+const __DEV_MODE__ = import.meta.env.VITE_DEV_MODE === 'true';
+
 
 const slidersDefaultStyles = (side) => {
     let common = {
@@ -16,12 +28,34 @@ const slidersDefaultStyles = (side) => {
 };
 const sidePadding = 6;
 
-export const SectionSwitcher = ({ isShort, onLogoClick }) => {
+export const SectionSwitcher = ({ isShort }) => {
+    // handle click on logo
+    const state = useSelector(state => state);
+    const navigate = useNavigate();
+    const handleLogoClick = __DEV_MODE__
+        ? async () => {
+            // await fetch(__API_URL__ + '/ids/refresh')
+            console.log(state)
+        }
+        : () => navigate('/my-wishes/items/actual')
+
     // take refs of sections:
     const firstSectionRef = useRef(null);
     const secondSectionRef = useRef(null);
     const firstElem = firstSectionRef.current;
     const secondElem = secondSectionRef.current;
+
+    // equalize widths of sections:
+    const sectionMaxWidth = useMemo(() => {
+        if(!firstElem || !secondElem) return 180;
+
+        const firstSectionWidth  =  firstElem?.offsetWidth;
+        const secondSectionWidth = secondElem?.offsetWidth;
+        if(!firstSectionWidth || !secondSectionWidth) return 180;
+
+        return firstSectionWidth > secondSectionWidth
+             ? firstSectionWidth : secondSectionWidth
+    },[ firstElem?.innerHTML, secondElem?.innerHTML ]);
 
     // actualize current section:
     const location = useLocation().pathname;
@@ -30,7 +64,6 @@ export const SectionSwitcher = ({ isShort, onLogoClick }) => {
     const isMyInvites = currentSection === 'my-invites';
 
     // calculate slider active styles depends on text content:
-    
     const slidersActiveStyles = useMemo(() => {
         const firstWidth = firstElem?.offsetWidth;
         const secondWidth = secondElem?.offsetWidth;
@@ -50,8 +83,7 @@ export const SectionSwitcher = ({ isShort, onLogoClick }) => {
         }
     },[firstElem?.innerHTML, secondElem?.innerHTML]);
 
-    // assigning styles to sliders depending on current section:
-
+    // assigning styles to sliders according to current section:
     const [leftSliderStyles, setLeftSliderStyles] = useState(slidersDefaultStyles('left'));
     const [rightSliderStyles, setRightSliderStyles] = useState(slidersDefaultStyles('right'));
 
@@ -70,7 +102,6 @@ export const SectionSwitcher = ({ isShort, onLogoClick }) => {
     },[currentSection, firstElem?.innerHTML, secondElem?.innerHTML]);
 
     // define link paths and titles of sections:
-
     const lastMode = useSelector(state => state.history.anySectionLast?.split('/').at(2));
     const myWishesSection = useSelector(state => state.history.myWishesSection);
     const myInvitesSection = useSelector(state => state.history.myInvitesSection);
@@ -81,42 +112,55 @@ export const SectionSwitcher = ({ isShort, onLogoClick }) => {
     const firstSectionTitle  = (lastMode === 'items') ? 'Мои желания'
                              : (lastMode === 'lists') ? 'Мои вишлисты' : '';
     const secondSectionTitle = (lastMode === 'items') ? 'Желания друзей'
-                             : (lastMode === 'lists') ? 'Вишлисты друзей' : '';
+                             : (lastMode === 'lists') ? 'Приглашения' : '';
+
 
     return (
-        <div>
-            <Link
-                ref={firstSectionRef}
-                to={firstSectionPath}
-                className={isMyWishes ? 'section my-wishes active' : 'section my-wishes'}
-                children={firstSectionTitle}
-            />
+        <div className='section-switcher'>
+            <div
+                className='section-container'
+                style={{ width: sectionMaxWidth }}
+            >
+                <div className='space'/>
+                <Link
+                    ref={ firstSectionRef }
+                    to={ firstSectionPath }
+                    className={ isMyWishes ? 'section my-wishes active' : 'section my-wishes' }
+                    children={ firstSectionTitle }
+                />
+            </div>
 
             <button
                 className='logo-button'
-                onClick={ onLogoClick }
+                onClick={ handleLogoClick }
             >
                 <div className='sliders-container'>
                     <div
                         className='ss-slider'
-                        style={leftSliderStyles}
+                        style={ leftSliderStyles }
                     />
                     <div
                         className='ss-slider'
-                        style={rightSliderStyles}
+                        style={ rightSliderStyles }
                     />
-                    <LogoBack isShort={isShort}/>
+                    <LogoBack isShort={ isShort }/>
                     <Goo/>
                 </div>
-                <LogoIcon isShort={isShort}/>
+                <LogoIcon isShort={ isShort }/>
             </button>
             
-            <Link
-                ref={secondSectionRef}
-                to={ secondSectionPath }
-                className={isMyInvites ? 'section my-invites active' : 'section my-invites'}
-                children={secondSectionTitle}
-            />
+            <div
+                className='section-container'
+                style={{ width: sectionMaxWidth }}
+            >
+                <Link
+                    ref={ secondSectionRef }
+                    to={ secondSectionPath }
+                    className={ isMyInvites ? 'section my-invites active' : 'section my-invites' }
+                    children={ secondSectionTitle }
+                />
+                <div className='space'/>
+            </div>
         </div>
     )
 }

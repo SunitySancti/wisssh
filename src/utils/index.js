@@ -1,3 +1,25 @@
+const __API_URL__ = import.meta.env.VITE_API_URL;
+
+
+export const generateId = (length = 6) => {
+    const alphabet = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let id = '';
+    for (var i = 0; i < length; i++) {
+        id += alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+    }
+    return id
+}
+        
+export async function generateUniqueId(
+    type = 'undefined',   // 'wishlist' || 'wish' || 'user' || 'invitationCode'
+    length = 6
+) {
+    const url = [__API_URL__, 'ids/generate-unique-id', type, length].join('/');
+    return await fetch(url)
+        .then(checkStatus)
+        .then(json)
+}
+
 export function checkStatus(res) {
     if(res.status >= 200 && res.status < 300) {
         return Promise.resolve(res)
@@ -48,7 +70,7 @@ export function decimalDigitsArrayToDecimalNumber(digitsArray, radix) {
 }
 
 // takes string or number as input, numbers as radices
-// optional parameter "keyString" sets the correspondence between the index of the digit and the symbol
+// optional parameter "keyString" sets the correspondence between the index of the digit and the chatacter
 export function numberSystemConverter(
     input,
     inputRadix,
@@ -56,8 +78,8 @@ export function numberSystemConverter(
     inputAlphabet = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
     outputAlphabet = inputAlphabet
 ) {
-    if(typeof(input) !== 'number' && typeof(input) !== 'string' || typeof(inputRadix) !== 'number' || typeof(outputRadix) !== 'number' || (inputAlphabet && typeof(inputAlphabet) !== 'string') || (outputAlphabet && typeof(outputAlphabet) !== 'string')){
-         return { error: 'Wrong types!' }
+    if((typeof input !== 'number' && typeof input !== 'string') || typeof inputRadix !== 'number' || typeof outputRadix !== 'number' || (inputAlphabet && typeof inputAlphabet !== 'string') || (outputAlphabet && typeof outputAlphabet !== 'string')) {
+        return { error: 'Wrong types!' }
     }
     if(inputRadix > inputAlphabet || outputRadix > outputAlphabet) {
         return { error: 'Radix must to be less or equal to alphabet length' }
@@ -66,6 +88,8 @@ export function numberSystemConverter(
     if(inputRadix !== 10) {
         reminder = stringOrNumberToDecimalDigitsArray(reminder, inputAlphabet);
         reminder = decimalDigitsArrayToDecimalNumber(reminder, inputRadix)
+    } else {
+        reminder = Number(reminder)
     }
     if(outputRadix === 10) {
         return reminder + ''
@@ -95,15 +119,6 @@ export function separateString(input, partLength) {
     return accumulator
 }
 
-export function encodeEmail(email) {
-    if(email.length < 6) return ''
-    const emailChars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ ?^_~.,:;@!#$%&*+-={}()[]<>'`\"/|\\";
-    // check chars
-    return separateString(email, 7)
-        .map(part => numberSystemConverter(part, 95, 62, emailChars))
-        .join('+');
-}
-
 export function decodeEmail(encodedEmail) {
     if(encodedEmail.length < 6) return ''
     const emailChars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ ?^_~.,:;@!#$%&*+-={}()[]<>'`\"/|\\";
@@ -112,35 +127,6 @@ export function decodeEmail(encodedEmail) {
         .split('+')
         .map(part => numberSystemConverter(part, 62, 95, emailChars))
         .join('')
-}
-
-export const generateId = (keyString, length) => {
-    const alphabet = keyString || '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const idLength = length || 6;
-
-    let id = '';
-    for (var i = 0; i < idLength; i++) {
-        id += alphabet.charAt(Math.floor(Math.random() * alphabet.length));
-    }
-    return id
-}
-
-export const generateUniqueId = async (keyString, length) => {
-    const alphabet = keyString || '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const idLength = length || 6;
-    const idList = await fetch('/api/ids/all')
-        .then(checkStatus)
-        .then(json)
-        .then(list => list.map(obj => obj.key));
-
-    let uniqueId;
-    while (!uniqueId || idList.includes(uniqueId)) {
-        uniqueId = '';
-        for (var i = 0; i < idLength; i++) {
-            uniqueId += alphabet.charAt(Math.floor(Math.random() * alphabet.length));
-        }
-    }
-    return uniqueId;
 }
 
 export function mergeArrays(arrays) {

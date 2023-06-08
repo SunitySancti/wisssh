@@ -54,7 +54,7 @@ export const MultiColumnLayout = ({ Card, data, ...cardProps }) => {
     const updateColumnsQty = () => {
         const layoutWidth = layoutRef.current?.clientWidth;
         const columnsQtyLimit = Math.floor((layoutWidth - 2 * gap) / (minWidth + gap));
-        setColumnsQty(Math.min(columnsQtyLimit, items.length));
+        setColumnsQty(Math.min(columnsQtyLimit, items?.length));
     }
 
     const initColumns = () => {
@@ -67,11 +67,11 @@ export const MultiColumnLayout = ({ Card, data, ...cardProps }) => {
     }
 
     const pushItemToShortColumn =  () => {
-        if(itemsRest.length === items.length) return;
-        if(!itemsRest.length) { setOpacity(1); return };
+        if(itemsRest?.length === items?.length) return;
+        if(!itemsRest?.length) { setOpacity(1); return };
 
         const columns = [...layoutRef.current?.childNodes]
-        if(!columns.length) return;
+        if(!columns?.length) return;
         
         const columnHeights = columns?.map(col => col.clientHeight);
         const shortColumnId = columnHeights?.indexOf(Math.min(...columnHeights));
@@ -98,7 +98,7 @@ export const MultiColumnLayout = ({ Card, data, ...cardProps }) => {
     },[ items ]);
 
     useEffect(() => {
-        columnsQty && !!items.length && initColumns();
+        columnsQty && !!items?.length && initColumns();
     },[ columnsQty ]);
 
     // trick to fix card height loading bug:
@@ -108,7 +108,7 @@ export const MultiColumnLayout = ({ Card, data, ...cardProps }) => {
     },[ itemsRest ]);
 
     useEffect(() => {
-        if(items.length > columnsQty) setMaxWidth(null)
+        if(items?.length > columnsQty) setMaxWidth(null)
         else  setMaxWidth(defaultMaxWidth)
     },[ columnedData ]);
 
@@ -118,7 +118,7 @@ export const MultiColumnLayout = ({ Card, data, ...cardProps }) => {
             style={containerStyles}
             ref={layoutRef}
         >
-            { columnedData && !!columnedData.length && columnedData.map( (column, index) =>
+            { columnedData && !!columnedData?.length && columnedData.map( (column, index) =>
                 <div
                     style={columnStyles}
                     key={index}

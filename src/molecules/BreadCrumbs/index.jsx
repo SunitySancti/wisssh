@@ -22,6 +22,8 @@ export const BreadCrumbs = () => {
     const isNew = (pathRest[0] === 'new');
     const isWishEditing = (pathRest[2] === 'editing');
 
+    // const wishlist = {};
+    // const wish = {};
     const wishlist = getWishlistById(wishlistId);
     const wish = getWishById(wishId);
 

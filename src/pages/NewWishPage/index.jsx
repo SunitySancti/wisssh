@@ -35,6 +35,9 @@ export const NewWishPage = () => {
     const isEditingPage = (editing === 'editing');
 
     const { user } = getCurrentUser();
+    // const userWishes = []
+    // const userWishlists = []
+    // const editingWish = {}
     const { userWishes } = getUserWishes();
     const { userWishlists } = getUserWishlists();
     const editingWish = getWishById(editingWishId)

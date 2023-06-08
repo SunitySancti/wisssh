@@ -9,15 +9,53 @@ import './styles.scss'
 import { Icon } from 'atoms/Icon'
 import { Portal } from 'containers/Portal'
 
+
+const Option = ({
+    icon,
+    text,
+    onClick,
+    className,
+    setIsDropped,
+    dontHideAfterClick,
+    clickedIcon,
+    clickedText,
+    ...rest
+}) => {
+    const [clicked, setClicked] = useState(false);
+
+    return (
+        <div
+            className={ 'dropdown-option ' + (clicked ? 'disabled ' : '') + (className ? className : '')}
+            onClick={(e) => {
+                onClick(e);
+                if(dontHideAfterClick) {
+                    setClicked(true)
+                } else {
+                    setIsDropped(false)
+                }
+            }}
+            { ...rest }
+        >
+            { icon && 
+                <Icon name={ clicked ? clickedIcon : icon }/>
+            }
+            { text &&
+                <span>{ clicked ? clickedText : text }</span>
+            }
+        </div>
+    )
+}
+
 export const WithDropDown = forwardRef(({
     trigger,
     options
 },  ref ) => {
     const [ isDropped, setIsDropped ] = useState(false);
     const [ dropToRight, setDropToRight ] = useState(true);
-    const [ coords, setCoords ] = useState({})
-    const dropdownRef = useRef(null)
-    const triggerRef = useRef(null)
+    const [ coords, setCoords ] = useState({});
+    const dropdownRef = useRef(null);
+    const triggerRef = useRef(null);
+    const minPadding = 11;
 
     const openDropDown = e => {
         e.stopPropagation();
@@ -27,18 +65,27 @@ export const WithDropDown = forwardRef(({
 
     useImperativeHandle(ref, () => ({
         closeDropDown() { setIsDropped(false) }
-    }))
+    }));
 
     const closeDropDown = e => {
         if(dropdownRef.current && !dropdownRef.current.contains(e.target)) {
             setIsDropped(false)
         }
     }
+
+
     const alignDropdown = () => {
         const rect = triggerRef.current?.getBoundingClientRect();
 
-        const left = dropToRight ? rect?.left || null : null;
-        const right = dropToRight ? null : window.innerWidth - rect?.right || null;
+        let left = dropToRight ? rect?.left || null : null;
+        let right = dropToRight ? null : window.innerWidth - rect?.right || null;
+
+        if(left && left < minPadding) {
+            left = minPadding
+        }
+        if(right && right < minPadding) {
+            right = minPadding
+        }
 
         setCoords({ left, right, top: rect.bottom })
     }
@@ -57,19 +104,8 @@ export const WithDropDown = forwardRef(({
             window.removeEventListener('resize', alignDropdown);
             document.removeEventListener('mousedown', closeDropDown)
         }
-    },[ dropdownRef.current ])
+    },[ dropdownRef.current ]);
 
-    
-    const Option = ({ icon, text, onClick, className, ...rest }) => (
-        <div
-            className={ 'dropdown-option ' + (className ? className : '') }
-            onClick={ onClick }
-            { ...rest }
-        >
-            { icon && <Icon name={ icon }/> }
-            { text && <span>{ text }</span> }
-        </div>
-    );
 
     return (
         <>
@@ -89,11 +125,8 @@ export const WithDropDown = forwardRef(({
                         { options?.map( (option, index) => (
                             <Option
                                 key={ index }
+                                setIsDropped={ setIsDropped }
                                 { ...option }
-                                onClick={() => {
-                                    option.onClick();
-                                    setIsDropped(false)
-                                }}
                             />
                         ))}
                     </div>

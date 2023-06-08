@@ -1,40 +1,47 @@
 import   React from 'react'
-import { useSelector,
-         useDispatch } from 'react-redux'
+import { useSelector } from 'react-redux'
 
 import './styles.scss'
 import { UserPlaceholder } from 'atoms/Icon'
+import { Spinner } from 'atoms/Spinner'
 
-import { deleteImageURL } from 'store/imageSlice'
 
+export const UserPic = ({ imageURL, isLoading, size }) => {
+    const sizeStyles = {
+        width:  `${size || 4}rem`,
+        height: `${size || 4}rem`
+    }
+    const spinnerProps = {
+        size: size || 4,
+        colorTheme: 'light',
+        strokeWidth: 6,
+    }
 
+    return (
+        <div className='user-pic' style={{
+            minWidth: `${size}rem`,
+            minHeight: `${size}rem`
+        }}>
+            { isLoading && <Spinner {...spinnerProps}/> }
+            { imageURL
+                ? <img src={ imageURL } style={ sizeStyles }/>
+                : <UserPlaceholder style={ sizeStyles }/>
+            }
+        </div>
+    )
+}
 export const User = ({
     user,
     picSize,
-    isPicOnly
+    picOnly
 }) => {
-    const dispatch = useDispatch();
     const imageURL = useSelector(state => state.images?.imageURLs[user?.id]);
-
-    const sizeStyles = picSize
-        ? { width: `${picSize}rem`, height: `${picSize}rem` }
-        : { width: '4rem', height: '4rem' }
-
-    const nameString = isPicOnly
-        ? null
-        : <span className='name'>@{ user?.name }</span>
+    const isLoading = useSelector(state => state.images?.loading[user?.id]);
 
     return (
         <div className='user'>
-            { imageURL
-                ? <img
-                        src={ imageURL }
-                        style={ sizeStyles }
-                        onError={() => dispatch(deleteImageURL(user?.id))}
-                    />
-                : <UserPlaceholder/>
-            }
-            { nameString }
+            <UserPic {...{ imageURL, isLoading, size: picSize }}/>
+            { !picOnly && <span className='name'>@{ user?.name }</span> }
         </div>
     );
 }

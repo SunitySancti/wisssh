@@ -1,27 +1,33 @@
 @import '../../_style-config';
 
+.user-pic {
+    position: relative;
+    height: fit-content;
+    font-size: 0;
+    overflow: hidden;
+
+    .user-placeholder {
+        background-color: rgba(0, 0, 0, 0.03);
+        border-radius: 50%;
+        fill: rgba(0, 0, 0, 0.2);
+    }
+    
+    img {
+        display: block;
+        border-radius: 50%;
+        transition: opacity 0.3s ease-in-out;
+        object-fit: cover;
+    }
+}
+
 .user {
     display: flex;
     flex-flow: row nowrap;
     align-items: center;
     gap: 1rem;
 
-    svg {
-        &:not(:hover) {
-            fill: $gray2;
-        }
-        &:hover {
-            fill: $darkGray1;
-            cursor: pointer;
-        }
-    }
-    
-    img {
-      border-radius: 50%;
-    }
-  
     span {
-      font: $general;
-      color: $darkGray2;
+        font: $general;
+        color: $darkGray2;
     }
-  }
+}

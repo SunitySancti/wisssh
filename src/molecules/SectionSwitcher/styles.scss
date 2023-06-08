@@ -1,16 +1,29 @@
 @import '../../_style-config';
 
-.section {
-    display: flex;
-    align-items: center;
-    height: 6rem;
-    padding: 0 1rem;
-    font: $appHeader;
-    text-decoration: none;
-    color: $gray2;
-    cursor: default;
-    white-space: nowrap;
+.section-container {
     z-index: 1;
+    display: flex;
+    flex-flow: row nowrap;
+
+    .space {
+        flex: 1
+    }
+
+    .section {
+        display: flex;
+        align-items: center;
+        height: 6rem;
+        padding: 0 1rem;
+        font: $appHeader;
+        text-decoration: none;
+        cursor: default;
+        white-space: nowrap;
+        width: fit-content;
+        
+        &:not(.active) {
+            color: $gray2;
+        }
+    }
 }
 
 .logo-button {

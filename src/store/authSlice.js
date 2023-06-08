@@ -4,7 +4,7 @@ import { createSlice,
 import { apiSlice } from 'store/apiSlice'
 
 const __API_URL__ = import.meta.env.VITE_API_URL;
-const __DEBUG__ = import.meta.env.VITE_DEBUG_MODE === 'true';
+const __DEV_MODE__ = import.meta.env.VITE_DEV_MODE === 'true';
 
 
 const authSlice = createSlice({
@@ -31,27 +31,22 @@ const authSlice = createSlice({
             state.remember = payload
         },
     },
-    extraReducers: builder => { 
-        builder.addMatcher(
-            apiSlice.endpoints.login.matchFulfilled,
-            (state,{ payload:{ token, refreshToken }}) => {
-                state.token = token;
-                state.refreshToken = refreshToken;
-                const storage = current(state).remember ? localStorage : sessionStorage;
-                storage.setItem('token', token);
-                localStorage.setItem('refreshToken', refreshToken)
-            }
-        );
-        builder.addMatcher(
-            apiSlice.endpoints.signup.matchFulfilled,
-            (state,{ payload:{ token, refreshToken }}) => {
-                state.token = token;
-                state.refreshToken = refreshToken;
-                const storage = current(state).remember ? localStorage : sessionStorage;
-                storage.setItem('token', token);
-                localStorage.setItem('refreshToken', refreshToken)
-            }
-        );
+    extraReducers: builder => {
+        [ apiSlice.endpoints.login,
+          apiSlice.endpoints.signup ].forEach(endpoint => {
+
+            builder.addMatcher(
+                endpoint.matchFulfilled,
+
+                (state,{ payload:{ token, refreshToken }}) => {
+                    state.token = token;
+                    state.refreshToken = refreshToken;
+                    const storage = current(state).remember ? localStorage : sessionStorage;
+                    storage.setItem('token', token);
+                    localStorage.setItem('refreshToken', refreshToken)
+                }
+            )
+        })
     },
 });
 
@@ -73,10 +68,14 @@ export async function reAuth(thunkApi) {
     const { data, error } = refreshResult;
 
     if(data) {
-        __DEBUG__ && console.log('Re-auth data:', data)
+        if(__DEV_MODE__) {
+            console.log('Re-auth data:', data)
+        }
         thunkApi.dispatch(authSlice.actions.refresh(data))
     } else if(error) {
-        __DEBUG__ && console.log('Re-auth error:', error)
+        if(__DEV_MODE__) {
+            console.log('Re-auth error:', error)
+        }
         thunkApi.dispatch(authSlice.actions.logout())
     }
 

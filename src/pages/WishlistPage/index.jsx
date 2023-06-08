@@ -1,5 +1,8 @@
-import { React } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import   React,
+       { useEffect } from 'react'
+import { useLocation,
+         useNavigate } from 'react-router-dom'
+import { useDispatch } from 'react-redux'
 
 import { WishCard } from 'molecules/WishCard'
 import { WishlistLine } from 'molecules/WishlistLine'
@@ -9,8 +12,10 @@ import { Button } from 'atoms/Button'
 
 import { getWishlistById,
          getWishesByWishlistId } from 'store/getters'
+import { promoteImages } from 'store/imageSlice'
 
 export const WishlistPage = () => {
+    const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation().pathname;
     const pathSteps = location.split('/');
@@ -21,8 +26,14 @@ export const WishlistPage = () => {
 
     const wishlist = getWishlistById(wishlistId);
     const wishes = getWishesByWishlistId(wishlistId);
+    const wishIds = wishes?.map(wish => wish.id);
 
-    
+    useEffect(() => {
+        if(wishIds instanceof Array && wishIds.length) {
+            dispatch(promoteImages(wishIds))
+        }
+    },[ wishIds?.length ]);
+
     if (!wishlist) {
         return (
             <LineContainer

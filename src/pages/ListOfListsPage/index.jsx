@@ -1,15 +1,17 @@
-import { React } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import   React from 'react'
+import { useNavigate,
+         useLocation } from 'react-router'
 
 import './styles.scss'
 import { WishlistLine } from 'molecules/WishlistLine'
 import { Button } from 'atoms/Button'
 import { LineContainer } from 'containers/LineContainer'
 
-import { getDaysToEvent, sortByDateAscend, sortByDateDescend } from 'utils'
+import { getDaysToEvent,
+         sortByDateAscend,
+         sortByDateDescend } from 'utils'
 import { getUserWishlists,
          getInvites } from 'store/getters'
-
 
 export const ListOfListsPage = () => {
     const navigate = useNavigate();
@@ -23,7 +25,7 @@ export const ListOfListsPage = () => {
                     : (section === 'my-invites') ? invites : []
 
 
-    if (!wishlists || !wishlists.length) {
+    if (!wishlists || !wishlists?.length) {
         const children = (section === 'my-wishes')
                       ? <>
                             <span>У вас пока нет ни одного вишлиста</span>
@@ -94,34 +96,35 @@ export const ListOfListsPage = () => {
         setTimeout(lastStep, delayParams[2]);
     };
 
+    const mapWishlists = (items = []) => {
+        return items.map((item, index) => (
+            <WishlistLine
+                wishlist={ item }
+                onClick={() => handleClick(item?.id)}
+                key={ index }
+            />
+        ))
+    }
+
     return (
         <div className='list-of-lists-page'>
-            { actualEvents.length
-              ? actualEvents.map((item, index) => (
-                    <WishlistLine
-                        wishlist={ item }
-                        onClick={() => handleClick(item?.id)}
-                        key={ index }
+            { actualEvents?.length
+                ?   mapWishlists(actualEvents)
+                :   <LineContainer
+                        className='not-found'
+                        children={ <span>Нет предстоящих событий</span> }
                     />
-                )
-            ) : (
-                <LineContainer
-                    className='not-found'
-                    children={ <span>Нет предстоящих событий</span> }
-                />
-            )}
-            { pastEvents.length ? (
-                <div className='group-header'>
-                    <span>Прошедшие события</span>
-                </div>
-            ) : null}
-            { pastEvents.length ? pastEvents.map((item, index) => (
-                <WishlistLine
-                    wishlist={ item }
-                    onClick={() => handleClick(item?.id)}
-                    key={ index }
-                />
-            )) : null}
+            }
+            { pastEvents?.length
+                ?   <div className='group-header'>
+                        <span>Прошедшие события</span>
+                    </div>
+                :   null
+            }
+            { pastEvents?.length
+                ?   mapWishlists(pastEvents)
+                :   null
+            }
         </div>
-    );
+    )
 }

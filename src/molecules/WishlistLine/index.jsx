@@ -7,8 +7,10 @@ import { WishlistLinePointer } from 'atoms/Icon'
 import { Button } from 'atoms/Button'
 import { WithDropDown } from 'atoms/WithDropDown'
 
-import { getUserById } from 'store/getters'
+import { getCurrentUser,
+         getUserById } from 'store/getters'
 import { useDeleteWishlistMutation } from 'store/apiSlice'
+
 
 export const WishlistLine = ({
     wishlist,
@@ -16,7 +18,8 @@ export const WishlistLine = ({
     ...rest
 }) => {
     const navigate = useNavigate();
-    const user = getUserById(wishlist?.author);
+    const author = getUserById(wishlist?.author);
+    const { user } = getCurrentUser();
 
     const TimeInfo = () => {
         if(!wishlist?.date) return null;
@@ -68,24 +71,35 @@ export const WishlistLine = ({
 
     // set dropdown:
 
-    function deleteWishlist(e) {
+    function copyInvitationLink(e) {
         e.stopPropagation();
-        dispatch(deleteWishlistById(wishlist?.id));
-        const prefix = wishlist?.author === user.id
-            ? '/my-wishes'
-            : '/my-invites'
-        navigate(`${prefix}/lists/`);
+        e.preventDefault();
+        const url = window.location.origin + '/share/' + wishlist.invitationCode;
+        navigator.clipboard.writeText(url)
     }
 
-    const menuOptions = [{
+    const wishlistOptions =  [{
+        icon: 'copy',
+        text: 'Копировать ссылку',
+        clickedIcon: 'ok',
+        clickedText: 'Ссылка скопирована',
+        dontHideAfterClick: true,
+        onClick: copyInvitationLink,
+    },{
         icon: 'edit',
         text: 'Редактировать',
-        onClick: () => navigate(location + '/editing')
-    }, {
+        onClick: () => navigate('/my-wishes/lists/' + wishlist.id + '/editing')
+    },{
         icon: 'delete',
         text: 'Удалить вишлист',
-        onClick: deleteWishlist
-    }]
+        // onClick: deleteWishlist
+    }];
+
+    const inviteOptions = [{
+        icon: 'delete',
+        text: 'Удалить из списка приглашений',
+        // onClick: deleteInvite
+    }];
 
 
     return (
@@ -94,25 +108,22 @@ export const WishlistLine = ({
             id={ wishlist?.id }
             { ...rest }
         >
-            <User
-                user={ user }
-                picSize='6'
-                isPicOnly
-            />
+            <User user={ author } picSize={ 6 } picOnly />
+
             <div className='title-container'>
                 <WishlistLinePointer/>
                 <div className='title'>{ wishlist?.title }</div>
             </div>
-            <span className='description'>
-                { wishlist?.description }
-            </span>
+
+            <span className='description'>{ wishlist?.description }</span>
+
             <TimeInfo/>
             <WithDropDown
-                trigger={ <Button
-                    icon='kebap'
-                    size={ 4 }
-                /> }
-                options={ menuOptions }
+                trigger={ <Button icon='kebap' size={ 4 }/> }
+                options={ (user?.id === author?.id)
+                    ? wishlistOptions
+                    : inviteOptions
+                }
             />
         </div>
     );

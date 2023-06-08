@@ -3,6 +3,7 @@ import   React,
          useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router'
+import { useDispatch } from 'react-redux'
 
 import './styles.scss'
 import { Button } from 'atoms/Button'
@@ -15,9 +16,11 @@ import { formatDateToArray } from 'utils'
 import { usePostWishlistMutation } from 'store/apiSlice'
 import { getActualWishes,
          getCurrentUser } from 'store/getters'
+import { promoteImages } from 'store/imageSlice'
 
 export const NewListPage = () => {
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     
     const [         postWishlist, {
         data:       pwResponse,
@@ -26,8 +29,15 @@ export const NewListPage = () => {
         isError:    pwWasCrashed,
         isLoading:  pwAwaiting      }] = usePostWishlistMutation();
 
+    // const actualWishes = {};
     const { actualWishes } = getActualWishes();
-    const { user } = getCurrentUser();
+    const { user,
+            userHasLoaded } = getCurrentUser();
+    const actualWishIds = actualWishes?.map(w => w.id);
+
+    useEffect(() => {
+        dispatch(promoteImages(actualWishIds))
+    },[ actualWishIds?.length ])
 
     // FORM SETTINGS
 
@@ -38,10 +48,16 @@ export const NewListPage = () => {
         description: '',
         date: formatDateToArray(new Date()),
     }
-    const { handleSubmit, register, reset, control, formState } = useForm({
+    const { handleSubmit, register, reset, control, formState, setValue } = useForm({
         mode: 'onChange',
         defaultValues
     });
+
+    useEffect(() => {
+        if(userHasLoaded) {
+            setValue('author', user?.id)
+        }
+    },[ userHasLoaded ])
     
     // FORM SUBMITTING
     
@@ -89,7 +105,7 @@ export const NewListPage = () => {
     useEffect(() => {
         const labels = document.querySelectorAll('.text-label');
         const labelWidths = [...labels].map(label => label?.offsetWidth);
-        const maxWidth = labels.length
+        const maxWidth = labels?.length
             ? Math.max(...labelWidths)
             : null;
 

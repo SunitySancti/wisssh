@@ -20,8 +20,8 @@ export const CardSelect = ({ control, name, options }) => {
                     <LineContainer>
                         <span
                             children={
-                                value.length
-                                ? `Выбрано желаний: ${value.length}`                           
+                                value?.length
+                                ? `Выбрано желаний: ${value?.length}`                           
                                 : 'Кликните на карточку, чтобы добавить желание в вишлист'
                             }
                         />
@@ -40,7 +40,7 @@ export const CardSelect = ({ control, name, options }) => {
                                 onChange(options.map(option => option.id));
                             }}
                             round
-                            disabled={value.length === options.length}
+                            disabled={value?.length === options?.length}
                         />
                     </LineContainer>
                     <MultiColumnLayout

@@ -4,13 +4,14 @@ import { Mutex } from 'async-mutex'
 
 import { reAuth } from 'store/authSlice';
 
-const apiUrl = import.meta.env.VITE_API_URL;
+const __API_URL__ = import.meta.env.VITE_API_URL;
+const __DEV_MODE__ = import.meta.env.VITE_DEV_MODE === 'true';
 
 
 const mutex = new Mutex();
 
 const baseQuery = fetchBaseQuery({
-    baseUrl: apiUrl + '/',
+    baseUrl: __API_URL__ + '/',
     prepareHeaders: (headers,{ getState }) => {
         const token = getState().auth?.token;
         if(token) {
@@ -25,8 +26,9 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
     let result = await baseQuery(args, api, extraOptions);
 
     if(result.error) {
-        console.log('Async error.', result.error);
-
+        if(__DEV_MODE__) {
+            console.log('Api error.', result.error)
+        }
         if(result.error.status === 403) {
             if (!mutex.isLocked()) {
                 const release = await mutex.acquire();
@@ -51,8 +53,7 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
 export const apiSlice = createApi({
     reducerPath: 'api',
     baseQuery: baseQueryWithReauth,
-    tagTypes: ['Auth', 'User', 'Wish', 'Wishlist', 'Id'],
-
+    tagTypes: ['Auth', 'User', 'Friends', 'Wishes', 'FriendWishes', 'Wishlists', 'Invites'],
     endpoints: builder => ({
 
         login: builder.mutation({
@@ -75,33 +76,10 @@ export const apiSlice = createApi({
                     return (response.status === 200 && result.token)
                 }
             }),
-            invalidatesTags: ['Auth', 'User']
-        }),
-        refreshToken: builder.mutation({
-            query: ({ refreshToken }) => ({
-                url: 'auth/token/refresh',
-                method: 'POST',
-                body: { refreshToken }
-            })
+            invalidatesTags: ['Auth']
         }),
 
 
-        postWish: builder.mutation({
-            query: (wish) => ({
-                url: 'wishes/create-or-edit',
-                method: 'POST',
-                body: wish
-            }),
-            invalidatesTags: ['Wish', 'Wishist', 'User', 'Id']
-        }),
-        postWishlist: builder.mutation({
-            query: (wishlist) => ({
-                url: 'wishlists/create-or-edit',
-                method: 'POST',
-                body: wishlist
-            }),
-            invalidatesTags: ['Wish', 'Wishist', 'User', 'Id']
-        }),
         updateProfile: builder.mutation({
             query: (profileData) => ({
                 url: 'users/update-profile',
@@ -110,73 +88,107 @@ export const apiSlice = createApi({
             }),
             invalidatesTags: ['User']
         }),
+        postWish: builder.mutation({
+            query: (wish) => ({
+                url: 'wishes/create-or-edit',
+                method: 'POST',
+                body: wish
+            }),
+            invalidatesTags: ['Wishes', 'Wishists', 'User']
+        }),
         deleteWish: builder.mutation({
             query: (id) => ({
                 url: `wishes/${ id }`,
                 method: 'DELETE'
             }),
-            invalidatesTags: ['Wish', 'Wishist', 'User', 'Id']
+            invalidatesTags: ['Wishes', 'Wishists', 'User']
+        }),
+
+
+        postWishlist: builder.mutation({
+            query: (wishlist) => ({
+                url: 'wishlists/create-or-edit',
+                method: 'POST',
+                body: wishlist
+            }),
+            invalidatesTags: ['Wishes', 'Wishists', 'User']
         }),
         deleteWishlist: builder.mutation({
             query: (id) => ({
                 url: `wishlists/${ id }`,
                 method: 'DELETE'
             }),
-            invalidatesTags: ['Wish', 'Wishist', 'User', 'Id']
+            invalidatesTags: ['Wishes', 'Wishists', 'User']
+        }),
+        acceptInvitation: builder.mutation({
+            query: (invitationCode) => ({
+                url: 'wishlists/accept-invitation',
+                method: 'POST',
+                body: { invitationCode }
+            }),
+            // invalidatesTags: (result, error, arg) => 
+            //     result
+            //         ? ['Invites', 'User', { type: 'Friends', id: result.authorId }]
+            //         : ['Invites', 'User', 'Friends']
+            invalidatesTags: ['Invites', 'Friends', 'User']
         }),
 
 
-        getCurrentUser: builder.query({
-            query: () => 'users/single/current',
-            providesTags: ['Auth', 'User']
-        }),
         getAllUserNames: builder.query({
             query: () => 'auth/get-all-usernames',
             providesTags: ['User']
         }),
-        getUsers: builder.query({
-            query: (idList) => `users/query/${idList?.join('+')}`,
+        getCurrentUser: builder.query({
+            query: () => 'users/single/current',
             providesTags: ['Auth', 'User']
         }),
-        getWishes: builder.query({
-            query: (idList) => `wishes/query/${idList?.join('+')}`,
-            providesTags: ['Auth', 'Wish']
-        }),
-        getWishlists: builder.query({
-            query: (idList) => `wishlists/query/${idList?.join('+')}`,
-            providesTags: ['Auth', 'Wishlist']
+        getFriends: builder.query({
+            query: () => 'users/get-friends',
+            // providesTags: (result, error, arg) =>
+            //     result
+            //         ? [...result.map(({ id }) => ({ type: 'Friends', id })), 'Auth']
+            //         : ['Friends', 'Auth'],
+            providesTags: ['Auth', 'Friends']
         }),
 
 
-        // getSingleUser: builder.query({
-        //     query: (id) => `users/single/${id}`,
+        getUserWishes: builder.query({
+            query: () => 'wishes/get-user-wishes',
+            providesTags: ['Auth', 'Wishes']
+        }),
+        getFriendWishes: builder.query({
+            query: () => 'wishes/get-friend-wishes',
+            providesTags: ['Auth', 'FriendWishes']
+        }),
+
+
+        getUserWishlists: builder.query({
+            query: () => 'wishlists/get-user-wishlists',
+            providesTags: ['Auth', 'Wishlists']
+        }),
+        getInvites: builder.query({
+            query: () => 'wishlists/get-invites',
+            providesTags: ['Auth', 'Invites']
+        }),
+
+
+        // getUsers: builder.query({
+        //     query: (idList) => `users/query/${idList?.join('+')}`,
         //     providesTags: ['Auth', 'User']
         // }),
-        // getSingleWish: builder.query({
-        //     query: (id) => `wishes/single/${id}`,
+        // getWishes: builder.query({
+        //     query: (idList) => `wishes/query/${idList?.join('+')}`,
         //     providesTags: ['Auth', 'Wish']
         // }),
-        // getSingleWishlist: builder.query({
-        //     query: (id) => `wishlists/single/${id}`,
+        // getWishlists: builder.query({
+        //     query: (idList) => `wishlists/query/${idList?.join('+')}`,
         //     providesTags: ['Auth', 'Wishlist']
-        // }),
-        // getAllWishes: builder.query({
-        //     query: () => 'wishes/all',
-        //     providesTags: ['Auth', 'Wish']
-        // }),
-        // getAllWishlists: builder.query({
-        //     query: () => 'wishlists/all',
-        //     providesTags: ['Auth', 'Wishlist']
-        // }),
-        // getIdList: builder.query({
-        //     query: () => 'ids/all',
-        //     providesTags: ['Id']
         // }),
     })
 });
 
 export const getUserNameByEmail = async (email) => {
-    return await fetch(apiUrl + '/auth/get-username-by-email/' + email)
+    return await fetch(__API_URL__ + '/auth/get-username-by-email/' + email)
         .then(res => res.json())
 }
 
@@ -187,19 +199,29 @@ export const {
     usePostWishMutation,
     usePostWishlistMutation,
     useDeleteWishMutation,
+
     useDeleteWishlistMutation,
     useUpdateProfileMutation,
+    useAcceptInvitationMutation,
 
-    useGetCurrentUserQuery,
     useGetAllUserNamesQuery,
-    useGetUsersQuery,
-    useGetWishesQuery,
-    useGetWishlistsQuery,
-    
-    // useGetSingleUserQuery,
-    // useGetSingleWishQuery,
-    // useGetAllWishesQuery,
-    // useGetSingleWishlistQuery,
-    // useGetAllWishlistsQuery,
-    // useGetIdListQuery,
+    useGetCurrentUserQuery,
+    useGetFriendsQuery,
+    // useLazyGetFriendsQuery,
+
+    useGetUserWishesQuery,
+    useGetFriendWishesQuery,
+    // useLazyGetUserWishesQuery,
+    // useLazyGetFriendWishesQuery,
+
+    useGetUserWishlistsQuery,
+    useGetInvitesQuery,
+    // useLazyGetUserWishlistsQuery,
+    // useLazyGetInvitesQuery,
+
+    usePrefetch,
+
+    // useGetUsersQuery,
+    // useGetWishesQuery,
+    // useGetWishlistsQuery,
 } = apiSlice

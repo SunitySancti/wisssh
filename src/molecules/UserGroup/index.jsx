@@ -1,33 +1,19 @@
 import   React,
-       { useRef } from 'react'
+       { useRef,
+         useEffect } from 'react'
 import { useDispatch,
          useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 
 import './styles.scss'
-import { UserPlaceholder } from 'atoms/Icon'
 import { WithDropDown } from 'atoms/WithDropDown'
-import { WithSpinner } from 'atoms/Spinner'
-import { Button } from 'atoms/Button'
+import { UserPic } from 'atoms/User'
 
 import { logout } from 'store/authSlice'
-import { postImage } from 'store/imageSlice'
+import { postImage,
+         promoteImages } from 'store/imageSlice'
 import { getCurrentUser } from 'store/getters'
 
-
-const UserPic = ({ imageURL, isLoading }) => (
-    <WithSpinner
-        isLoading={ isLoading }
-        colorTheme='dark'
-        strokeWidth={ 6 }
-        size={ 4 }
-    >
-        { imageURL
-            ?   <img src={ imageURL }/>
-            :   <UserPlaceholder/>
-        }
-    </WithSpinner>
-);
 
 export const UserGroup = ({ isShort }) => {
     const dispatch = useDispatch();
@@ -35,18 +21,31 @@ export const UserGroup = ({ isShort }) => {
     const dropdownRef = useRef(null);
 
     const { user } = getCurrentUser();
-    const isLogged = useSelector(state => state.auth?.token);
     const imageURL = useSelector(state => state.images?.imageURLs[user?.id]);
     const isLoading = useSelector(state => state.images?.loading[user?.id]);
 
-    const dropdownOptions = [{
-        text: imageURL ? 'Сменить изображение' : 'Загрузить изображение',
-        icon: 'upload',
-        onClick: () => document.getElementById('uploadUserAvatar').click()
-    }];
+    useEffect(() => {
+        dispatch(promoteImages(user?.id))
+    },[ user?.id ]);
+
+    const dropdownOptions = [
+        {
+            text: imageURL || isLoading ? 'Поменять аватарку' : 'Загрузить аватарку',
+            icon: imageURL || isLoading ? 'change' : 'upload',
+            onClick: () => document.getElementById('uploadUserAvatar').click()
+        },{
+            text: 'Настройки профиля',
+            icon: 'settings',
+            onClick: () => navigate('/profile')
+        },{
+            text: 'Выйти',
+            icon: 'logout',
+            onClick: () => dispatch(logout())
+        }
+    ];
 
     function handleImagePick(e)  {
-        dropdownRef.current.closeDropDown();
+        dropdownRef.current?.closeDropDown();
         const file = e.target.files[0];
         if(!file) return;
         dispatch(postImage({ id: user?.id, file, drive: 'avatars' }));
@@ -54,17 +53,11 @@ export const UserGroup = ({ isShort }) => {
     
 
     return (
-        <div className='user-group'>
-            { isLogged
-                ? <>
-                    <Button
-                        icon='logout'
-                        onClick={ () => dispatch(logout()) }
-                    />
-                    <Button
-                        icon='settings'
-                        onClick={ () => navigate('/profile') }/>
-                    <div className='current-user-pic'>
+            <WithDropDown
+                ref={ dropdownRef }
+                options={ dropdownOptions }
+                trigger={<>
+                    <div className='user-group'>
                         <input
                             id='uploadUserAvatar'
                             type='file'
@@ -72,18 +65,12 @@ export const UserGroup = ({ isShort }) => {
                             onChange={ handleImagePick }
                             style={{ display: 'none', height: 0 }}
                         />
-                        <WithDropDown
-                            ref={ dropdownRef }
-                            options={ dropdownOptions }
-                            trigger={ <UserPic {...{ imageURL, isLoading }}/> }
-                        />
+                        { user?.name &&
+                            <span className='user-name'>@ { user.name }</span>
+                        }
+                        <UserPic {...{ imageURL, isLoading, size: 6 }}/>
                     </div>
-                </>
-                : <Button
-                    icon='login'
-                    onClick={ () => navigate('/login') }
-                />
-            }
-        </div>
+                </>}
+            />
     );
 }

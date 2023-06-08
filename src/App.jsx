@@ -1,16 +1,14 @@
 import   React,
        { useEffect } from 'react'
-import { useDispatch,
-         useSelector } from 'react-redux'
-import { Routes,
-         Route,
+import { useSelector,
+         useDispatch } from 'react-redux'
+import { createBrowserRouter,
+         RouterProvider,
          Navigate } from 'react-router-dom'
-import { useLocation } from 'react-router'
 
 import './App.scss'
 import { AppHeader } from 'organisms/AppHeader/index'
 import { NavBar } from 'organisms/NavBar'
-import { IconSet } from 'atoms/Icon'
 import { WishesPage } from 'pages/WishesPage'
 import { SingleWishPage } from 'pages/SingleWishPage'
 import { ListOfListsPage } from 'pages/ListOfListsPage'
@@ -19,81 +17,133 @@ import { NewWishPage } from 'pages/NewWishPage'
 import { NewListPage } from 'pages/NewListPage'
 import { LoginPage } from 'pages/LoginPage'
 import { ProfilePage } from 'pages/ProfilePage'
-import { PasswordResetEmail } from 'emails/PasswordResetEmail'
+import { InvitationAcceptancePage } from 'pages/InvitationAcceptancePage'
 
-import { updateHistory,
-         clearHistory } from 'store/historySlice'
+import { getImage } from 'store/imageSlice'
 
 
 function App() {
-    const location = useLocation().pathname;
     const dispatch = useDispatch();
-    const state = useSelector(state => state)
-        
-    // HISTORY UPDATING
+    const queue = useSelector(state => state.images?.queue);
+    const prior = useSelector(state => state.images?.prior);
+    const isLoading = useSelector(state => Boolean(Object.keys(state.images?.loading)?.length));
 
     useEffect(() => {
-        dispatch(updateHistory(location));
-    },[ location ]);
+        console.log({ queue, prior, isLoading });
+        if(!isLoading) {
+            let part;
+            if(prior instanceof Array && prior.length) {
+                part = prior.slice(0,8)
+            } else if(queue instanceof Array && queue.length) {
+                part = queue.slice(0,8)
+            }
 
-    // MOUNTING / UNMOMUNTING
-
-    useEffect(() => {
-        return () => {
-            dispatch(clearHistory());
+            part?.forEach(item => dispatch(getImage(item)))
         }
-    },[]);
+    },[ queue, prior, isLoading ]);
 
-    // LOGO CLICK
 
-    const handleLogoClick = async () => {
-        console.log(state);
-    }
+    const router = createBrowserRouter([
+        {
+            path: '/',
+            element: <AppHeader/>,
+            children: [
+                {
+                    index: true,
+                    element: <Navigate to='/my-wishes/items/actual' replace/>
+                },{
+                    path: 'my-wishes/items/',
+                    element: <NavBar/>,
+                    children: [
+                        {
+                            index: true,
+                            element: <Navigate to='/my-wishes/items/actual' replace/>
+                        },{
+                            path: 'new',
+                            element: <NewWishPage/>
+                        },{
+                            path: ':tabName',
+                            element: <WishesPage/>
+                        },{
+                            path: ':tabName/:wishId',
+                            element: <SingleWishPage/>
+                        },{
+                            path: ':tabName/:wishId/editing',
+                            element: <NewWishPage/>
+                        },
+                    ]
+                },{
+                    path: 'my-wishes/lists/',
+                    element: <NavBar/>,
+                    children: [
+                        {
+                            index: true,
+                            element: <ListOfListsPage/>
+                        },{
+                            path: 'new',
+                            element: <NewListPage/>
+                        },{
+                            path: ':wishlistId',
+                            element: <WishlistPage/>
+                        },{
+                            path: ':wishlistId/editing',
+                            element: <NewListPage/>
+                        },{
+                            path: ':wishlistId/:wishId',
+                            element: <SingleWishPage/>
+                        },{
+                            path: ':wishlistId/:wishId/editing',
+                            element: <NewWishPage/>
+                        },
+                    ]
+                },{
+                    path: 'my-invites/items/',
+                    element: <NavBar/>,
+                    children: [
+                        {
+                            index: true,
+                            element: <Navigate to='/my-invites/items/reserved' replace/>
+                        },{
+                            path: ':tabName',
+                            element: <WishesPage/>
+                        },{
+                            path: ':tabName/:wishId',
+                            element: <SingleWishPage/>
+                        },
+                    ]
+                },{
+                    path: 'my-invites/lists/',
+                    element: <NavBar/>,
+                    children: [
+                        {
+                            index: true,
+                            element: <ListOfListsPage/>
+                        },{
+                            path: ':wishlistId',
+                            element: <WishlistPage/>
+                        },{
+                            path: ':wishlistId/:wishId',
+                            element: <SingleWishPage/>
+                        },
+                    ]
+                },{
+                    path: 'profile',
+                    element: <ProfilePage/>
+                },{
+                    path: 'share/:invitationCode',
+                    element: <InvitationAcceptancePage/>
+                }
+            ]
+        },{
+            path: '/login/:encodedEmail?',
+            element: <LoginPage/>
+        },{
+            path: '*',
+            element: <Navigate to='/my-wishes/items/actual' replace/>
+        }
+    ])
 
-    return (
-        <Routes>
-            <Route path='/' element={ <AppHeader onLogoClick={ handleLogoClick }/> }>
-            {/* <Route path='/' element={ token
-                ? <AppHeader onLogoClick={ handleLogoClick }/>
-                : <Navigate to='/login' replace/>
-            }> */}
-                <Route index element={ <Navigate to='/my-wishes/items/actual' replace/> }/>
-                <Route path='my-wishes/items/' element={ <NavBar/> }>
-                    <Route index element={ <Navigate to='/my-wishes/items/actual' replace/> }/>
-                    <Route path='new' element={ <NewWishPage/> }/>
-                    <Route path=':tabName' element={ <WishesPage/> }/>
-                    <Route path=':tabName/:wishId' element={ <SingleWishPage/> }/>
-                    <Route path=':tabName/:wishId/editing' element={ <NewWishPage/> }/>
-                </Route>
-                <Route path='my-wishes/lists/' element={ <NavBar/> }>
-                    <Route index element={ <ListOfListsPage/> }/>
-                    <Route path='new' element={ <NewListPage/> }/>
-                    <Route path=':wishlistId/' element={ <WishlistPage/> }/>
-                    <Route path=':wishlistId/:wishId' element={ <SingleWishPage/> }/>
-                    <Route path=':wishlistId/:wishId/editing' element={ <NewWishPage/> }/>
-                </Route>
-                <Route path='my-invites/items/' element={ <NavBar/> }>
-                    <Route index element={ <Navigate to='/my-invites/items/reserved' replace/> }/>
-                    <Route path=':tabName' element={ <WishesPage/> }/>
-                    <Route path=':tabName/:wishId' element={ <SingleWishPage/> }/>
-                </Route>
-                <Route path='my-invites/lists/' element={ <NavBar/> }>
-                    <Route index element={ <ListOfListsPage/> }/>
-                    <Route path=':wishlistId/' element={ <WishlistPage/> }/>
-                    <Route path=':wishlistId/:wishId' element={ <SingleWishPage/> }/>
-                </Route>
-                <Route path='profile' element={ <ProfilePage/> }/>
-            </Route>
-            <Route path='/login/:encodedEmail?' element={ <LoginPage/> }/>
-            {/* <Route path='/login/:encodedEmail?' element={ token
-                ? <Navigate to='/my-wishes/items/actual' replace/>
-                : <LoginPage/>
-            }/> */}
-            <Route path='/email-preview' element={ <PasswordResetEmail/> }/>
-            <Route path='/icon-set' element={ <IconSet/> }/>
-            <Route path='*' element={ <Navigate to='/my-wishes/items/actual' replace/> }/>
-        </Routes>
-    );
+    return <RouterProvider router={ router }/>
 }
 
 export default App;

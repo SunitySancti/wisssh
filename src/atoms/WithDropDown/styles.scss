@@ -23,7 +23,6 @@
         justify-content: flex-start;
         padding: 0 6px;
         height: 4rem;
-        color: $darkGray2;
         fill: currentColor;
         user-select: none;
     
@@ -32,11 +31,21 @@
             font: $general;
             white-space: nowrap;
         }
+
+        &:not(.disabled) {
+            color: $darkGray2;
+            pointer-events: all;
+        }
+
+        &.disabled {
+            color: $gray2;
+            pointer-events: none;
+        }
     
         &:hover {
             background-color: $primaryHover;
             cursor: pointer;
-            color: black;
+            color: rgba(0,0,0,0.8);
         }
     
         &:active {

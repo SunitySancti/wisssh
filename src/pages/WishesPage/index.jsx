@@ -1,7 +1,9 @@
-import   React from 'react'
+import   React,
+       { useEffect } from 'react'
 import { useLocation,
          useParams,
          useNavigate } from 'react-router'
+import { useDispatch } from 'react-redux'
 
 import { MultiColumnLayout } from 'containers/MultiColumnLayout'
 import { LineContainer } from 'containers/LineContainer'
@@ -10,20 +12,22 @@ import { WishCard } from 'molecules/WishCard'
 
 import { getCurrentUser,
          getUserWishes,
-         getFriendsWishes } from 'store/getters'
+         getFriendWishes } from 'store/getters'
+import { promoteImages } from 'store/imageSlice'
 
 
 export const WishesPage = () => {
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const section = useLocation().pathname.split('/').at(1);
     const { tabName } = useParams();
 
     const { user } = getCurrentUser();
     const { userWishes } = getUserWishes();
-    const { friendsWishes } = getFriendsWishes();
+    const { friendWishes } = getFriendWishes();
 
     const allWishes = (section === 'my-wishes')  ? userWishes
-                    : (section === 'my-invites') ? friendsWishes : [];
+                    : (section === 'my-invites') ? friendWishes : [];
     
     let wishes = [];
     let noWishesMessage = '';
@@ -53,6 +57,14 @@ export const WishesPage = () => {
             newWishButtonText = 'Создать первое желание';
             break;
     }
+    
+    const wishIds = wishes?.map(wish => wish.id);
+    useEffect(() => {
+        if(wishIds instanceof Array && wishIds.length) {
+            dispatch(promoteImages(wishIds))
+        }
+    },[ wishIds?.length ]);
+
 
     if(!wishes || !wishes.length) {
         return (

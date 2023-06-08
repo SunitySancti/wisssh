@@ -1,6 +1,27 @@
 @import '../../_style-config';
 
 .user-group {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    gap: 1.5rem;
+    
+    &:hover {
+        cursor: pointer;
+        .user-name {
+            color: $darkGray2;
+        }
+        .user-pic {
+            opacity: 0.95;
+        }
+    }
+
+    .user-name {
+        margin-top: 6px;
+        font: $general;
+        color: $darkGray1;
+        white-space: nowrap;
+    }
     .login-btn {
         &:not(:hover) {
             fill: $darkGray1;
@@ -10,36 +31,15 @@
             cursor: pointer;
         }
     }
-}
-
-.current-user-pic {
-    display: flex;
-    flex-flow: row nowrap;
-    align-items: center;
-    gap: 1rem;
-
-    .user-placeholder {
-        width: 6rem;
-        height: 6rem;
-        
-        &:not(:hover) {
-            fill: $gray2;
+    .user-pic {
+        .user-placeholder {
+            background: none;
+            &:not(:hover) {
+                fill: $gray2;
+            }
+            &:hover {
+                fill: $darkGray1;
+            }
         }
-        &:hover {
-            fill: $darkGray1;
-            cursor: pointer;
-        }
-    }
-    
-    img {
-      border-radius: 50%;
-      width: 6rem;
-      height: 6rem;
-      transition: opacity 0.3s ease-in-out;
-      object-fit: cover;
-
-      &:hover {
-        cursor: pointer;
-      }
     }
 }

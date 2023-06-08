@@ -6,7 +6,8 @@ import   React,
 import { Link,
          useLocation,
          useNavigate } from 'react-router-dom'
-import { useSelector } from 'react-redux'
+import { useDispatch,
+         useSelector } from 'react-redux'
 
 import './styles.scss'
 import { DoubleColumnAdaptiveLayout } from 'containers/DoubleColumnAdaptiveLayout'
@@ -25,10 +26,88 @@ import { getWishById,
          getUserById,
          getUserWishes } from 'store/getters'
 import { useDeleteWishMutation } from 'store/apiSlice'
+import { promoteImages } from 'store/imageSlice'
 
+
+    
+const Image = ({ imageURL }) => (
+    <div className='container'>
+        { imageURL
+            ? <img src={ imageURL } />
+            : <WishPlaceholder/>
+        }
+    </div>
+);
+
+const WishlistEntries = ({ wishlists, section }) => {
+    const labelText = (!wishlists?.length)
+        ? 'Не входит ни в один вишлист'
+        : (wishlists?.length === 1)
+        ? 'В вишлистe'
+        : 'В вишлистах:'
+
+    const mappedLinks = wishlists?.map((wishlist, index) => {
+        const comma = index ? (<span> , </span>) : null
+        return (
+            <div key={ index }>
+                { comma }
+                { wishlist
+                    ? (
+                        <Link
+                            className='inline-link'
+                            to={`/${ section }/lists/${ wishlist?.id }`}
+                        >
+                            { wishlist?.title }
+                        </Link>
+                  ) : (
+                        <span className='wishlist-not-found'>
+                            <b>{ id }</b> (не найден)
+                        </span>
+                )}
+            </div>
+    )});
+
+    return (
+        <div className='info-field'>
+            <span className='label'>{ labelText }</span>
+            <div className='links'>{ mappedLinks }</div>
+        </div>
+    );
+}
+
+const Description = ({ description, pointerOffset }) => (
+    <div className='description'>
+        <div
+            className='description-pointer'
+            style={{
+                position: 'relative',
+                left: pointerOffset,
+            }}
+        >
+            <WishpageDescriptionPointer/>
+        </div>
+        <div
+            className='container'
+            style={{minWidth: `${pointerOffset + 77}px`}}
+        >
+            { description }
+        </div>
+    </div>
+);
+
+const PriceLine = ({ price, currency }) => (
+    <span className='price'>
+        { price + (
+              (currency === 'rouble') ? ' ₽'
+            : (currency === 'dollar') ? ' $'
+            : (currency === 'euro')   ? ' €' : ''
+        )}
+    </span>
+);
 
 export const SingleWishPage = () => {
     const modalRef = useRef(null);
+    const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation().pathname;
     const locationSteps = location.split('/');
@@ -40,6 +119,14 @@ export const SingleWishPage = () => {
     const wish = getWishById(currentWishId);
     const author = getUserById(wish?.author);
     const wishlists = getWishlistsByIdList(wish?.inWishlists);
+
+    useEffect(() => {
+        dispatch(promoteImages(currentWishId))
+    },[ currentWishId ]);
+
+    useEffect(() => {
+        dispatch(promoteImages(author?.id))
+    },[ author?.id ]);
     
     const [ pointerOffset, setPointerOffset ] = useState(69);
     useEffect(() => {
@@ -106,118 +193,27 @@ export const SingleWishPage = () => {
         }
     },[ deleteWishReturn, userWishes ])
     
-    
-    const Image = () => (
-        <div className='container'>
-            { imageURL
-                ? <img src={ imageURL } />
-                : <WishPlaceholder/>
-            }
-        </div>
-    )
 
-    const OuterLink = () => {
+    const OuterLink = ({ urlString }) => {
         let url = null
         try {
-            url = new URL(wish?.external);
+            url = new URL(urlString);
         } catch(err) {
-            return null;
+            return;
         }
         return (
             <a
-                href={ wish?.external }
+                href={ urlString }
                 className='inline-link'
             >
-                { url.host }
-                <Icon name='outerLink' size={22}/>
+                { url ? url.host : urlString }
+                <Icon name='outerLink' size={ 22 }/>
             </a>
         );
     }
+    
 
-    const WishlistEntries = () => {
-        const labelText = (!wish?.inWishlists?.length)
-            ? 'Не входит ни в один вишлист'
-            : (wish?.inWishlists?.length === 1)
-            ? 'В вишлистe'
-            : 'В вишлистах:'
-
-        const mappedLinks = wishlists?.map((wishlist, index) => {
-            const comma = index ? (<span> , </span>) : null
-            return (
-                <div key={ index }>
-                    { comma }
-                    { wishlist
-                        ? (
-                            <Link
-                                className='inline-link'
-                                to={`/${ section }/lists/${ wishlist?.id }`}
-                            >
-                                { wishlist?.title }
-                            </Link>
-                      ) : (
-                            <span className='wishlist-not-found'>
-                                <b>{ id }</b> (не найден)
-                            </span>
-                    )}
-                </div>
-        )});
-
-        return (
-            <div className='info-field'>
-                <span className='label'>{ labelText }</span>
-                <div className='links'>{ mappedLinks }</div>
-            </div>
-        );
-    }
-
-    const UserInfo = () => {
-        if(!author) return null;
-        return (
-            <div className='info-field'>
-                <span className='label'>Желает</span>
-                <User picSize='4' user={ author }/>
-            </div>
-    )}
-
-    const Description = () => {
-        if(!wish?.description) return null;
-        const Pointer = () => {
-            return (
-                <div
-                    className='description-pointer'
-                    style={{
-                        position: 'relative',
-                        left: pointerOffset,
-                    }}
-                >
-                    <WishpageDescriptionPointer/>
-                </div>
-        )}
-
-        return (
-            <div className='description'>
-                <Pointer/>
-                <div
-                    className='container'
-                    style={{minWidth: `${pointerOffset + 77}px`}}
-                >{ wish?.description }</div>
-            </div>
-    )}
-
-    const PriceLine = () => {
-        if(wish?.price) {
-            const currency
-            = (wish?.currency === 'rouble') ? ' ₽'
-            : (wish?.currency === 'dollar') ? ' $'
-            : (wish?.currency === 'euro')   ? ' €' : ''
-            return (
-                <span className='price'>{ wish?.price + currency}</span>
-            )
-        } else return null
-    }
-
-
-    if (!wish) {
+    if(!wish) {
         return (
             <LineContainer
                 className='not-found'
@@ -233,52 +229,61 @@ export const SingleWishPage = () => {
                 </>}
             />
         )
-    }
+    } else {
+        return (
+            <div className='wish-page'>
+                <DoubleColumnAdaptiveLayout
+                    firstColumn={ <Image imageURL={ imageURL }/> }
+                    firstColumnLimits={{
+                        min: firstColumnMinWidth,
+                        max: firstColumnMaxWidth
+                    }}
 
-    return (
-        <div className='wish-page'>
-            <DoubleColumnAdaptiveLayout
-                firstColumn={ <Image/> }
-                firstColumnLimits={{
-                    min: firstColumnMinWidth,
-                    max: firstColumnMaxWidth
-                }}
+                    secondColumn={
+                        <>
+                            <div className='header'>
+                                <WithDropDown
+                                    trigger={ <Button icon='kebap' size={ 4 }/> }
+                                    options={ menuOptions }
+                                />
+                                <span className='title'>{ wish?.title }</span>
+                                <OuterLink urlString={ wish?.external }/>
+                                
+                            </div>
 
-                secondColumn={
-                    <>
-                        <div className='header'>
-                            <WithDropDown
-                                trigger={ <Button icon='kebap' size={ 4 }/> }
-                                options={ menuOptions }
-                            />
-                            <span className='title'>{ wish?.title }</span>
-                            <OuterLink/>
+                            <div className='info'>
+                                <WishlistEntries {...{ wishlists, section }}/>
+                                { author?.id &&
+                                    <div className='info-field'>
+                                        <span className='label'>Желает</span>
+                                        <User user={ author }/>
+                                    </div>
+                                }
+                                { wish?.description &&
+                                    <Description description={ wish.description } pointerOffset={ pointerOffset }/>
+                                }
+                            </div>
                             
-                        </div>
+                            <div className='actions'>
+                                { wish?.price &&
+                                    <PriceLine price={ wish.price } currency={ wish.currency } />
+                                }
+                                <WishButton
+                                    wish={ wish }
+                                    kind='primary'
+                                />
+                            </div>
 
-                        <div className='info'>
-                            <WishlistEntries/>
-                            <UserInfo/>
-                            <Description/>
-                        </div>
-                        
-                        <div className='actions'>
-                            <PriceLine/>
-                            <WishButton
-                                wish={ wish }
-                                kind='primary'
+                            <Modal
+                                ref={ modalRef }
+                                header='Подтверждение удаления'
+                                body='Желание будет удалено безвозвратно. Хотим убедиться, что вы действительно этого хотите'
+                                actions={ modalActions }
                             />
-                        </div>
-
-                        <Modal
-                            ref={ modalRef }
-                            header='Подтверждение удаления'
-                            body='Желание будет удалено безвозвратно. Хотим убедиться, что вы действительно этого хотите'
-                            actions={ modalActions }
-                        />
-                    </>
-                }
-            />
-        </div>
-    )
+                        </>
+                    }
+                />
+            </div>
+        )
+    }
 }

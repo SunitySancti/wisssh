@@ -28,7 +28,7 @@ export const ProfilePage = () => {
 
     const defaultValues = {
         id: user?.id || '',
-        username: user?.name || '',
+        name: user?.name || '',
         email: user?.email || '',
         imageExtension: user?.imageExtension || '',
         newPassword: '',
@@ -141,10 +141,10 @@ export const ProfilePage = () => {
                         secondColumn={
                             <>
                                 <TextInput
-                                    name='username'
+                                    name='name'
                                     register={ register }
-                                    placeholder='Amon_Ra'
-                                    label='Никнейм (login)'
+                                    // placeholder='AmonRa'
+                                    label='Никнейм'
                                     labelWidth={ maxLabelWidth }
                                     required
                                     formState={ formState }
@@ -154,7 +154,7 @@ export const ProfilePage = () => {
                                     register={ register }
                                     type='email'
                                     patternType='email'
-                                    placeholder='sun@space.mw'
+                                    placeholder='sun@inner.space'
                                     label='email'
                                     labelWidth={ maxLabelWidth }
                                     required

@@ -1,4 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import   React,
+       { useState,
+         useEffect,
+         useMemo } from 'react'
 import { Outlet,
          useNavigate,
          useLocation } from 'react-router'
@@ -10,21 +13,20 @@ import { SectionSwitcher } from 'molecules/SectionSwitcher'
 import { CreationGroup } from 'molecules/CreationGroup'
 import { UserGroup } from 'molecules/UserGroup'
 
-import { fetchUserAvatar,
-         fetchWishCover } from 'store/imageSlice'
-import { getCurrentUser,
-         getFriends,
-         getUserWishlists,
-         getUserWishes,
-         getInvites,
-         getFriendsWishes } from 'store/getters'
+import { updateHistory,
+         clearHistory } from 'store/historySlice'
 
 
-export const AppHeader = ({ onLogoClick }) => {
+export const AppHeader = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation().pathname;
     const token = useSelector(state => state.auth?.token);
+
+    // HISTORY UPDATING
+    useEffect(() => { dispatch(updateHistory(location)) },[ location ]);
+    useEffect(() => { return () => { dispatch(clearHistory()) }},[]);
+
 
     useEffect(() => {
         if(!token) {
@@ -33,44 +35,9 @@ export const AppHeader = ({ onLogoClick }) => {
                 
             }})
         }
-    },[ token ])
+    },[ token ]);
 
-    const { user } = getCurrentUser();
-    const { friends,
-            friendsHaveLoaded } = getFriends();
-    const { userWishlists } = getUserWishlists();
-    const { userWishes,
-            userWishesHaveLoaded } = getUserWishes();
-    const { invites } = getInvites();
-    const { friendsWishes,
-            friendsWishesHaveLoaded } = getFriendsWishes();
-
-    useEffect(() => {
-        if(user?.id) dispatch(fetchUserAvatar(user?.id))
-    },[ user?.id ])
     
-    useEffect(() => {
-        if(!userWishesHaveLoaded || !userWishes?.length) return
-        for (const wish of userWishes) {
-            dispatch(fetchWishCover(wish.id))
-        }
-    },[ userWishes, userWishesHaveLoaded ]);
-
-    useEffect(() => {
-        if(!friendsWishesHaveLoaded || !friendsWishes?.length) return
-        for (const wish of friendsWishes) {
-            dispatch(fetchWishCover(wish.id))
-        }
-    },[ friendsWishes, friendsWishesHaveLoaded ]);
-
-    useEffect(() => {
-        if(!friendsHaveLoaded || !friends?.length) return
-        for (const user of friends) {
-            dispatch(fetchUserAvatar(user.id))
-        }
-    },[ friends, friendsHaveLoaded ]);
-
-
     const breakpointWidth = 1000;
     const [isShort, setIsShort] = useState(false);
     const checkWidth = () => setIsShort(window.innerWidth < breakpointWidth);
@@ -96,14 +63,63 @@ export const AppHeader = ({ onLogoClick }) => {
         }
     },[]);
 
+    // CENTERIZE LOGO
+    const [groupsMaxWidth, setGroupsMaxWidth] = useState(220);
+    
+    useEffect(() => {
+        const creationGroupRef = document.querySelector('.app-header .creation-group');
+        const userGroupRef = document.querySelector('.app-header .user-group');
+        if(!creationGroupRef || !userGroupRef) setGroupsMaxWidth(220)
+        
+        const leftGroupWidth = creationGroupRef?.offsetWidth;
+        const rightGroupWidth = userGroupRef?.offsetWidth;
+        if(!leftGroupWidth || !rightGroupWidth) setGroupsMaxWidth(220)
+
+        setGroupsMaxWidth(leftGroupWidth > rightGroupWidth
+                        ? leftGroupWidth : rightGroupWidth)
+    },[ isShort ]);
+
+
+    // MORE OPTIMAL REALIZATION WITH USEMEMO. NEEDS FORWARD REF IN CREATIONGROUP AND USERGROUP FOR CORRECT WORK
+
+    // const groupsMaxWidth = useMemo(() => {
+    //     console.log({ isShort })
+    //     const creationGroupRef = document.querySelector('.app-header .creation-group');
+    //     const userGroupRef = document.querySelector('.app-header .user-group');
+    //     console.log({ creationGroupRef, userGroupRef })
+    //     if(!creationGroupRef || !userGroupRef) return 220
+        
+    //     const leftGroupWidth = creationGroupRef?.offsetWidth;
+    //     const rightGroupWidth = userGroupRef?.offsetWidth;
+    //     console.log({ leftGroupWidth, rightGroupWidth })
+    //     if(!leftGroupWidth || !rightGroupWidth) return 220
+
+    //     return leftGroupWidth > rightGroupWidth
+    //          ? leftGroupWidth : rightGroupWidth
+    // },[ isShort ]);
+
 
     return (
         <div className='app-layout'>
             <div className='scroll-container'>
                 <div className='app-header'>
-                    <CreationGroup isShort={isShort} />
-                    <SectionSwitcher isShort={isShort} onLogoClick={ onLogoClick }/>
-                    <UserGroup isShort={isShort}/>
+                    <div
+                        className='equalize-container'
+                        style={{ width: groupsMaxWidth }}
+                    >
+                        <CreationGroup isShort={ isShort }/>
+                        <div className='space'/>
+                    </div>
+
+                    <SectionSwitcher isShort={ isShort }/>
+
+                    <div
+                        className='equalize-container'
+                        style={{ width: groupsMaxWidth }}
+                    >
+                        <div className='space'/>
+                        <UserGroup isShort={ isShort }/>
+                    </div>
                 </div>
             </div>
             
