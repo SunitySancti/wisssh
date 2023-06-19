@@ -16,6 +16,8 @@ import { WishlistPage } from 'pages/WishlistPage'
 import { NewWishPage } from 'pages/NewWishPage'
 import { NewListPage } from 'pages/NewListPage'
 import { LoginPage } from 'pages/LoginPage'
+import { LogoutPage } from 'pages/LogoutPage'
+import { RedirectPage } from 'pages/RedirectPage'
 import { ProfilePage } from 'pages/ProfilePage'
 import { InvitationAcceptancePage } from 'pages/InvitationAcceptancePage'
 
@@ -137,6 +139,12 @@ function App() {
         },{
             path: '/login/:encodedEmail?',
             element: <LoginPage/>
+        },{
+            path: '/logout',
+            element: <LogoutPage/>
+        },{
+            path: '/redirect',
+            element: <RedirectPage/>
         },{
             path: '*',
             element: <Navigate to='/my-wishes/items/actual' replace/>

@@ -11,7 +11,7 @@ body {
     position: relative;
 }
 
-#dropdown-root, #modal-root {
+#dropdown-root, #modal-root, #tooltip-root {
     position: fixed;
     top: 0;
     left: 0;
@@ -25,10 +25,13 @@ body {
     }
 }
 #dropdown-root {
-    z-index: 8;
+    z-index: 7;
     > div {
         pointer-events: all;
     }
+}
+#tooltip-root {
+    z-index: 8;
 }
 #modal-root {
     z-index: 9;
@@ -46,6 +49,15 @@ body {
   
 a.active, a:hover {
     color: $darkGray2;
+}
+  
+.icon-link {
+    &:not(:hover) {
+        fill: $gray2;
+    }
+    &:hover {
+        fill: $darkGray2;
+    }
 }
 
 ::-webkit-scrollbar {

@@ -4,7 +4,7 @@ import { useParams,
          useNavigate } from 'react-router'
 
 import './styles.scss'
-import { WishboxPreloader } from 'atoms/Icon'
+import { WishPreloader } from 'atoms/Preloaders'
 
 import { useAcceptInvitationMutation } from 'store/apiSlice'
 
@@ -29,11 +29,11 @@ export const InvitationAcceptancePage = () => {
                 : '/my-wishes'
             navigate(section + '/lists/' + acceptanceResponse.inviteId)
         }
-    },[ invitationAccepted ])
+    },[ invitationAccepted ]);
 
     return (
         <div className='invitation-acceptance-page'>
-            <WishboxPreloader/>
+            <WishPreloader isLoading/>
         </div>
     )
 }

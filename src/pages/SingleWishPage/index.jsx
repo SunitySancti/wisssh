@@ -1,9 +1,9 @@
 import   React,
        { useEffect,
          useState,
-         useMemo,
-         useRef } from 'react'
+         useMemo } from 'react'
 import { Link,
+         Navigate,
          useLocation,
          useNavigate } from 'react-router-dom'
 import { useDispatch,
@@ -11,33 +11,21 @@ import { useDispatch,
 
 import './styles.scss'
 import { DoubleColumnAdaptiveLayout } from 'containers/DoubleColumnAdaptiveLayout'
-import { LineContainer } from 'containers/LineContainer'
 import { Icon,
-         WishpageDescriptionPointer,
-         WishPlaceholder } from 'atoms/Icon'
+         WishpageDescriptionPointer } from 'atoms/Icon'
 import { User } from 'atoms/User'
-import { Button,
-         WishButton } from 'atoms/Button'
-import { WithDropDown } from 'atoms/WithDropDown'
-import { Modal } from 'atoms/Modal'
+import { WishPreloader } from 'atoms/Preloaders'
+import { WishCover,
+         WishButton,
+         WishMenu } from 'molecules/WishStuff'
 
-import { getWishById,
+import { getCurrentUser,
+         getWishById,
          getWishlistsByIdList,
          getUserById,
-         getUserWishes } from 'store/getters'
-import { useDeleteWishMutation } from 'store/apiSlice'
+         getLoadingStatus } from 'store/getters'
 import { promoteImages } from 'store/imageSlice'
 
-
-    
-const Image = ({ imageURL }) => (
-    <div className='container'>
-        { imageURL
-            ? <img src={ imageURL } />
-            : <WishPlaceholder/>
-        }
-    </div>
-);
 
 const WishlistEntries = ({ wishlists, section }) => {
     const labelText = (!wishlists?.length)
@@ -87,7 +75,7 @@ const Description = ({ description, pointerOffset }) => (
             <WishpageDescriptionPointer/>
         </div>
         <div
-            className='container'
+            className='description-container'
             style={{minWidth: `${pointerOffset + 77}px`}}
         >
             { description }
@@ -105,28 +93,58 @@ const PriceLine = ({ price, currency }) => (
     </span>
 );
 
+const OuterLink = ({ urlString }) => {
+    let url = null
+    try {
+        url = new URL(urlString);
+    } catch(err) {
+        return;
+    }
+    return (
+        <a
+            href={ urlString }
+            className='inline-link'
+        >
+            { url ? url.host : urlString }
+            <Icon name='outerLink' size={ 22 }/>
+        </a>
+    );
+}
+
 export const SingleWishPage = () => {
-    const modalRef = useRef(null);
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation().pathname;
-    const locationSteps = location.split('/');
-    const section = locationSteps.at(1);
-    const currentWishId = locationSteps.pop();
+    const [, section, mode, tab, wishId] = location.split('/');
     
-    const [ deleteWish, deleteWishReturn ] = useDeleteWishMutation();
-    const { userWishes } = getUserWishes();
-    const wish = getWishById(currentWishId);
+    const { user } = getCurrentUser();
+    const { awaitingWishes,
+            awaitingWishlists } = getLoadingStatus();
+    const isLoading = awaitingWishes || awaitingWishlists;
+    const wish = getWishById(wishId);
     const author = getUserById(wish?.author);
     const wishlists = getWishlistsByIdList(wish?.inWishlists);
 
-    useEffect(() => {
-        dispatch(promoteImages(currentWishId))
-    },[ currentWishId ]);
+    // REDIRECT IF WISH NOT FOUND
 
     useEffect(() => {
-        dispatch(promoteImages(author?.id))
-    },[ author?.id ]);
+        if(!isLoading && !wish) {
+            navigate(['', section, mode, tab].join('/'), { replace: true })
+        }
+    },[ isLoading, wish, section, mode, tab ]);
+
+    // PROMOTE IMAGES
+
+    useEffect(() => {
+        if(wishId) {
+            dispatch(promoteImages(wishId))
+        }
+        if(author?.id) {
+            dispatch(promoteImages(author?.id))
+        }
+    },[ wishId, author?.id ]);
+
+    // ALIGN SVG POINTER
     
     const [ pointerOffset, setPointerOffset ] = useState(69);
     useEffect(() => {
@@ -135,7 +153,7 @@ export const SingleWishPage = () => {
         setPointerOffset(offset)
     },[])
 
-    // align first column:
+    // ALIGN FIRST COLUMN
 
     const imageURL = useSelector(state => state.images?.imageURLs[wish?.id]);
     
@@ -159,81 +177,14 @@ export const SingleWishPage = () => {
     },[ imageURL, wish ]);
 
 
-    const menuOptions = [{
-        icon: 'edit',
-        text: 'Редактировать',
-        onClick: () => navigate(location + '/editing')
-    },{
-        icon: 'delete',
-        text: 'Удалить желание',
-        onClick: () => modalRef.current?.showModal()
-    }];
-
-    const modalActions = [{
-        icon: 'cancel',
-        text: 'Отмена',
-        onClick: () => modalRef.current?.hideModal()
-    },{
-        kind: 'negative primary',
-        icon: 'delete',
-        text: 'Удалить навсегда',
-        onClick: () => deleteWish(wish.id)
-    }];
-
-    useEffect(() => {
-        if(deleteWishReturn?.error) {
-            console.log(deleteWishReturn.error)
-        } else {
-            const wishKeys = userWishes?.map(wish => wish.id);
-            const deletedKey = deleteWishReturn?.data;
-            
-            if(deletedKey && !wishKeys.includes(deletedKey)) {
-                navigate(locationSteps.join('/'))
-            }
-        }
-    },[ deleteWishReturn, userWishes ])
-    
-
-    const OuterLink = ({ urlString }) => {
-        let url = null
-        try {
-            url = new URL(urlString);
-        } catch(err) {
-            return;
-        }
-        return (
-            <a
-                href={ urlString }
-                className='inline-link'
-            >
-                { url ? url.host : urlString }
-                <Icon name='outerLink' size={ 22 }/>
-            </a>
-        );
-    }
-    
-
-    if(!wish) {
-        return (
-            <LineContainer
-                className='not-found'
-                children={<>
-                    <span>Желание не найдено 😥</span>
-                    <Button
-                        kind='primary'
-                        icon='plus'
-                        text='Ко всем желаниям'
-                        onClick={() => navigate(`/${ section }/items/all`)}
-                        round
-                    />
-                </>}
-            />
-        )
-    } else {
-        return (
-            <div className='wish-page'>
+    return ( isLoading
+        ?   <div className='wish-page'>
+                <WishPreloader isLoading/>
+            </div>
+        :   wish
+        ?   <div className='wish-page'>
                 <DoubleColumnAdaptiveLayout
-                    firstColumn={ <Image imageURL={ imageURL }/> }
+                    firstColumn={ <WishCover wish={ wish }/> }
                     firstColumnLimits={{
                         min: firstColumnMinWidth,
                         max: firstColumnMaxWidth
@@ -242,10 +193,9 @@ export const SingleWishPage = () => {
                     secondColumn={
                         <>
                             <div className='header'>
-                                <WithDropDown
-                                    trigger={ <Button icon='kebap' size={ 4 }/> }
-                                    options={ menuOptions }
-                                />
+                                { (user?.id === author?.id) &&
+                                    <WishMenu wish={ wish }/>
+                                }
                                 <span className='title'>{ wish?.title }</span>
                                 <OuterLink urlString={ wish?.external }/>
                                 
@@ -273,17 +223,13 @@ export const SingleWishPage = () => {
                                     kind='primary'
                                 />
                             </div>
-
-                            <Modal
-                                ref={ modalRef }
-                                header='Подтверждение удаления'
-                                body='Желание будет удалено безвозвратно. Хотим убедиться, что вы действительно этого хотите'
-                                actions={ modalActions }
-                            />
                         </>
                     }
                 />
             </div>
-        )
-    }
+        :   <Navigate
+                to={ '/' + section + '/lists' }
+                replace
+            />
+    )
 }

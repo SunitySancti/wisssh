@@ -36,15 +36,6 @@
     flex-direction: row;
     justify-content: space-between;
     margin-bottom: 18px;
-  
-    .icon-link {
-        &:not(:hover) {
-            fill: $gray2;
-        }
-        &:hover {
-            fill: $darkGray2;
-        }
-    }
 
     .user-group,
     .section-switcher,

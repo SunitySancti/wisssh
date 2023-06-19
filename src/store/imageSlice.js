@@ -70,7 +70,7 @@ export const postImage = createAsyncThunk(
     async ({ id, file, drive },{ getState }) => {
         if(!id || !file || !drive) return;
         
-        const endpoint = [__API_URL__, 'images', drive, id].join('/');
+        const endpoint = [__API_URL__, 'images/post', drive, id].join('/');
         const token = getState().auth?.token;
 
         const formData = new FormData();
@@ -86,6 +86,22 @@ export const postImage = createAsyncThunk(
             .then(res => res.json())
     }
 );
+
+export const copyWishCover = createAsyncThunk(
+    'images/copyWishCover',
+    async ({ sourceId, targetId, extension },{ getState }) => {
+        if(!sourceId || !targetId || !extension) return;
+        const token = getState().auth?.token;
+
+        await fetch(__API_URL__ + '/images/copy-wish-cover', {
+            'method': 'POST',
+            'headers': {
+                'Authorization': token
+            },
+            'body': JSON.stringify({ sourceId, targetId, extension })
+        })
+    }
+)
 
 
 const defaultState = {
@@ -168,6 +184,12 @@ const imageSlice = createSlice({
             state.imageURLs[id] = state.backupURLs[id];
             delete state.backupURLs[id];
             delete state.loading[id];
+        });
+
+        
+        builder.addCase(copyWishCover.pending, (state, action) => {
+            const { sourceId, targetId } = action.meta.arg;
+            state.imageURLs[targetId] = current(state).imageURLs[sourceId]
         });
 
 

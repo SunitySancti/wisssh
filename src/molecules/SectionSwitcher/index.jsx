@@ -34,8 +34,8 @@ export const SectionSwitcher = ({ isShort }) => {
     const navigate = useNavigate();
     const handleLogoClick = __DEV_MODE__
         ? async () => {
-            // await fetch(__API_URL__ + '/ids/refresh')
-            console.log(state)
+            await fetch(__API_URL__ + '/consistency/run-checking')
+            // console.log(state)
         }
         : () => navigate('/my-wishes/items/actual')
 
@@ -59,9 +59,9 @@ export const SectionSwitcher = ({ isShort }) => {
 
     // actualize current section:
     const location = useLocation().pathname;
-    const currentSection = location.split('/').at(1);
-    const isMyWishes = currentSection === 'my-wishes';
-    const isMyInvites = currentSection === 'my-invites';
+    const [, section, mode] = location.split('/');
+    const isMyWishes = section === 'my-wishes';
+    const isMyInvites = section === 'my-invites';
 
     // calculate slider active styles depends on text content:
     const slidersActiveStyles = useMemo(() => {
@@ -88,26 +88,41 @@ export const SectionSwitcher = ({ isShort }) => {
     const [rightSliderStyles, setRightSliderStyles] = useState(slidersDefaultStyles('right'));
 
     useEffect(() => {
-        if(currentSection === 'my-wishes') {
+        if(section === 'my-wishes') {
             setLeftSliderStyles(slidersActiveStyles.left);
             setRightSliderStyles(slidersDefaultStyles('right'));
         }
-        else if(currentSection === 'my-invites') {
+        else if(section === 'my-invites') {
             setLeftSliderStyles(slidersDefaultStyles('left'));
             setRightSliderStyles(slidersActiveStyles.right);
         } else {
             setLeftSliderStyles(slidersDefaultStyles('left'));
             setRightSliderStyles(slidersDefaultStyles('right'));
         }
-    },[currentSection, firstElem?.innerHTML, secondElem?.innerHTML]);
+    },[section, firstElem?.innerHTML, secondElem?.innerHTML]);
 
     // define link paths and titles of sections:
     const lastMode = useSelector(state => state.history.anySectionLast?.split('/').at(2));
     const myWishesSection = useSelector(state => state.history.myWishesSection);
     const myInvitesSection = useSelector(state => state.history.myInvitesSection);
 
-    const firstSectionPath  =  myWishesSection[`${lastMode}ModeLast`] || '';
-    const secondSectionPath =  myInvitesSection[`${lastMode}ModeLast`] || '';
+    let firstSectionPath = myWishesSection[`${lastMode}ModeLast`] || '/my-wishes/items/actual';
+    let secondSectionPath = myInvitesSection[`${lastMode}ModeLast`] || '/my-invites/items/reserved';
+    const locationCase = section + '/' + mode;
+    
+    switch(locationCase) {
+        case 'my-wishes/items':
+            firstSectionPath = '/my-wishes/items/actual'
+            break
+        case 'my-wishes/lists':
+            firstSectionPath = '/my-wishes/lists'
+            break
+        case 'my-invites/items':
+            secondSectionPath = '/my-invites/items/reserved'
+            break
+        case 'my-invites/lists':
+            secondSectionPath = '/my-invites/lists'
+    }
 
     const firstSectionTitle  = (lastMode === 'items') ? 'Мои желания'
                              : (lastMode === 'lists') ? 'Мои вишлисты' : '';

@@ -9,7 +9,6 @@ import './styles.scss'
 import { WithDropDown } from 'atoms/WithDropDown'
 import { UserPic } from 'atoms/User'
 
-import { logout } from 'store/authSlice'
 import { postImage,
          promoteImages } from 'store/imageSlice'
 import { getCurrentUser } from 'store/getters'
@@ -40,7 +39,7 @@ export const UserGroup = ({ isShort }) => {
         },{
             text: 'Выйти',
             icon: 'logout',
-            onClick: () => dispatch(logout())
+            onClick: () => navigate('/logout')
         }
     ];
 

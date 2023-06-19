@@ -1,0 +1,204 @@
+@import '../../_style-config';
+
+
+.spinner-container {
+    position: relative;
+    top: 0;
+    left: 0;
+    width: fit-content;
+    height: fit-content;
+    display: flex;
+
+    .children-container {
+        display: flex;
+        transition: opacity 0.3s ease-in-out;
+        
+        &:not(.loading) {
+            opacity: 1;
+        }
+
+        &.loading {
+            opacity: 0.3;
+        }
+    }
+}
+
+.spinner {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    animation: rotateSpinner 2s linear infinite;
+    
+    &.primary {
+        filter: drop-shadow( 0 0 2px rgba(0, 0, 0, .4));
+
+        circle {
+            stroke: $primary;
+        }
+    }
+    
+    &.dark circle {
+        stroke: $darkGray2;
+    }
+    
+    &.light circle {
+        stroke: rgba(0, 0, 0, 0.07);
+    }
+  
+    circle {
+        stroke-linecap: round;
+        animation: runSpinner 1.5s cubic-bezier(.4,.2,.6,.8) infinite;
+    }
+}
+
+.wish-preloader {
+    position: absolute;
+    height: 60%;
+    width: 60%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: visible;
+
+    > svg {
+        fill: $lightGray2;
+        height: 100%;
+        overflow: visible;
+
+        .box {
+            transform-origin: 50% 50%;
+        }
+
+        .outline {
+            transform-origin: 50% 50%;
+        }
+    }
+
+    &.loading > svg {
+        animation: pulseWishPreloader 5s ease-in-out infinite;
+
+        .box {
+            fill: $primary;
+            animation: shakeWishPreloader 5s ease-out infinite;
+        }
+
+        .outline {
+            fill: $primaryHover;
+            animation: rotateWishPreloaderOutline 10s ease-in-out infinite;
+        }
+    }
+}
+
+.navbar-ellipsis {
+    height: 4rem;
+    padding: 13px 16px;
+    display: flex;
+    flex-flow: row nowrap;
+    gap: 6px;
+    align-items: flex-end;
+
+    .circle {
+        height: 6px;
+        width: 6px;
+        border-radius: 50%;
+        background-color: $primary;
+        animation: blinkEllipsis 0.9s ease-in-out infinite;
+        
+        &.first {
+            animation-delay: 0;
+        }
+        &.second {
+            animation-delay: 0.15s;
+        }
+        &.third {
+            animation-delay: 0.3s;
+        }
+    }
+}
+
+
+@keyframes rotateSpinner {
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+@keyframes runSpinner {
+    0% {
+        stroke-dasharray: 4, 999;
+        stroke-dashoffset: 0;
+    }
+    50% {
+        stroke-dasharray: 208, 999;
+        stroke-dashoffset: -104;
+    }
+    100% {
+        stroke-dasharray: 277, 999;
+        stroke-dashoffset: -277;
+    }
+}
+
+
+@keyframes pulseWishPreloader {
+    0%, 50%, 85%, 100% {
+        transform: scale(1);
+    }
+    20% {
+        transform: scale(0.9);
+    }
+    70% {
+        transform: scale(0.8);
+    }
+}
+@keyframes shakeWishPreloader {
+    0%, 80%, 100% {
+        transform: rotate(0deg);
+    }
+    84%, 92% {
+        transform: rotate(-6deg);
+    }
+    88% {
+        transform: rotate(9deg);
+    }
+    96% {
+        transform: rotate(4deg);
+    }
+}
+@keyframes rotateWishPreloaderOutline {
+    0%, 70% {
+        transform: rotate(0deg);
+    }
+    75% {
+        transform: rotate(10deg);
+    }
+    80% {
+        transform: rotate(-400deg);
+    }
+    85% {
+        transform: rotate(-340deg);
+    }
+    90% {
+        transform: rotate(-370deg);
+    }
+    95% {
+        transform: rotate(-355deg);
+    }
+    100% {
+        transform: rotate(-360deg);
+    }
+}
+
+
+@keyframes blinkEllipsis {
+    0%, 10%, 100% {
+        opacity: 1;
+    }
+    25%, 85% {
+        opacity: 0.3;
+    }
+}

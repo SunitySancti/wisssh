@@ -11,9 +11,10 @@ import { useGetCurrentUserQuery,
 
 const getCurrentUser = () => {
     const { data:       user,
+            isLoading:  awaitingUser,
             isSuccess:  userHasLoaded } = useGetCurrentUserQuery(null);
             
-    return { user, userHasLoaded }
+    return { user, awaitingUser, userHasLoaded }
 }
 
 const getFriends = () => {
@@ -50,6 +51,45 @@ const getAllUserNames = () => {
             refetch:    refreshAllUserNames } = useGetAllUserNamesQuery(null);
 
     return { allUserNames, allUserNamesError, awaitingAllUserNames, allUserNamesHaveLoaded, loadingAllUserNamesWasCrashed, refreshAllUserNames }
+}
+
+
+// WISHLISTS //
+
+const getUserWishlists = () => {
+    const { data:       userWishlists,
+            error:      userWishlistsError,
+            isLoading:  awaitingUserWishlists,
+            isSuccess:  userWishlistsHaveLoaded,
+            isError:    loadingUserWishlistsWasCrashed,
+            refetch:    refreshUserWishlists } = useGetUserWishlistsQuery(null);
+
+    return { userWishlists, userWishlistsError, awaitingUserWishlists, userWishlistsHaveLoaded, loadingUserWishlistsWasCrashed, refreshUserWishlists }
+}
+
+const getInvites = () => {
+    const { data:       invites,
+            error:      invitesError,
+            isLoading:  awaitingInvites,
+            isSuccess:  invitesHaveLoaded,
+            isError:    loadingInvitesWasCrashed,
+            refetch:    refreshInvites } = useGetInvitesQuery(null);
+
+    return { invites, invitesError, awaitingInvites, invitesHaveLoaded, loadingInvitesWasCrashed, refreshInvites }
+}
+
+const getAllRelevantWishlists = () => {
+    const { userWishlists } = getUserWishlists();
+    const { invites } = getInvites();
+    return userWishlists?.concat(invites) || []
+}
+
+const getWishlistById = (id) => {
+    return getAllRelevantWishlists()?.find(wishlist => wishlist?.id === id) || {}
+}
+
+const getWishlistsByIdList = (ids) => {
+    return getAllRelevantWishlists()?.filter(wishlist => ids?.includes(wishlist?.id)) || []
 }
 
 
@@ -97,46 +137,33 @@ const getActualWishes = () => {
 }
 
 const getWishesByWishlistId = (wishlistId) => {
-    return getAllRelevantWishes()?.filter(wish => wish?.inWishlists?.includes(wishlistId))
+    const wishlist = getWishlistById(wishlistId);
+    if(!wishlist) return []
+    return getWishesByIdList(wishlist?.wishes)
 }
 
 
-// WISHLISTS //
+// LOADING STATUS
 
-const getUserWishlists = () => {
-    const { data:       userWishlists,
-            error:      userWishlistsError,
-            isLoading:  awaitingUserWishlists,
-            isSuccess:  userWishlistsHaveLoaded,
-            isError:    loadingUserWishlistsWasCrashed,
-            refetch:    refreshUserWishlists } = useGetUserWishlistsQuery(null);
+const getLoadingStatus = () => {
+    const { awaitingUser } = getCurrentUser();
+    const { awaitingFriends } = getFriends();
+    const { awaitingUserWishes } = getUserWishes();
+    const { awaitingFriendWishes } = getFriendWishes();
+    const { awaitingUserWishlists } = getUserWishlists();
+    const { awaitingInvites } = getInvites();
+    return {
+        awaitingUser,
+        awaitingFriends,
 
-    return { userWishlists, userWishlistsError, awaitingUserWishlists, userWishlistsHaveLoaded, loadingUserWishlistsWasCrashed, refreshUserWishlists }
-}
+        awaitingUserWishes,
+        awaitingFriendWishes,
+        awaitingWishes: awaitingUserWishes || awaitingFriendWishes,
 
-const getInvites = () => {
-    const { data:       invites,
-            error:      invitesError,
-            isLoading:  awaitingInvites,
-            isSuccess:  invitesHaveLoaded,
-            isError:    loadingInvitesWasCrashed,
-            refetch:    refreshInvites } = useGetInvitesQuery(null);
-
-    return { invites, invitesError, awaitingInvites, invitesHaveLoaded, loadingInvitesWasCrashed, refreshInvites }
-}
-
-const getAllRelevantWishlists = () => {
-    const { userWishlists } = getUserWishlists();
-    const { invites } = getInvites();
-    return userWishlists?.concat(invites) || []
-}
-
-const getWishlistById = (id) => {
-    return getAllRelevantWishlists()?.find(wishlist => wishlist?.id === id) || {}
-}
-
-const getWishlistsByIdList = (ids) => {
-    return getAllRelevantWishlists()?.filter(wishlist => ids?.includes(wishlist?.id)) || []
+        awaitingUserWishlists,
+        awaitingInvites,
+        awaitingWishlists: awaitingUserWishlists || awaitingInvites
+    }
 }
 
 
@@ -158,4 +185,6 @@ export {
     getInvites,
     getWishlistById,
     getWishlistsByIdList,
+
+    getLoadingStatus
 }

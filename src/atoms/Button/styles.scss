@@ -47,6 +47,7 @@
 
     &:disabled {
         cursor: default;
+        pointer-events: none;
     }
     
     &:not(.clear){
@@ -55,9 +56,10 @@
         }
     
         &:disabled {
+            // opacity: 0.33;
             background: none;
-            border: solid 1px $lightGray3;
-            color: $gray2;
+            // border: solid 1px $lightGray3;
+            color: rgba(0,0,0,.66);
         }
 
         &.secondary {

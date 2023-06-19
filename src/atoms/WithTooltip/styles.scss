@@ -1,0 +1,36 @@
+@import '../../_style-config';
+
+.tooltip-trigger {
+    display: flex;
+}
+
+.tooltip {
+    position: absolute;
+    width: fit-content;
+    height: fit-content;
+    margin: 4px 0;
+    padding: 0.5rem 1rem;
+    background-color: white;
+    font: $action;
+    font-size: 14px;
+    color: $darkGray1;
+    border-radius: 1rem;
+    box-shadow: $flyingAbove;
+    opacity: 1;
+    transition: opacity 0.3s ease-in-out;
+    animation: appearance 1.2s ease-in-out;
+
+    &.hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
+}
+
+@keyframes appearance {
+    0%, 75% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}

@@ -93,20 +93,22 @@
     }
   
     &.selected {
-      background-color: $lightGray1;
-  
-      .title-container {
-        background-color: $primary;
-        fill: $primary;
-        filter: drop-shadow(0 0 10px rgb(255, 255, 255));
-      }
-  
-      &.on-wishlist-page {
-        padding: 1rem 2rem;
-        top: -2rem;
-        border-bottom: solid 1px $lightGray2;
-      }
+        background-color: $lightGray1;
+    
+        .title-container {
+            background-color: $primary;
+            fill: $primary;
+            filter: drop-shadow(0 0 10px rgb(255, 255, 255));
+        }
+    
+        &.on-wishlist-page {
+            padding: 1rem 2rem;
+            top: -2rem;
+            border-bottom: solid 1px $lightGray2;
+        }
     }
   
-  
-  }
+    &.deleted {
+        opacity: 0.3;
+    }
+}

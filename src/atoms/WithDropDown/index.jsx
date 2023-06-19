@@ -22,7 +22,6 @@ const Option = ({
     ...rest
 }) => {
     const [clicked, setClicked] = useState(false);
-
     return (
         <div
             className={ 'dropdown-option ' + (clicked ? 'disabled ' : '') + (className ? className : '')}
@@ -48,7 +47,9 @@ const Option = ({
 
 export const WithDropDown = forwardRef(({
     trigger,
-    options
+    options,
+    className,
+    ...rest
 },  ref ) => {
     const [ isDropped, setIsDropped ] = useState(false);
     const [ dropToRight, setDropToRight ] = useState(true);
@@ -63,15 +64,15 @@ export const WithDropDown = forwardRef(({
         setIsDropped(true)
     }
 
-    useImperativeHandle(ref, () => ({
-        closeDropDown() { setIsDropped(false) }
-    }));
-
     const closeDropDown = e => {
         if(dropdownRef.current && !dropdownRef.current.contains(e.target)) {
             setIsDropped(false)
         }
     }
+
+    useImperativeHandle(ref, () => ({
+        closeDropDown() { setIsDropped(false) }
+    }));
 
 
     const alignDropdown = () => {
@@ -87,7 +88,7 @@ export const WithDropDown = forwardRef(({
             right = minPadding
         }
 
-        setCoords({ left, right, top: rect.bottom })
+        setCoords({ left, right, top: rect?.bottom })
     }
     const setDirection = () => {
         const triggerRect = triggerRef.current?.getBoundingClientRect();
@@ -107,31 +108,30 @@ export const WithDropDown = forwardRef(({
     },[ dropdownRef.current ]);
 
 
-    return (
-        <>
-            <div
-                ref={ triggerRef }
-                className='dropdown-trigger'
-                children={ trigger }
-                onClick={ openDropDown }
-            />
-            { isDropped && (
-                <Portal layer='dropdown'>
-                    <div
-                        ref={ dropdownRef }
-                        className='dropdown'
-                        style={ coords }
-                    >
-                        { options?.map( (option, index) => (
-                            <Option
-                                key={ index }
-                                setIsDropped={ setIsDropped }
-                                { ...option }
-                            />
-                        ))}
-                    </div>
-                </Portal>
-            )}
-        </>
-    );
+    return <>
+        <div
+            ref={ triggerRef }
+            className={ className ? 'dropdown-trigger ' + className : 'dropdown-trigger' }
+            children={ trigger }
+            onClick={ openDropDown }
+            {...rest}
+        />
+        { isDropped && 
+            <Portal layer='dropdown'>
+                <div
+                    ref={ dropdownRef }
+                    className='dropdown'
+                    style={ coords }
+                >
+                    { options?.map( (option, index) => (
+                        <Option
+                            key={ index }
+                            setIsDropped={ setIsDropped }
+                            { ...option }
+                        />
+                    ))}
+                </div>
+            </Portal>
+        }
+    </>
 })

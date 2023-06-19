@@ -1,4 +1,6 @@
-import   React from 'react'
+import   React,
+       { useCallback,
+         useMemo } from 'react'
 import { useNavigate,
          useLocation } from 'react-router'
 
@@ -6,59 +8,55 @@ import './styles.scss'
 import { WishlistLine } from 'molecules/WishlistLine'
 import { Button } from 'atoms/Button'
 import { LineContainer } from 'containers/LineContainer'
+import { WishPreloader } from 'atoms/Preloaders'
 
 import { getDaysToEvent,
          sortByDateAscend,
          sortByDateDescend } from 'utils'
 import { getUserWishlists,
-         getInvites } from 'store/getters'
+         getInvites,
+         getLoadingStatus } from 'store/getters'
+
 
 export const ListOfListsPage = () => {
     const navigate = useNavigate();
     const location = useLocation().pathname;
     const section = location.split('/').at(1);
+    const isInvite = section === 'my-invites';
 
-    const { userWishlists } = getUserWishlists();
-    const { invites } = getInvites();
+    const { userWishlists,
+            userWishlistsHaveLoaded } = getUserWishlists();
+    const { invites,
+            invitesHaveLoaded } = getInvites();
 
     const wishlists = (section === 'my-wishes') ? userWishlists
-                    : (section === 'my-invites') ? invites : []
+                    : (section === 'my-invites') ? invites : [];
 
+    const isSuccess = (section === 'my-wishes') ? userWishlistsHaveLoaded
+                    : (section === 'my-invites') ? invitesHaveLoaded : false;
 
-    if (!wishlists || !wishlists?.length) {
-        const children = (section === 'my-wishes')
-                      ? <>
-                            <span>У вас пока нет ни одного вишлиста</span>
-                            <Button
-                                kind='primary'
-                                icon='plus'
-                                text='Создать вишлист'
-                                onClick={() => navigate('/my-wishes/lists/new')}
-                                round
-                            />
-                        </>
-                      : <span>Вас ещё не пригласили ни в один вишлист</span>
-        return (
-            <LineContainer
-                className='not-found'
-                children={ children }
-            />
-        );
-    }
-
-
-    const events = wishlists.filter(list => list.date && list.author);
-    const pastEvents = events
-        .filter(event => getDaysToEvent(event) < 0)
-        .sort(sortByDateDescend);
-    const actualEvents = events
-        .filter(event => !pastEvents.includes(event))
-        .sort(sortByDateAscend);
+    const { awaitingWishlists: isLoading } = getLoadingStatus();
     
-    const handleClick = ( wishlistId ) => {
+    const pastEvents = useMemo(() => {
+        if(wishlists instanceof Array || wishlists?.length) {
+            return wishlists.filter(list => list.date)
+                            .filter(event => getDaysToEvent(event) < 0)
+                            .sort(sortByDateDescend)
+        } else return []
+    },[ section, wishlists?.length ]);
+
+    const actualEvents = useMemo(() => {
+        if(wishlists instanceof Array || wishlists?.length) {
+            return wishlists.filter(list => list.date)
+                            .filter(event => getDaysToEvent(event) >= 0)
+                            .sort(sortByDateAscend)
+        } else return []
+    },[ section, wishlists?.length ]);
+    
+    const handleClick = useCallback(( wishlistId ) => {
         const slashCorrection = location.at(-1) === '/' ? '' : '/'
         const path = location + slashCorrection;
-        const delayParams = [200, 400, 700];
+        const delayParams = [200, 400, 1000];
 
         const thisNode = document.getElementById(wishlistId);
         const allNodes = document.querySelectorAll(`.list-of-lists-page > div`);
@@ -94,9 +92,9 @@ export const ListOfListsPage = () => {
         setTimeout(secondStep, delayParams[0]);
         setTimeout(thirdStep, delayParams[1]);
         setTimeout(lastStep, delayParams[2]);
-    };
+    },[ location ]);
 
-    const mapWishlists = (items = []) => {
+    const mapWishlists = (items = [], ) => {
         return items.map((item, index) => (
             <WishlistLine
                 wishlist={ item }
@@ -106,25 +104,45 @@ export const ListOfListsPage = () => {
         ))
     }
 
-    return (
-        <div className='list-of-lists-page'>
-            { actualEvents?.length
-                ?   mapWishlists(actualEvents)
-                :   <LineContainer
+
+    return ( isLoading
+        ?   <div className='wish-page'>
+                <WishPreloader isLoading/>
+            </div>
+        :   <div className='list-of-lists-page'>
+                { isSuccess && !wishlists?.length &&
+                    <LineContainer
                         className='not-found'
-                        children={ <span>Нет предстоящих событий</span> }
+                        children={ isInvite
+                            ?  <span>Вас пока не пригласили в вишлисты</span>
+                            :   <>
+                                    <span>У вас нет вишлистов</span>
+                                    <Button
+                                        kind='primary'
+                                        text='Создадим ?'
+                                        onClick={() => navigate('/my-wishes/lists/new')}
+                                        round
+                                    />
+                                </>
+                        }
                     />
-            }
-            { pastEvents?.length
-                ?   <div className='group-header'>
-                        <span>Прошедшие события</span>
-                    </div>
-                :   null
-            }
-            { pastEvents?.length
-                ?   mapWishlists(pastEvents)
-                :   null
-            }
-        </div>
+                }
+                { actualEvents?.length
+                    ?   mapWishlists(actualEvents)
+                    :   <LineContainer
+                            className='not-found'
+                            children={ <span>Нет предстоящих событий</span> }
+                        />
+                }
+                { pastEvents?.length
+                    ?   <>
+                            <div className='group-header'>
+                                <span>Прошедшие события</span>
+                            </div>
+                            { mapWishlists(pastEvents) }
+                        </>
+                    :   null
+                }
+            </div>
     )
 }

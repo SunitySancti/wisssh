@@ -1,25 +1,6 @@
 const __API_URL__ = import.meta.env.VITE_API_URL;
 
 
-export const generateId = (length = 6) => {
-    const alphabet = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    let id = '';
-    for (var i = 0; i < length; i++) {
-        id += alphabet.charAt(Math.floor(Math.random() * alphabet.length));
-    }
-    return id
-}
-        
-export async function generateUniqueId(
-    type = 'undefined',   // 'wishlist' || 'wish' || 'user' || 'invitationCode'
-    length = 6
-) {
-    const url = [__API_URL__, 'ids/generate-unique-id', type, length].join('/');
-    return await fetch(url)
-        .then(checkStatus)
-        .then(json)
-}
-
 export function checkStatus(res) {
     if(res.status >= 200 && res.status < 300) {
         return Promise.resolve(res)
@@ -43,6 +24,31 @@ export function stringOrNumberToDecimalDigitsArray(
         output.push(inputAlphabet.indexOf(string[i]))
     }
     return output
+}
+
+export const generateId = (length = 6) => {
+    const alphabet = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let id = '';
+    for (var i = 0; i < length; i++) {
+        id += alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+    }
+    return id
+}
+        
+export async function generateUniqueId(length = 6) {
+    const alphabet = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const allIds = await fetch(__API_URL__ + '/ids/all')
+                        .then(checkStatus)
+                        .then(json)
+                        .catch(err => console.error(err));
+    let uniqueId;
+    while (!uniqueId || allIds.includes(uniqueId)) {
+        uniqueId = ''
+        for (var i = 0; i < length; i++) {
+            uniqueId += alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+        }
+    }
+    return uniqueId
 }
 
 export function decimalDigitsArrayToAlphabetString(

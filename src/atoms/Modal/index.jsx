@@ -13,22 +13,36 @@ export const Modal = forwardRef(({
     body,
     actions
 }, ref ) => {
-    const [ classes, setClasses ] = useState('hidden');
+    const [classes, setClasses] = useState('hidden');
+    const [isShown, setIsShown] = useState(false);
     const backRef = useRef(null);
 
     useImperativeHandle(ref, () => ({
-        showModal() { setClasses('visible') },
-        hideModal() { setClasses('hidden') }
+        showModal(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            setIsShown(true)
+            setClasses('visible')
+        },
+        hideModal(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            setIsShown(false)
+            setClasses('hidden')
+        }
     }))
 
     const handleBackClick = (e) => {
+        e.stopPropagation();
+        e.preventDefault();
         if(e.target === backRef.current) {
+            setIsShown(false)
             setClasses('hidden')
         }
     }
 
 
-    return ( 
+    return ( isShown && 
         <Portal layer='modal'>
             <div
                 className={ 'background ' + classes }

@@ -1,10 +1,9 @@
-import   React,{
-         useMemo} from 'react'
-import { useLocation } from 'react-router'
+import   React,
+       { useMemo } from 'react'
 
 import './styles.scss'
 import { Icon } from 'atoms/Icon'
-import { Spinner } from 'atoms/Spinner'
+import { Spinner } from 'atoms/Preloaders'
 
 
 export const Button = ({
@@ -60,38 +59,4 @@ export const Button = ({
             { isLoading && <Spinner {...spinnerProps}/> }
         </button>
     )
-}
-
-export const WishButton = ({ wish, kind }) => {
-    const loca = useLocation().pathname;
-    const isMyWish = loca.split('/').at(1) === 'my-wishes';
-
-    const buttonProps = (wish.state === 'actual' && isMyWish)
-        ? {
-            icon: 'ok',
-            text: 'Отметить исполненным',
-            onClick: (e) => { e.stopPropagation() },
-        }
-        : (wish.state === 'actual' && !isMyWish)
-        ? {
-            icon: 'present',
-            text: 'Исполнить желание',
-        }
-        : (wish.state === 'reserved')
-        ? {
-            icon: 'lock',
-            text: 'Зарезервировано',                
-            disabled: true,
-        }
-        : (wish.state === 'completed')
-        ? {
-            icon: 'ok',
-            text: 'Желание исполнено',
-            disabled: true,
-        }
-        : {}
-
-    if(!buttonProps) return null;
-
-    return <Button kind={ kind } {...buttonProps} />
 }

@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux'
 
 import './styles.scss'
 import { Icon } from 'atoms/Icon'
+import { WithTooltip } from 'atoms/WithTooltip'
 
 export const ModeToggle = () => {
     const pathSteps = useLocation().pathname.split('/')
@@ -26,15 +27,25 @@ export const ModeToggle = () => {
     return (
         <div className='mode-toggle'>
             <div className='mt-slider' style={{ left: isItemsMode ? 0 : 40 }}/>
-            <Link
-                className={ isItemsMode ? 'toggle-button active' : 'toggle-button'}
-                to={ itemsPath }
-                children={ <Icon name='present'/> }
+            <WithTooltip
+                trigger={
+                    <Link
+                        className={ isItemsMode ? 'toggle-button active' : 'toggle-button'}
+                        to={ itemsPath }
+                        children={ <Icon name='present'/> }
+                    />
+                }
+                text='Желания'
             />
-            <Link
-                className={ isItemsMode ? 'toggle-button' : 'toggle-button active'}
-                to={ listsPath }
-                children={ <Icon name='wishlist'/> }
+            <WithTooltip
+                trigger={
+                    <Link
+                        className={ isItemsMode ? 'toggle-button' : 'toggle-button active'}
+                        to={ listsPath }
+                        children={ <Icon name='wishlist'/> }
+                    />
+                }
+                text='Вишлисты'
             />
         </div>
     );

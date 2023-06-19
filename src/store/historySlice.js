@@ -26,21 +26,20 @@ const historySlice = createSlice({
             state.anySectionLast = '/my-wishes/items';
         },
         updateHistory(state,{ payload }) {
-            const pathSteps = payload.split('/')
-            const [, section, mode, tab] = pathSteps;
+            const [, section, mode, tab] = payload.split('/');
             
             if(!mode || tab === 'new') return state;
 
             switch (section) {
                 case 'my-wishes':
-                    state.myWishesSection.last = payload;
                     state.anySectionLast = payload;
+                    state.myWishesSection.last = payload;
                     state.myWishesSection[`${mode}ModeLast`] = payload;
                     break;
                             
                 case 'my-invites':
-                    state.myInvitesSection.last = payload;
                     state.anySectionLast = payload;
+                    state.myInvitesSection.last = payload;
                     state.myInvitesSection[`${mode}ModeLast`] = payload;
                     break;
 

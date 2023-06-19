@@ -2,56 +2,55 @@ import   React,
        { useMemo } from 'react'
 import { useNavigate,
          useLocation } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 
 import './styles.scss'
-import { WishButton } from 'atoms/Button'
-import { WishCover } from 'atoms/WishCover'
-import { StarRating } from 'inputs/StarRating'
+import { WishCover,
+         WishMenu } from 'molecules/WishStuff'
 
 
-export const WishCard = ({ data, ...rest }) => {
-    const wish = data;
-    const { isInput, value, onChange } = rest
-    const selected = value?.includes(wish.id)
+export const WishCard = ({ data: wish, isInput, value, onChange }) => {
     // value: [...wishIds]
-    if(!wish) return null;
+    const selected = value?.includes(wish?.id);
 
-    const SelectionMask = () => <div className='selection-mask'/>
+    // STYLES //
 
-    // styling:
+    const isProcessing = useSelector(state => state.processing?.wishes[wish?.id]);
     
     const classes = useMemo(() => {
         let result = 'wishcard fade-in';
         if(isInput) result += selected ? ' input selected' : ' input'
         else result += ' view';
+        if(isProcessing) result += ' processing'
         
         return result
-    },[ isInput, selected ])
+    },[ isInput, selected, isProcessing ])
 
-    // model:
+    // ELEMENTS //
 
-    const currency = wish.currency==='rouble' ? ' ₽'
-                   : wish.currency==='usd'    ? ' $'
-                   : wish.currency==='euro'   ? ' €' : '';
+    const currency = wish?.currency==='rouble' ? ' ₽'
+                   : wish?.currency==='usd'    ? ' $'
+                   : wish?.currency==='euro'   ? ' €' : '';
 
-    const priceBlock = wish.price ? (
+    const priceBlock = wish?.price ? (
         <span className='price'>
-            {wish.price + currency}
+            {wish?.price + currency}
         </span>
     ) : null
 
-    // methods:
+    // METHODS //
 
     const location = useLocation().pathname
+    const section = location.split('/').at(1);
     const slashCorrection = location.at(-1) === '/'
         ? '' : '/'
-    const path = location + slashCorrection + wish.id;
+    const path = location + slashCorrection + wish?.id;
     const navigate = useNavigate();
     const handleCardClick = () => {
         if(isInput) {
             const result = selected
-                ? [...value].filter(id => id != wish.id)
-                : value.concat([wish.id]);
+                ? [...value].filter(id => id != wish?.id)
+                : value.concat([wish?.id]);
             onChange(result);
         } else navigate(path);
     };
@@ -59,24 +58,17 @@ export const WishCard = ({ data, ...rest }) => {
     return (
         <div
             className={ classes }
-            key={ wish.id }
+            key={ wish?.id }
             onClick={ handleCardClick }
         >
-            <StarRating
-                readOnly
-                rating={ wish.stars }
-            />
-            <WishCover wish={ wish }/>
+            <WishCover wish={ wish } withUserPic={ section === 'my-invites' }/>
+            <WishMenu wish={ wish }/>
             <div className='wishcard-content'>
-                <span className='title'>{ wish.title }</span>
+                <span className='title'>{ wish?.title }</span>
                 { priceBlock }
             </div>
-            {
-                !isInput &&
-                <WishButton wish={ wish }/>
-            }{
-                selected &&
-                <SelectionMask/>
+            { selected &&
+                <div className='selection-mask'/>
             }
         </div>
     )

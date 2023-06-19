@@ -18,8 +18,11 @@
 }
 
 .work-space {
-    padding: 2rem var(--app-body-padding) 20rem;
+    padding: 2rem calc(var(--app-body-padding) + -2rem);
+    height: 100%;
     width: 100%;
     background-color: white;
-    overflow: overlay;
+    overflow: scroll;
+    scroll-behavior: smooth;
+    scrollbar-gutter: stable both-edges;
 }

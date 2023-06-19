@@ -7,17 +7,30 @@
     overflow: hidden;
     transition: all .2s ease-in-out;
     position: relative;
+
+    &.processing {
+        opacity: 0.5;
+        pointer-events: none !important;
+    }
   
     &:not(.selected) {
         box-shadow: $lyingCard;
     }
   
+    &:not(:hover) {
+        .star-rating {
+            opacity: 0.5;
+        }
+        .user {
+            opacity: 0;
+        }
+    }
     &:hover {
         &:not(.selected) {
             box-shadow: $flyingAbove;
         }
-    
-        .star-rating {
+        .star-rating,
+        .user {
             opacity: 1;
         }
     }
@@ -47,15 +60,6 @@
                 background-color: rgba(248, 237, 143, 0.05);
             }
         }
-    }
-  
-    .star-rating {
-        position: absolute;
-        left: 1rem;
-        top: 1rem;
-        z-index: 1;
-        opacity: 0.5;
-        transition: opacity ease-in-out 0.2s;
     }
   
     .wishcard-content {
@@ -100,6 +104,7 @@
 .fade-in {
     animation: fadeIn ease .3s;
 }
+
 
 @keyframes fadeIn {
   0% { opacity:0; }

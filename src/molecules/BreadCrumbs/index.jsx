@@ -1,125 +1,180 @@
 import   React,
        { useEffect,
+         useMemo,
          useState } from 'react'
 import { useLocation,
          useParams,
-         NavLink } from 'react-router-dom'
+         NavLink,
+         Link } from 'react-router-dom'
 
 import './styles.scss'
+import { Icon } from 'atoms/Icon'
+import { NavbarEllipsis } from 'atoms/Preloaders'
+import { WithTooltip } from 'atoms/WithTooltip'
+
 import { getWishlistById,
-         getWishById } from 'store/getters'
+         getWishById,
+         getLoadingStatus } from 'store/getters'
 
 
 export const BreadCrumbs = () => {
 
-    // define links and titles of bread crumbs:
+    // LINKS DEFINITION //
 
     const location = useLocation().pathname;
-    const [ , section, mode, ...pathRest ] = location.split('/');
+    const mode = location.split('/')[2];
     const { wishlistId, wishId } = useParams();
 
-    const isListsMode = (mode === 'lists');
-    const isNew = (pathRest[0] === 'new');
-    const isWishEditing = (pathRest[2] === 'editing');
-
-    // const wishlist = {};
-    // const wish = {};
     const wishlist = getWishlistById(wishlistId);
     const wish = getWishById(wishId);
+    const { awaitingWishes,
+            awaitingWishlists } = getLoadingStatus();
 
-    const wishlistName = wishlist ? wishlist.title : 'wishlist: ' + wishlistId + ' not found';
-    const wishName = wish ? wish.title : 'wish: ' + wishId + ' not found';
+    const itemsModeOptions = useMemo(() => {
+        const pathElems = location.split('/');
+        const section = pathElems[1];
+        const isNew = (pathElems[3] === 'new');
+        const isWishEditing = (pathElems[5] === 'editing');
 
-    let options = [];
-    switch (section + '/' + mode) {
-        case 'my-wishes/items':
-            options = [{
-                to: '/my-wishes/items/actual',
-                text: 'Актуальные'
-            }, {
-                to: '/my-wishes/items/completed',
-                text: 'Исполненные'
-            }, {
-                to: '/my-wishes/items/all',
-                text: 'Все'
-            }];
-            break;
+        let options = [];
+        switch (section) {
+            case 'my-wishes':
+                options = [{
+                    to: '/my-wishes/items/actual',
+                    text: 'Актуальные'
+                }, {
+                    to: '/my-wishes/items/completed',
+                    text: 'Исполненные'
+                }, {
+                    to: '/my-wishes/items/all',
+                    text: 'Все'
+                }];
 
-        case 'my-wishes/lists':
-            options = [{
-                to: '/my-wishes/lists',
-                text: 'Вишлисты'
-            }];
-            break;
+                if(isWishEditing) {
+                    options.push({
+                        to: location,
+                        text: wish?.title ? wish.title + ': редактирование' : 'Желание не найдено'
+                    })
+                }
 
-        case 'my-invites/items':
-            options = [{
-                to: '/my-invites/items/reserved',
-                text: 'Исполняю...'
-            }, {
-                to: '/my-invites/items/completed',
-                text: 'Подарено'
-            }, {
-                to: '/my-invites/items/all',
-                text: 'Все'
-            }];
-            break;
+                if(isNew) {
+                    options.push({
+                        to: `/my-wishes/items/new`,
+                        text: 'Новое желание'
+                    })
+                }
+                break;
 
-        case 'my-invites/lists': 
-            options = [{
-                to: '/my-invites/lists',
-                text: 'Вишлисты'
-            }]
-    }
-
-    if(wishlistId && isListsMode) {
-        options.push({
-            to: `/${section}/lists/${wishlistId}`,
-            text: wishlistName
-        })
-    }
-    
-    if(wishId && wishlistId && isListsMode) {
-        options.push({
-            to: `/${section}/lists/${wishlistId}/${wishId}`,
-            text: wishName
-        })
-    }
-
-    if(isNew && section === 'my-wishes') {
-        options.push({
-            to: `/my-wishes/${mode}/new`,
-            text: isListsMode ? 'Новый вишлист' : 'Новое желание'
-        })
-    }
-
-    if(isWishEditing && !isListsMode) {
-        options.push({
-            to: location,
-            text: wishName + ': редактирование'
-        })
-    }
-
-    // components:
-
-    const NavOption = ({ to, text, index, onClick }) => {
-        const slash = (<div className='nav-elem'>/</div>);
-        return (
-            <>
-                { isListsMode && index > 0 && slash }
-                { isWishEditing && index === 3 && slash}
+            case 'my-invites':
+                options = [{
+                    to: '/my-invites/items/reserved',
+                    text: 'Зарезервировано мной'
+                }, {
+                    to: '/my-invites/items/completed',
+                    text: 'Подарено'
+                }, {
+                    to: '/my-invites/items/all',
+                    text: 'Все'
+                }];
+        }
+        return <>
+            { options.map((option, index) => <>
+                { isWishEditing && index === 3 &&
+                    <div className='nav-elem'>/</div>
+                }
                 <NavLink
+                    key={ index }
                     className='nav-elem option'
-                    to= { to }
-                    end={ isListsMode || isWishEditing }
-                    children={ text }
-                    onClick={onClick}
+                    to={ option.to }
+                    children={ option.text }
+                    end={ isWishEditing }
                 />
-            </>
-        );
-    }
+            </>)}
+            { !isNew && section === 'my-wishes' &&
+                <WithTooltip
+                    trigger={
+                        <Link
+                            className='icon-link'
+                            to='/my-wishes/items/new'
+                            children={ <Icon name='plus'/> }
+                        />
+                    }
+                    text='Новое желание'
+                />
+            }
+        </>
+    },[ location,
+        wish?.title
+    ]);
 
-    // calculate sliders position and behavior:
+    const listsModeOptions = useMemo(() => {
+        const pathElements = location.split('/');
+        const section = pathElements[1];
+        const isNew = pathElements[3] === 'new';
+        
+        return <>
+            <NavLink
+                className='nav-elem option'
+                to={ `/${ section }/lists` }
+                children={ 'Вишлисты' }
+                end
+            />
+
+            { wishlistId && <div className='nav-elem'>/</div> }
+            { awaitingWishlists
+                ?   <NavbarEllipsis/>
+                : wishlist?.title &&
+                    <NavLink
+                        className='nav-elem option'
+                        to={ `/${ section }/lists/${ wishlistId }` }
+                        children={ wishlist?.title || 'Вишлист не найден' }
+                        end
+                    />
+            }
+            
+            { wishlist?.title && wishId && <div className='nav-elem'>/</div> }
+            { wishlist?.title && wishId && awaitingWishes
+                ?   <NavbarEllipsis/>
+                : wish?.title &&
+                    <NavLink
+                        className='nav-elem option'
+                        to={ `/${ section }/lists/${ wishlistId }/${ wishId }` }
+                        children={ wish?.title || 'Желание не найдено' }
+                        end
+                    />
+            }
+
+            { isNew
+                ?   <NavLink
+                        className='nav-elem option'
+                        to='/my-wishes/lists/new'
+                        children='Новый вишлист'
+                        end
+                    />
+                : !wishlistId && !wishId && section === 'my-wishes' &&
+                    <WithTooltip
+                        trigger={
+                            <Link
+                                className='icon-link'
+                                to='/my-wishes/lists/new'
+                                children={ <Icon name='plus'/> }
+                            />
+                        }
+                        text='Новый вишлист'
+                    />
+            }
+        </>
+    },[ location,
+        wishlistId,
+        wishId,
+        wishlist?.title,
+        wish?.title,
+        awaitingWishlists,
+        awaitingWishes
+    ]);
+    
+
+    // SLIDER ANIMATION //
 
     const sliderPadding = 19;
 
@@ -176,16 +231,14 @@ export const BreadCrumbs = () => {
         <div className='bread-crumbs'>
             <div
                 className='bc-slider'
-                style={sliderStyles}
+                style={ sliderStyles }
             />
-            { options.map((option, index) => (
-                <NavOption
-                    key={ index }
-                    to={ option?.to }
-                    text={ option?.text }
-                    index={ index }
-                />
-            ))}
+            {   mode === 'items'
+                    ?   itemsModeOptions
+              : mode === 'lists'
+                    ?   listsModeOptions
+              : null
+            }
         </div>
     );
 }

@@ -5,8 +5,7 @@ import   React,
 import { useLocation } from 'react-router'
 
 export const MultiColumnLayout = ({ Card, data, ...cardProps }) => {
-    // state:
-
+    // STATE //
     const layoutRef = useRef(null);
     const location = useLocation().pathname;
 
@@ -16,8 +15,7 @@ export const MultiColumnLayout = ({ Card, data, ...cardProps }) => {
     const [ columnedData, setColumnedData ] = useState([]);
     const [ opacity, setOpacity ] = useState(0.5);
 
-    // styles:
-
+    // STYLES //
     const gap = 22;
     const minWidth = 270;
     const defaultMaxWidth = 400;
@@ -41,8 +39,7 @@ export const MultiColumnLayout = ({ Card, data, ...cardProps }) => {
         transition: 'opacity 0.25s ease-in',
     }
     
-    // methods:
-
+    // METHODS //
     const resetState = () => {
         setItems(data);
         setColumnsQty(0);
@@ -82,8 +79,7 @@ export const MultiColumnLayout = ({ Card, data, ...cardProps }) => {
         setItemsRest([...itemsRest].slice(1));
     }
 
-    // component life cycle:
-
+    // LIFE CYCLE //
     useEffect(() => {
         resetState();
     },[ location ]);
@@ -101,10 +97,8 @@ export const MultiColumnLayout = ({ Card, data, ...cardProps }) => {
         columnsQty && !!items?.length && initColumns();
     },[ columnsQty ]);
 
-    // trick to fix card height loading bug:
-    
     useEffect(() => {
-        setTimeout(() => pushItemToShortColumn(), 1)
+        pushItemToShortColumn()
     },[ itemsRest ]);
 
     useEffect(() => {

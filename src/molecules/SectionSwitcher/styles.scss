@@ -23,6 +23,10 @@
         &:not(.active) {
             color: $gray2;
         }
+
+        &.active, &:hover {
+            color: $darkGray2;
+        }
     }
 }
 

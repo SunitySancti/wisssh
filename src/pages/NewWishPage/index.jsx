@@ -19,10 +19,10 @@ import { ToggleInput } from 'inputs/ToggleInput'
 import { LineContainer } from 'containers/LineContainer'
 import { DoubleColumnAdaptiveLayout } from 'containers/DoubleColumnAdaptiveLayout'
 
+import { generateUniqueId } from 'utils'
 import { getCurrentUser,
          getUserWishlists,
-         getWishById,
-         getUserWishes } from 'store/getters'
+         getWishById } from 'store/getters'
 import { usePostWishMutation } from 'store/apiSlice'
 import { postImage } from 'store/imageSlice'
 
@@ -31,28 +31,20 @@ export const NewWishPage = () => {
     const navigate = useNavigate();
     const imageInputRef = useRef({});
 
-    const [ , , , , editingWishId, editing ] = useLocation().pathname?.split('/');
-    const isEditingPage = (editing === 'editing');
+    const [ , , , tab, editingWishId, editing ] = useLocation().pathname?.split('/');
+    const isNewWish = (tab === 'new');
+    const isEditing = (editing === 'editing');
 
     const { user } = getCurrentUser();
-    // const userWishes = []
-    // const userWishlists = []
-    // const editingWish = {}
-    const { userWishes } = getUserWishes();
     const { userWishlists } = getUserWishlists();
-    const editingWish = getWishById(editingWishId)
-    const [ postWish,{ data: postWishResponse, error: postWishError, isLoading: awaitPostWish }] = usePostWishMutation();
+    const editingWish = getWishById(editingWishId);
+    const [ postWish,{ isLoading: awaitPostWish }] = usePostWishMutation();
 
-    useEffect(() => {
-        console.log({user})
-        if(!user?.id) navigate('/login')
-    },[ user?.id ])
-    
-    // setting form:
+    // FORM SETTINGS //
 
-    const defaultValues = isEditingPage
-        ? editingWish
-        : {
+    const defaultValues = isNewWish && !isEditing
+        ? {
+            id: '',
             author: user?.id,
             inWishlists: [],
             reservedBy: '',
@@ -61,11 +53,13 @@ export const NewWishPage = () => {
             imageExtension: '',
             imageAR: 1,
             external: '',
-            price: '',
+            price: 0,
             currency: 'rouble',
             stars: 0,
-            isCompleted: ''
+            isCompleted: false
         }
+        :   editingWish
+
     const { handleSubmit, register, setValue, reset, watch, control, formState } = useForm({
         mode: 'onChange',
         defaultValues: defaultValues
@@ -83,17 +77,34 @@ export const NewWishPage = () => {
     const wishlistOptions = userWishlists?.map(list => ({
         value: list.id,
         label: list.title
-    }))
+    }));
+
+    async function setId() {
+        const id = await generateUniqueId();
+        setValue('id', id);
+    }
+
+    useEffect(() => {
+        if(isNewWish && !isEditing) {
+            setId()
+        }
+    },[ isNewWish, isEditing ]);
+
+    useEffect(() => {
+        if(user?.id && isNewWish && !isEditing) {
+            setValue('author', user?.id)
+        }
+    },[ user?.id, isNewWish, isEditing ]);
         
     // setting image:
 
     const [ image, setImage ] = useState(null);
-    const [ imageIsNew, setImageIsNew ] = useState(false);
+    const [ isNewImage, setIsNewImage ] = useState(false);
     const currentImageURL = useSelector(state => state.images?.imageURLs[editingWish?.id]);
     
     function setNewImage(file) {
         setImage(file);
-        if(!imageIsNew) setImageIsNew(true)
+        if(!isNewImage) setIsNewImage(true)
     }
 
     useEffect(() => {
@@ -107,35 +118,22 @@ export const NewWishPage = () => {
         };
         setImageFromURL()
     },[ currentImageURL ]);
-
+    
     // FORM SUBMITTING
 
     const onSubmit = async (data, e) => { 
         e.preventDefault();
-
+        
         postWish(data);
-        if(image && (imageIsNew || !isEditingPage)) {
+        if(image && (isNewImage || isNewWish)) {
             dispatch(postImage({
                 id: data.id,
                 file: image,
                 drive: 'covers'
             }));
         }
+        navigate(`/my-wishes/items/${ data.isCompleted ? 'completed' : 'actual' }/${ data.id }`)
     }
-
-    useEffect(() => {
-        if(postWishError?.status) {
-            console.log(postWishError)
-        } else {
-            const wishKeys = userWishes?.map(wish => wish.id);
-            const postedKey = postWishResponse?.id;
-
-            if(postedKey && wishKeys.includes(postedKey)) {
-                const tab = postWishResponse?.isCompleted ? 'completed' : 'actual';
-                navigate(`/my-wishes/items/${ tab }/${ postedKey }`)
-            }
-        }
-    },[ postWishResponse?.id, postWishError?.status, userWishes?.length ])
 
     const cancelForm = (e) => {
         e.preventDefault();
@@ -188,7 +186,11 @@ export const NewWishPage = () => {
                     widthBreakpoint={ 1140 }
                     firstColumn={
                         <>
-                            <input className='invis' type='text' {...register('author')}/>
+                            <input
+                                className='invis'
+                                type='text'
+                                {...register('author',{ required: true })}
+                            />
                             <ImageInput
                                 register={ register }
                                 setValue={ setValue }
@@ -204,6 +206,11 @@ export const NewWishPage = () => {
                     }}
                     secondColumn={
                         <>
+                            <input
+                                className='invis'
+                                type='text'
+                                {...register('id',{ required: true })}
+                            />
                             <TextInput
                                 name='title'
                                 register={ register }

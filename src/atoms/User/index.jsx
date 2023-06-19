@@ -3,7 +3,8 @@ import { useSelector } from 'react-redux'
 
 import './styles.scss'
 import { UserPlaceholder } from 'atoms/Icon'
-import { Spinner } from 'atoms/Spinner'
+import { Spinner } from 'atoms/Preloaders'
+import { WithTooltip } from 'atoms/WithTooltip'
 
 
 export const UserPic = ({ imageURL, isLoading, size }) => {
@@ -33,15 +34,32 @@ export const UserPic = ({ imageURL, isLoading, size }) => {
 export const User = ({
     user,
     picSize,
-    picOnly
+    picOnly,
+    tooltip,
+    ...rest
 }) => {
     const imageURL = useSelector(state => state.images?.imageURLs[user?.id]);
     const isLoading = useSelector(state => state.images?.loading[user?.id]);
 
     return (
-        <div className='user'>
-            <UserPic {...{ imageURL, isLoading, size: picSize }}/>
-            { !picOnly && <span className='name'>@{ user?.name }</span> }
+        <div
+            className='user'
+            {...rest}
+        >
+            { tooltip
+                ?   <WithTooltip
+                        trigger={<>
+                            <UserPic {...{ imageURL, isLoading, size: picSize }}/>
+                            { !picOnly &&
+                                <span className='name'>@{ user?.name }</span> }
+                        </>}
+                        text={ tooltip }
+                    />
+                :   <>
+                        <UserPic {...{ imageURL, isLoading, size: picSize }}/>
+                        { !picOnly && <span className='name'>@{ user?.name }</span> }
+                    </>
+            }
         </div>
     );
 }

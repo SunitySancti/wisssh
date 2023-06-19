@@ -5,7 +5,8 @@
     display: flex;
     flex-direction: row;
     height: 100%;
-    padding: 1rem;
+    padding: 0 1rem;
+    margin-bottom: 1rem;
 
     .bc-slider {
         position: absolute;
@@ -20,6 +21,7 @@
     }
 
     .nav-elem {
+        height: 4rem;
         display: flex;
         align-items: center;
         font: $navbar;

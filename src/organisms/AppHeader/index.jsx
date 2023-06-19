@@ -3,7 +3,7 @@ import   React,
          useEffect,
          useMemo } from 'react'
 import { Outlet,
-         useNavigate,
+         Navigate,
          useLocation } from 'react-router'
 import { useDispatch,
          useSelector } from 'react-redux'
@@ -15,27 +15,18 @@ import { UserGroup } from 'molecules/UserGroup'
 
 import { updateHistory,
          clearHistory } from 'store/historySlice'
+import { getCurrentUser } from 'store/getters'
 
 
 export const AppHeader = () => {
     const dispatch = useDispatch();
-    const navigate = useNavigate();
     const location = useLocation().pathname;
     const token = useSelector(state => state.auth?.token);
+    const { user } = getCurrentUser();
 
     // HISTORY UPDATING
     useEffect(() => { dispatch(updateHistory(location)) },[ location ]);
     useEffect(() => { return () => { dispatch(clearHistory()) }},[]);
-
-
-    useEffect(() => {
-        if(!token) {
-            navigate('/login', { state: {
-                redirectedFrom: location,
-                
-            }})
-        }
-    },[ token ]);
 
     
     const breakpointWidth = 1000;
@@ -98,32 +89,36 @@ export const AppHeader = () => {
     //          ? leftGroupWidth : rightGroupWidth
     // },[ isShort ]);
 
+    return ( token
+        ?   <div className='app-layout'>
+                <div className='scroll-container'>
+                    <div className='app-header'>
+                        <div
+                            className='equalize-container'
+                            style={{ width: groupsMaxWidth }}
+                        >
+                            <CreationGroup isShort={ isShort }/>
+                            <div className='space'/>
+                        </div>
 
-    return (
-        <div className='app-layout'>
-            <div className='scroll-container'>
-                <div className='app-header'>
-                    <div
-                        className='equalize-container'
-                        style={{ width: groupsMaxWidth }}
-                    >
-                        <CreationGroup isShort={ isShort }/>
-                        <div className='space'/>
-                    </div>
+                        <SectionSwitcher isShort={ isShort }/>
 
-                    <SectionSwitcher isShort={ isShort }/>
-
-                    <div
-                        className='equalize-container'
-                        style={{ width: groupsMaxWidth }}
-                    >
-                        <div className='space'/>
-                        <UserGroup isShort={ isShort }/>
+                        <div
+                            className='equalize-container'
+                            style={{ width: groupsMaxWidth }}
+                        >
+                            <div className='space'/>
+                            <UserGroup isShort={ isShort }/>
+                        </div>
                     </div>
                 </div>
+                
+                <Outlet/>
             </div>
-            
-            <Outlet/>
-        </div>
+        :   <Navigate
+                to='/login'
+                state={{ redirectedFrom: location }}
+                replace
+            />
     );
 }

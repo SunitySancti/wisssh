@@ -1,6 +1,7 @@
 import   React,
        { useState,
          useEffect,
+         useLayoutEffect,
          useCallback } from 'react'
 import { useForm,
          useWatch } from 'react-hook-form'
@@ -96,20 +97,9 @@ const ButtonGroup = ({
 }
 
 export const LoginPage = () => {
-    const navigate = useNavigate();
-    const { state } = useLocation();
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const { encodedEmail } = useParams();
-    const token = useSelector(state => state.auth?.token);
-    
-    // GET RESPONSE AND REDIRECT
-
-    useEffect(() => {
-        if(token) {
-            // console.log({ from: state.redirectedFrom })
-            navigate('/my-wishes/items/actual')
-        }
-    },[ token ]);
     
     // FORM SETTINGS
     
@@ -121,7 +111,7 @@ export const LoginPage = () => {
         verificationCode: '',
         newPassword: ''
     }
-    const { handleSubmit, register, control, watch, setValue, formState:{ errors, isSubmitting }, reset, setFocus } = useForm({
+    const { handleSubmit, register, control, setValue, formState:{ errors, isSubmitting }, reset, setFocus, getValues } = useForm({
         mode: 'onBlur',
         defaultValues
     });
@@ -191,7 +181,7 @@ export const LoginPage = () => {
     const goToCreateNewPassword = useCallback(() => {
         setFlowStep('reset-new-password');
         setMessage('Придумайте новый пароль');
-        navigate('/login');
+        navigate('/login',{ replace: true });
     },[]);
 
     // CATCH VERIFICATION CODE FROM URL
@@ -207,7 +197,7 @@ export const LoginPage = () => {
                 setValue('verificationCode', code);
                 verificateCode(code, goToCreateNewPassword)
             } else {
-                navigate('/login')
+                navigate('/login',{ replace: true })
             }
         }
     },[ encodedEmail ]);
@@ -305,6 +295,18 @@ export const LoginPage = () => {
                 }
         }
     }
+
+    // REDIRECT IF LOGGED IN
+    
+    const { state } = useLocation();
+    const token = useSelector(state => state.auth?.token);
+
+    useLayoutEffect(() => {
+        if(token) {
+            const path = state?.redirectedFrom || '/my-wishes/items/actual'
+            navigate(path,{ replace: true })
+        }
+    },[ token ]);
 
     // CLEANUP
 

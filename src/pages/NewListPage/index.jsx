@@ -2,7 +2,8 @@ import   React,
        { useState,
          useEffect } from 'react'
 import { useForm } from 'react-hook-form'
-import { useNavigate } from 'react-router'
+import { useNavigate,
+         useLocation } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 
 import './styles.scss'
@@ -12,71 +13,74 @@ import { DateSelect } from 'inputs/DateSelect'
 import { CardSelect } from 'inputs/CardSelect'
 import { LineContainer } from 'containers/LineContainer'
 
-import { formatDateToArray } from 'utils'
+import { generateUniqueId,
+         formatDateToArray } from 'utils'
 import { usePostWishlistMutation } from 'store/apiSlice'
 import { getActualWishes,
-         getCurrentUser } from 'store/getters'
+         getCurrentUser,
+         getWishlistById } from 'store/getters'
 import { promoteImages } from 'store/imageSlice'
 
 export const NewListPage = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     
-    const [         postWishlist, {
-        data:       pwResponse,
-        error:      pwError,
-        isSuccess:  pwSuccess,
-        isError:    pwWasCrashed,
-        isLoading:  pwAwaiting      }] = usePostWishlistMutation();
+    const [ , , , wishlistId, editing ] = useLocation().pathname?.split('/');
+    const isNewWishlist = (wishlistId === 'new');
+    const isEditing = (editing === 'editing');
 
-    // const actualWishes = {};
-    const { actualWishes } = getActualWishes();
-    const { user,
-            userHasLoaded } = getCurrentUser();
-    const actualWishIds = actualWishes?.map(w => w.id);
+    const { user } = getCurrentUser();
+    const actualWishes = getActualWishes();
+    const actualWishIds = actualWishes?.map(wish => wish.id);
+    const editingWishlist = getWishlistById(wishlistId);
+    const [ postWishlist,{ isLoading: awaitPostWishlist }] = usePostWishlistMutation();
 
-    useEffect(() => {
-        dispatch(promoteImages(actualWishIds))
-    },[ actualWishIds?.length ])
+    // FORM SETTINGS //
 
-    // FORM SETTINGS
+    const defaultValues = isNewWishlist && !isEditing
+        ? {
+            id: '',
+            invitationCode: '',
+            title: '',
+            author: user?.id,
+            description: '',
+            wishes: [],
+            date: formatDateToArray(new Date()),
+        }
+        :   editingWishlist
 
-    const defaultValues = {
-        author: user?.id || '',
-        wishes: [],
-        title: '',
-        description: '',
-        date: formatDateToArray(new Date()),
-    }
     const { handleSubmit, register, reset, control, formState, setValue } = useForm({
         mode: 'onChange',
         defaultValues
     });
 
+    async function setIdAndInvitationCode() {
+        const id = await generateUniqueId();
+        const invitationCode = await generateUniqueId(11);
+        setValue('id', id);
+        setValue('invitationCode', invitationCode);
+    }
+
     useEffect(() => {
-        if(userHasLoaded) {
+        if(isNewWishlist && !isEditing) {
+            setIdAndInvitationCode();
+        }
+    },[ isNewWishlist, isEditing ]);
+
+    useEffect(() => {
+        if(user?.id && isNewWishlist && !isEditing) {
             setValue('author', user?.id)
         }
-    },[ userHasLoaded ])
+    },[ user?.id, isNewWishlist, isEditing ]);
     
     // FORM SUBMITTING
     
     const onSubmit = async (data, e) => {
         e.preventDefault();
+        console.log(data)
         postWishlist(data);
+        navigate(`/my-wishes/lists/${ data.id }`)
     }
-    
-    useEffect(() => {
-        if(pwSuccess) {
-            navigate(`/my-wishes/lists/${ pwResponse.id }`)
-        }
-    },[ pwSuccess ]);
-
-    useEffect(() => {
-        if(pwWasCrashed) {
-            console.log(pwError)
-        }
-    },[ pwWasCrashed ])
     
     const cancelForm = (e) => {
         e.preventDefault();
@@ -112,14 +116,26 @@ export const NewListPage = () => {
         setMaxLabelWidth(maxWidth);
     });
 
-    const divider = <div className='divider'/>
+    useEffect(() => {
+        dispatch(promoteImages(actualWishIds))
+    },[ actualWishIds?.length ])
+
 
     return (
         <div className='new-list-page'>
             <form onSubmit={handleSubmit(onSubmit)} >
                 <div className='inputs'>
 
-                    <input className='invis' type='text' {...register('author')}/>
+                    <input
+                        className='invis'
+                        type='text'
+                        {...register('author',{ required: true })}
+                    />
+                    <input
+                        className='invis'
+                        type='text'
+                        {...register('id',{ required: true })}
+                    />
 
                     <LineContainer
                         style={ isLandscape ? null : { flexFlow: 'column'} }
@@ -153,7 +169,7 @@ export const NewListPage = () => {
                     />
                 </div>
 
-                { divider }
+                <div className='divider'/>
 
                 <CardSelect
                     name='wishes'
@@ -161,7 +177,7 @@ export const NewListPage = () => {
                     options={ actualWishes }
                 />
 
-                { divider }
+                <div className='divider'/>
                 
                 <LineContainer className='align-right'>
                     <Button
@@ -180,7 +196,7 @@ export const NewListPage = () => {
                         round
                         onClick={ handleSubmit(onSubmit) }
                         disabled={ !formState.isValid }
-                        isLoading={ pwAwaiting || formState.isSubmitting }
+                        isLoading={ formState.isSubmitting || awaitPostWishlist }
                     />
                 </LineContainer>
             </form>

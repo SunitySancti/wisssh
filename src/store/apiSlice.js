@@ -53,7 +53,8 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
 export const apiSlice = createApi({
     reducerPath: 'api',
     baseQuery: baseQueryWithReauth,
-    tagTypes: ['Auth', 'User', 'Friends', 'Wishes', 'FriendWishes', 'Wishlists', 'Invites'],
+    refetchOnReconnect: true,
+    tagTypes: ['Auth', 'User', 'Friends', 'UserWishes', 'FriendWishes', 'UserWishlists', 'Invites'],
     endpoints: builder => ({
 
         login: builder.mutation({
@@ -78,8 +79,6 @@ export const apiSlice = createApi({
             }),
             invalidatesTags: ['Auth']
         }),
-
-
         updateProfile: builder.mutation({
             query: (profileData) => ({
                 url: 'users/update-profile',
@@ -88,20 +87,134 @@ export const apiSlice = createApi({
             }),
             invalidatesTags: ['User']
         }),
+
+
         postWish: builder.mutation({
             query: (wish) => ({
                 url: 'wishes/create-or-edit',
                 method: 'POST',
                 body: wish
             }),
-            invalidatesTags: ['Wishes', 'Wishists', 'User']
+            async onQueryStarted( wish,{ dispatch, getState, queryFulfilled }) {
+                const currentWishes = getState().api.queries['getUserWishes(null)'].data || [];
+                const processingWishIndex = currentWishes.map(item => item.id).indexOf(wish.id);
+                const isCreating = processingWishIndex === -1;
+
+                const updateWishes = dispatch(
+                    apiSlice.util.updateQueryData('getUserWishes', null, (draftWishes) => {
+                        if(isCreating) {
+                            draftWishes.unshift(wish)
+                        } else {
+                            draftWishes.splice(processingWishIndex, 1, wish)
+                        }
+                    })
+                );
+                queryFulfilled.catch(updateWishes.undo)
+            },
+            invalidatesTags: ['UserWishlists', 'User']
         }),
         deleteWish: builder.mutation({
-            query: (id) => ({
-                url: `wishes/${ id }`,
+            query: (wishId) => ({
+                url: `wishes/delete-wish/${ wishId }`,
                 method: 'DELETE'
             }),
-            invalidatesTags: ['Wishes', 'Wishists', 'User']
+            async onQueryStarted( wishId,{ dispatch, getState, queryFulfilled }) {
+                const currentWishes = getState().api.queries['getUserWishes(null)'].data || [];
+                const processingWishIndex = currentWishes.map(item => item.id).indexOf(wishId);
+
+                const updateWishes = dispatch(
+                    apiSlice.util.updateQueryData('getUserWishes', null, (draftWishes) => {
+                        if(processingWishIndex >= 0) {
+                            draftWishes.splice(processingWishIndex, 1)
+                        }
+                    })
+                );
+                queryFulfilled.catch(updateWishes.undo)
+            },
+            invalidatesTags: ['UserWishlists', 'User']
+        }),
+        completeWish: builder.mutation({
+            query: (wishId) => ({
+                url: `wishes/complete-wish`,
+                method: 'POST',
+                body: { wishId }
+            }),
+            async onQueryStarted( wishId,{ dispatch, getState, queryFulfilled }) {
+                const currentUserWishes = getState().api.queries['getUserWishes(null)'].data || [];
+                const currentFriendWishes = getState().api.queries['getFriendWishes(null)'].data || [];
+                const userWish = currentUserWishes.find(item => item.id === wishId);
+                const friendWish = currentFriendWishes.find(item => item.id === wishId);
+                if(!userWish && !friendWish) return
+
+                const queryName = userWish ? 'getUserWishes' : 'getFriendWishes';
+                const updateWishes = dispatch(
+                    apiSlice.util.updateQueryData(queryName, null, (draftWishes) => {
+                        draftWishes.find(wish => wish.id === wishId).isCompleted = true
+                    })
+                );
+                queryFulfilled.catch(updateWishes.undo)
+            }
+        }),
+        uncompleteWish: builder.mutation({
+            query: (wishId) => ({
+                url: `wishes/uncomplete-wish`,
+                method: 'POST',
+                body: { wishId }
+            }),
+            async onQueryStarted( wishId,{ dispatch, getState, queryFulfilled }) {
+                const currentUserWishes = getState().api.queries['getUserWishes(null)'].data || [];
+                const currentFriendWishes = getState().api.queries['getFriendWishes(null)'].data || [];
+                const userWish = currentUserWishes.find(item => item.id === wishId);
+                const friendWish = currentFriendWishes.find(item => item.id === wishId);
+                if(!userWish && !friendWish) return
+
+                const queryName = userWish ? 'getUserWishes' : 'getFriendWishes';
+                const updateWishes = dispatch(
+                    apiSlice.util.updateQueryData(queryName, null, (draftWishes) => {
+                        draftWishes.find(wish => wish.id === wishId).isCompleted = false
+                    })
+                );
+                queryFulfilled.catch(updateWishes.undo)
+            }
+        }),
+        reserveWish: builder.mutation({
+            query: (wishId) => ({
+                url: `wishes/reserve-wish`,
+                method: 'POST',
+                body: { wishId }
+            }),
+            async onQueryStarted( wishId,{ dispatch, getState, queryFulfilled }) {
+                const currentUser = getState().api.queries['getCurrentUser(null)'].data;
+                const currentFriendWishes = getState().api.queries['getFriendWishes(null)'].data || [];
+                const friendWish = currentFriendWishes.find(item => item.id === wishId);
+                if(!currentUser || !friendWish) return
+
+                const updateWishes = dispatch(
+                    apiSlice.util.updateQueryData('getFriendWishes', null, (draftWishes) => {
+                        draftWishes.find(wish => wish.id === wishId).reservedBy = currentUser.id
+                    })
+                );
+                queryFulfilled.catch(updateWishes.undo)
+            }
+        }),
+        unreserveWish: builder.mutation({
+            query: (wishId) => ({
+                url: `wishes/unreserve-wish`,
+                method: 'POST',
+                body: { wishId }
+            }),
+            async onQueryStarted( wishId,{ dispatch, getState, queryFulfilled }) {
+                const currentFriendWishes = getState().api.queries['getFriendWishes(null)'].data || [];
+                const friendWish = currentFriendWishes.find(item => item.id === wishId);
+                if(!friendWish) return
+
+                const updateWishes = dispatch(
+                    apiSlice.util.updateQueryData('getFriendWishes', null, (draftWishes) => {
+                        draftWishes.find(wish => wish.id === wishId).reservedBy = ''
+                    })
+                );
+                queryFulfilled.catch(updateWishes.undo)
+            }
         }),
 
 
@@ -111,14 +224,43 @@ export const apiSlice = createApi({
                 method: 'POST',
                 body: wishlist
             }),
-            invalidatesTags: ['Wishes', 'Wishists', 'User']
+            async onQueryStarted( wishlist,{ dispatch, getState, queryFulfilled }) {
+                const currentWishlists = getState().api.queries['getUserWishlists(null)'].data || [];
+                const processingWishlistIndex = currentWishlists.map(item => item.id).indexOf(wishlist.id);
+                const isCreating = processingWishlistIndex === -1;
+
+                const updateWishlists = dispatch(
+                    apiSlice.util.updateQueryData('getUserWishlists', null, (draftWishlists) => {
+                        if(isCreating) {
+                            draftWishlists.unshift(wishlist)
+                        } else {
+                            draftWishlists.splice(processingWishlistIndex, 1, wishlist)
+                        }
+                    })
+                );
+                queryFulfilled.catch(updateWishlists.undo)
+            },
+            invalidatesTags: ['UserWishes', 'User']
         }),
         deleteWishlist: builder.mutation({
-            query: (id) => ({
-                url: `wishlists/${ id }`,
+            query: (wishlistId) => ({
+                url: `wishlists/delete-wishlist/${ wishlistId }`,
                 method: 'DELETE'
             }),
-            invalidatesTags: ['Wishes', 'Wishists', 'User']
+            async onQueryStarted( wishlistId,{ dispatch, getState, queryFulfilled }) {
+                const currentWishlists = getState().api.queries['getUserWishlists(null)'].data || [];
+                const processingWishlistIndex = currentWishlists.map(item => item.id).indexOf(wishlistId);
+
+                const updateWishlists = dispatch(
+                    apiSlice.util.updateQueryData('getUserWishlists', null, (draftWishlists) => {
+                        if(processingWishlistIndex >= 0) {
+                            draftWishlists.splice(processingWishlistIndex, 1)
+                        }
+                    })
+                );
+                queryFulfilled.catch(updateWishlists.undo)
+            },
+            invalidatesTags: ['UserWishes', 'User']
         }),
         acceptInvitation: builder.mutation({
             query: (invitationCode) => ({
@@ -126,11 +268,27 @@ export const apiSlice = createApi({
                 method: 'POST',
                 body: { invitationCode }
             }),
-            // invalidatesTags: (result, error, arg) => 
-            //     result
-            //         ? ['Invites', 'User', { type: 'Friends', id: result.authorId }]
-            //         : ['Invites', 'User', 'Friends']
-            invalidatesTags: ['Invites', 'Friends', 'User']
+            invalidatesTags: ['Invites', 'FriendWishes', 'Friends', 'User']
+        }),
+        deleteInvitation: builder.mutation({
+            query: (inviteId) => ({
+                url: `wishlists/delete-invitation/${ inviteId }`,
+                method: 'DELETE'
+            }),
+            async onQueryStarted( inviteId,{ dispatch, getState, queryFulfilled }) {
+                const currentInvites = getState().api.queries['getInvites(null)'].data || [];
+                const processingInviteIndex = currentInvites.map(item => item.id).indexOf(inviteId);
+
+                const updateInvites = dispatch(
+                    apiSlice.util.updateQueryData('getInvites', null, (draftInvites) => {
+                        if(processingInviteIndex >= 0) {
+                            draftInvites.splice(processingInviteIndex, 1)
+                        }
+                    })
+                );
+                queryFulfilled.catch(updateInvites.undo)
+            },
+            invalidatesTags: ['FriendWishes', 'User']
         }),
 
 
@@ -144,17 +302,13 @@ export const apiSlice = createApi({
         }),
         getFriends: builder.query({
             query: () => 'users/get-friends',
-            // providesTags: (result, error, arg) =>
-            //     result
-            //         ? [...result.map(({ id }) => ({ type: 'Friends', id })), 'Auth']
-            //         : ['Friends', 'Auth'],
             providesTags: ['Auth', 'Friends']
         }),
 
 
         getUserWishes: builder.query({
             query: () => 'wishes/get-user-wishes',
-            providesTags: ['Auth', 'Wishes']
+            providesTags: ['Auth', 'UserWishes']
         }),
         getFriendWishes: builder.query({
             query: () => 'wishes/get-friend-wishes',
@@ -164,26 +318,12 @@ export const apiSlice = createApi({
 
         getUserWishlists: builder.query({
             query: () => 'wishlists/get-user-wishlists',
-            providesTags: ['Auth', 'Wishlists']
+            providesTags: ['Auth', 'UserWishlists']
         }),
         getInvites: builder.query({
             query: () => 'wishlists/get-invites',
             providesTags: ['Auth', 'Invites']
         }),
-
-
-        // getUsers: builder.query({
-        //     query: (idList) => `users/query/${idList?.join('+')}`,
-        //     providesTags: ['Auth', 'User']
-        // }),
-        // getWishes: builder.query({
-        //     query: (idList) => `wishes/query/${idList?.join('+')}`,
-        //     providesTags: ['Auth', 'Wish']
-        // }),
-        // getWishlists: builder.query({
-        //     query: (idList) => `wishlists/query/${idList?.join('+')}`,
-        //     providesTags: ['Auth', 'Wishlist']
-        // }),
     })
 });
 
@@ -195,33 +335,29 @@ export const getUserNameByEmail = async (email) => {
 export const {
     useLoginMutation,
     useSignupMutation,
+    useUpdateProfileMutation,
 
     usePostWishMutation,
-    usePostWishlistMutation,
     useDeleteWishMutation,
+    useCompleteWishMutation,
+    useUncompleteWishMutation,
+    useReserveWishMutation,
+    useUnreserveWishMutation,
 
+    usePostWishlistMutation,
     useDeleteWishlistMutation,
-    useUpdateProfileMutation,
     useAcceptInvitationMutation,
+    useDeleteInvitationMutation,
 
     useGetAllUserNamesQuery,
     useGetCurrentUserQuery,
     useGetFriendsQuery,
-    // useLazyGetFriendsQuery,
 
     useGetUserWishesQuery,
     useGetFriendWishesQuery,
-    // useLazyGetUserWishesQuery,
-    // useLazyGetFriendWishesQuery,
 
     useGetUserWishlistsQuery,
     useGetInvitesQuery,
-    // useLazyGetUserWishlistsQuery,
-    // useLazyGetInvitesQuery,
 
     usePrefetch,
-
-    // useGetUsersQuery,
-    // useGetWishesQuery,
-    // useGetWishlistsQuery,
 } = apiSlice

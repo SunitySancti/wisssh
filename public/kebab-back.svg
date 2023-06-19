@@ -1,0 +1,24 @@
+<svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="22.5" cy="22.5" r="21.5" fill="url(#radial0)"/>
+    <circle cx="22.5" cy="22.5" r="7.5" fill="url(#radial1)"/>
+    <circle cx="22.5" cy="31.5" r="7.5" fill="url(#radial2)"/>
+    <circle cx="22.5" cy="13.5" r="7.5" fill="url(#radial3)"/>
+    <defs>
+        <radialGradient id="radial0" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(22.5 22.5) rotate(90) scale(21.5)">
+            <stop stop-color="white" stop-opacity="0.75"/>
+            <stop offset="1" stop-color="white" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="radial1" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(22.5 22.5) rotate(90) scale(7.5)">
+            <stop stop-color="white" stop-opacity="0.5"/>
+            <stop offset="1" stop-color="white" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="radial2" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(22.5 31.5) rotate(90) scale(7.5)">
+            <stop stop-color="white" stop-opacity="0.75"/>
+            <stop offset="1" stop-color="white" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="radial3" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(22.5 13.5) rotate(90) scale(7.5)">
+            <stop stop-color="white" stop-opacity="0.75"/>
+            <stop offset="1" stop-color="white" stop-opacity="0"/>
+        </radialGradient>
+    </defs>
+</svg>

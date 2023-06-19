@@ -1,25 +1,21 @@
-import   React from 'react'
-import { useNavigate } from 'react-router-dom'
+import   React,
+       { useMemo } from 'react'
 
 import './styles.scss'
 import { User } from 'atoms/User'
 import { WishlistLinePointer } from 'atoms/Icon'
-import { Button } from 'atoms/Button'
-import { WithDropDown } from 'atoms/WithDropDown'
+import { WishlistMenu } from 'molecules/WishlistStuff/index.jsx'
 
-import { getCurrentUser,
-         getUserById } from 'store/getters'
-import { useDeleteWishlistMutation } from 'store/apiSlice'
+import { getUserById } from 'store/getters'
 
 
 export const WishlistLine = ({
     wishlist,
     onWishlistPage,
+    isDeleting,
     ...rest
 }) => {
-    const navigate = useNavigate();
     const author = getUserById(wishlist?.author);
-    const { user } = getCurrentUser();
 
     const TimeInfo = () => {
         if(!wishlist?.date) return null;
@@ -69,42 +65,16 @@ export const WishlistLine = ({
         }
     }
 
-    // set dropdown:
-
-    function copyInvitationLink(e) {
-        e.stopPropagation();
-        e.preventDefault();
-        const url = window.location.origin + '/share/' + wishlist.invitationCode;
-        navigator.clipboard.writeText(url)
-    }
-
-    const wishlistOptions =  [{
-        icon: 'copy',
-        text: 'Копировать ссылку',
-        clickedIcon: 'ok',
-        clickedText: 'Ссылка скопирована',
-        dontHideAfterClick: true,
-        onClick: copyInvitationLink,
-    },{
-        icon: 'edit',
-        text: 'Редактировать',
-        onClick: () => navigate('/my-wishes/lists/' + wishlist.id + '/editing')
-    },{
-        icon: 'delete',
-        text: 'Удалить вишлист',
-        // onClick: deleteWishlist
-    }];
-
-    const inviteOptions = [{
-        icon: 'delete',
-        text: 'Удалить из списка приглашений',
-        // onClick: deleteInvite
-    }];
-
+    const classes = useMemo(() => {
+        let result = 'wishlist-line';
+        if(onWishlistPage) result += ' selected on-wishlist-page'
+        if(isDeleting) result += ' deleted'
+        return result
+    },[ onWishlistPage, isDeleting ]);
 
     return (
         <div
-            className={ onWishlistPage ? 'wishlist-line selected on-wishlist-page' : 'wishlist-line' }
+            className={ classes }
             id={ wishlist?.id }
             { ...rest }
         >
@@ -118,13 +88,7 @@ export const WishlistLine = ({
             <span className='description'>{ wishlist?.description }</span>
 
             <TimeInfo/>
-            <WithDropDown
-                trigger={ <Button icon='kebap' size={ 4 }/> }
-                options={ (user?.id === author?.id)
-                    ? wishlistOptions
-                    : inviteOptions
-                }
-            />
+            <WishlistMenu {...{ wishlist }}/>
         </div>
     );
 }

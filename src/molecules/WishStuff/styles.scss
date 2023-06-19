@@ -1,0 +1,55 @@
+@import '../../_style-config';
+  
+.wish-cover {
+    width: 100%;
+    min-width: 20rem;
+    position: relative;
+
+    img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+  
+    .star-rating {
+        position: absolute;
+        left: 1rem;
+        top: 1rem;
+        z-index: 1;
+        transition: all ease-in-out 0.2s;
+    }
+
+    .user {
+        position: absolute;
+        bottom: -1rem;
+        left: 0.5rem;
+        border: solid 0.25rem rgba(255, 255, 255, 0.4);
+        border-radius: 50%;
+        cursor: default;
+        transition: opacity 0.2s ease-in-out;
+    }
+}
+
+.wish-menu {
+    position: absolute;
+    top: 0;
+    right: 0;
+    
+    .kebap-background {
+        position: absolute;
+        transition: opacity .15s ease-in-out;
+    }
+    &:not(:hover) .kebap-background {
+        opacity: 0.7;
+    }
+    &:hover .kebap-background {
+        opacity: 1;
+    }
+
+    .icon-button {
+        height: 5rem !important;
+    }
+
+
+}

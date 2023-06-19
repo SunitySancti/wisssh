@@ -1,69 +1,70 @@
 import   React,
        { useEffect } from 'react'
-import { useLocation,
+import { Navigate,
+         useLocation,
          useNavigate } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 
+import './styles.scss'
 import { WishCard } from 'molecules/WishCard'
 import { WishlistLine } from 'molecules/WishlistLine'
 import { MultiColumnLayout } from 'containers/MultiColumnLayout'
-import { LineContainer } from 'containers/LineContainer'
-import { Button } from 'atoms/Button'
+import { WishPreloader } from 'atoms/Preloaders'
 
 import { getWishlistById,
-         getWishesByWishlistId } from 'store/getters'
+         getWishesByWishlistId,
+         getLoadingStatus } from 'store/getters'
 import { promoteImages } from 'store/imageSlice'
 
 export const WishlistPage = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation().pathname;
-    const pathSteps = location.split('/');
-    const wishlistId = pathSteps.at(-1)
-                     ? pathSteps.at(-1)
-                     : pathSteps.at(-2);
-    const section = pathSteps[1];
+    const [, section, , wishlistId] = location.split('/');
 
+    const { awaitingWishes,
+            awaitingWishlists } = getLoadingStatus();
+    const isLoading = awaitingWishes || awaitingWishlists;
     const wishlist = getWishlistById(wishlistId);
     const wishes = getWishesByWishlistId(wishlistId);
     const wishIds = wishes?.map(wish => wish.id);
 
+    // REDIRECT IF WISHLIST NOT FOUND
+
     useEffect(() => {
-        if(wishIds instanceof Array && wishIds.length) {
+        if(!isLoading && !wishlist) {
+            navigate('/' + section + '/lists', { replace: true })
+        }
+    },[ isLoading, wishlist, section ]);
+
+    // PROMOTE IMAGES
+
+    useEffect(() => {
+        if(wishIds instanceof Array && wishIds?.length) {
             dispatch(promoteImages(wishIds))
         }
     },[ wishIds?.length ]);
+    
 
-    if (!wishlist) {
-        return (
-            <LineContainer
-                className='not-found'
-                children={
-                    <>
-                        <span>Вишлист не найден 😥</span>
-                        <Button
-                            kind='primary'
-                            icon='plus'
-                            text='К списку вишлистов'
-                            onClick={() => navigate(`/${ section }/lists`)}
-                            round
-                        />
-                    </>
-                }
+    return ( isLoading
+        ?   <div className='wishlist-page'>
+                <WishPreloader isLoading/>
+            </div>
+        :   wishlist
+        ?   <div className='wishlist-page'>
+                <WishlistLine
+                    wishlist={ wishlist }
+                    onWishlistPage
+                    openModal={ modalRef.current?.openModal }
+                />
+                <MultiColumnLayout
+                    Card={ WishCard }
+                    data={ wishes }
+                />
+            </div>
+        :   <Navigate
+                to={ '/' + section + '/lists' }
+                replace
             />
-        );
-    }
-
-    return (
-        <>
-            <WishlistLine
-                wishlist={ wishlist }
-                onWishlistPage={ true }
-            />
-            <MultiColumnLayout
-                Card={ WishCard }
-                data={ wishes }
-            />
-        </>
     );
 }
