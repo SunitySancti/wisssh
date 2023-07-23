@@ -1,15 +1,17 @@
 import   React,
-       { useEffect } from 'react'
+       { useState,
+         useEffect } from 'react'
+import   useDeepCompareEffect from 'use-deep-compare-effect'
 import { Navigate,
-         useLocation,
-         useNavigate } from 'react-router-dom'
+         useLocation } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 
 import './styles.scss'
 import { WishCard } from 'molecules/WishCard'
-import { WishlistLine } from 'molecules/WishlistLine'
+import { WishlistHeader } from 'molecules/WishlistHeader'
 import { MultiColumnLayout } from 'containers/MultiColumnLayout'
 import { WishPreloader } from 'atoms/Preloaders'
+import { Plug } from 'atoms/Plug'
 
 import { getWishlistById,
          getWishesByWishlistId,
@@ -18,7 +20,6 @@ import { promoteImages } from 'store/imageSlice'
 
 export const WishlistPage = () => {
     const dispatch = useDispatch();
-    const navigate = useNavigate();
     const location = useLocation().pathname;
     const [, section, , wishlistId] = location.split('/');
 
@@ -26,41 +27,47 @@ export const WishlistPage = () => {
             awaitingWishlists } = getLoadingStatus();
     const isLoading = awaitingWishes || awaitingWishlists;
     const wishlist = getWishlistById(wishlistId);
-    const wishes = getWishesByWishlistId(wishlistId);
-    const wishIds = wishes?.map(wish => wish.id);
+    const incomeWishes = getWishesByWishlistId(wishlistId);
+    const [wishes, setWishes] = useState([]);
 
-    // REDIRECT IF WISHLIST NOT FOUND
-
-    useEffect(() => {
-        if(!isLoading && !wishlist) {
-            navigate('/' + section + '/lists', { replace: true })
-        }
-    },[ isLoading, wishlist, section ]);
-
+    useDeepCompareEffect(() => {
+        setWishes(incomeWishes)
+    },[ incomeWishes || []])
+    
     // PROMOTE IMAGES
-
-    useEffect(() => {
-        if(wishIds instanceof Array && wishIds?.length) {
+    
+    // const wishIds = wishes?.map(wish => wish.id);
+    // useEffect(() => {
+    //     if(wishIds instanceof Array && wishIds?.length) {
+    //         dispatch(promoteImages(wishIds))
+    //     }
+    // },[ wishIds ]);
+    useDeepCompareEffect(() => {
+        if(wishes instanceof Array && wishes.length) {
+            const wishIds = wishes?.map(wish => wish?.id);
             dispatch(promoteImages(wishIds))
         }
-    },[ wishIds?.length ]);
+    },[ wishes || []]);
     
 
     return ( isLoading
         ?   <div className='wishlist-page'>
                 <WishPreloader isLoading/>
             </div>
-        :   wishlist
+        :   wishlist?.id
         ?   <div className='wishlist-page'>
-                <WishlistLine
+                <WishlistHeader
                     wishlist={ wishlist }
                     onWishlistPage
-                    openModal={ modalRef.current?.openModal }
                 />
-                <MultiColumnLayout
-                    Card={ WishCard }
-                    data={ wishes }
-                />
+                { wishes instanceof Array && wishes.length
+                    ?   <MultiColumnLayout
+                            Card={ WishCard }
+                            data={ wishes }
+                        />
+                    :   <Plug position='wishlistPageNoWishes'/>
+                }
+                
             </div>
         :   <Navigate
                 to={ '/' + section + '/lists' }

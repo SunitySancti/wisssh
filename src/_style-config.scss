@@ -11,7 +11,7 @@ $primaryHover: #f8ed8f;
 $primaryLight: #fffdee;
 $primaryDark1: #d1c345;
 $primaryDark2: #5c5419;
-$accent: #C76DF1;
+$accent: #c76df1;
 $accentHover: #CF83F2;
 $positive: #6fc555;
 $positiveHover: #CBFABC;
@@ -27,8 +27,8 @@ $darkGray1: #777777;
 $darkGray2: #505050;
 
 // Shadows:
-$lyingCard: 0 1px 4px 0 rgba(0,0,0,.17), 0 3px 6px 0 rgba(0,0,0,.1);
-$flyingAbove: 0 8px 15px 0 rgba(0,0,0,.17), 0 10px 30px 0 rgba(0,0,0,.07);
+$lyingCard: 0 1px 2px 0 rgba(0,0,0,.17), 0 1px 5px 0 rgba(0,0,0,.08);
+$flyingAbove: 0 4px 10px 0 rgba(0,0,0,.17), 0 10px 30px 0 rgba(0,0,0,.07);
 $scrollOverlay: 0 6px 6px 0 rgba(0,0,0,.09), 0 11px 11px 0 rgba(0,0,0,.04);
 $weakShadow: 0 8px 15px 0 rgba(0,0,0,.04), 0 10px 30px 0 rgba(0,0,0,.02);
 $glow: 0px 0px 11px $primary;
@@ -44,3 +44,5 @@ $action: 400 16px/30px 'GothamPro', sans-serif;
 $wishHeader: 500 18px/32px 'GothamPro', sans-serif;
 $wishPageHeader: 500 30px/44px 'RoundedMplus1c', sans-serif;
 $price: 400 18px/32px 'GothamPro', sans-serif;
+$status: 600 13px/22px 'Lato', sans-serif;
+$info: 500 20px/30px 'RoundedMplus1c', sans-serif;

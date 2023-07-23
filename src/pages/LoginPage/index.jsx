@@ -27,6 +27,8 @@ import { setRemember } from 'store/authSlice'
 import { getAllUserNames } from 'store/getters'
 import { decodeEmail } from 'utils'
 
+const __DEV_MODE__ = import.meta.env.VITE_DEV_MODE === 'true';
+
 
 const ButtonGroup = ({
     control,
@@ -173,7 +175,7 @@ export const LoginPage = () => {
     },[]);
 
     const goToResetVerification = useCallback(async (email) => {
-        console.log(await sendPasswordResetEmail(email));
+        await sendPasswordResetEmail(email);
         setFlowStep('reset-verification');
         setMessage('Дальнейшие инструкции направлены вам в письме')
     },[]);
@@ -249,14 +251,16 @@ export const LoginPage = () => {
 
     useEffect(() => {
         if(loginWasCrashed) {
-            console.log(loginError)
+            if(__DEV_MODE__) {
+                console.log('Login error:', loginError)
+            }
             setPasswordErrorMessage('Неверный пароль')
         } else setPasswordErrorMessage('')
     },[ loginWasCrashed ]);
 
     useEffect(() => {
-        if(signupWasCrashed) console.log(signupError)
-    },[ signupWasCrashed ])
+        if(signupWasCrashed && __DEV_MODE__) console.log('Signup error:', signupError)
+    },[ signupWasCrashed ]);
 
     useEffect(() => {
         if(loadingAllUserNamesWasCrashed) {
@@ -322,7 +326,10 @@ export const LoginPage = () => {
 
     return (
         <div className='login-page'>
-            <LogoIcon/>
+            <div className='logo-icon'>
+                <LogoIcon/>
+                <div className='beta'>Beta</div>
+            </div>
             <form
                 onChange={ handleFormChange }
                 onSubmit={ handleSubmit(onSubmit) }

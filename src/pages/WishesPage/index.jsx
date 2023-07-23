@@ -1,14 +1,14 @@
 import   React,
-       { useEffect,
-         useMemo } from 'react'
+       { useMemo } from 'react'
+import   useDeepCompareEffect from 'use-deep-compare-effect'
 import { useLocation,
          useParams } from 'react-router'
 import { useDispatch } from 'react-redux'
 
 import { MultiColumnLayout } from 'containers/MultiColumnLayout'
-import { LineContainer } from 'containers/LineContainer'
 import { WishCard } from 'molecules/WishCard'
 import { WishPreloader } from 'atoms/Preloaders'
+import { Plug } from 'atoms/Plug'
 
 import { getCurrentUser,
          getUserWishes,
@@ -28,10 +28,10 @@ export const WishesPage = () => {
     const { awaitingWishes: isLoading } = getLoadingStatus();
 
     const wishes = useMemo(() => {
-        if(!userWishes?.length || !friendWishes?.length) return []
-        const allWishes = (section === 'my-wishes')  ? [...userWishes]
-                        : (section === 'my-invites') ? [...friendWishes] : [];
-        if(!allWishes?.length) return [];
+        const allWishes = (section === 'my-wishes')  ? userWishes
+                        : (section === 'my-invites') ? friendWishes : [];
+
+        if(!allWishes?.length) return []
 
         switch (tabName) {
             case 'actual':
@@ -63,19 +63,20 @@ export const WishesPage = () => {
             case 'all':
             default:
                 return (section === 'my-wishes')
-                    ? 'Здесь будут ваши желания'
+                    ? 'У вас пока нет желаний'
                     : 'Здесь будут желания из вишлистов, в которые вас пригласят';
         }
     },[ section,
         tabName,
     ]);
     
-    useEffect(() => {
+    useDeepCompareEffect(() => {
         if(wishes instanceof Array && wishes.length) {
             const wishIds = wishes?.map(wish => wish?.id);
             dispatch(promoteImages(wishIds))
         }
-    },[ wishes?.length ]);
+    },[ wishes || []]);
+
 
     return ( isLoading
         ?   <div className='wish-page'>
@@ -84,11 +85,8 @@ export const WishesPage = () => {
         :   wishes instanceof Array && wishes.length
         ?   <MultiColumnLayout
                 Card={ WishCard }
-                data={ [...wishes] }
+                data={ wishes }
             />
-        :   <LineContainer
-                className='not-found'
-                children={ <span>{ noWishesMessage }</span> }
-            />
+        :   <Plug message={ noWishesMessage }/>
     );
 }

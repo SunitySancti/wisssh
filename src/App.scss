@@ -1,6 +1,23 @@
 @import './style-config';
 @import './_fonts';
 
+    
+.beta {
+    position: absolute;
+    bottom: 0;
+    right: -1rem;
+    background-color: rgba(199, 109, 241, 0.5);
+    border-radius: 1rem;
+    width: 4rem;
+    height: 2rem;
+    font: $small;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+}
+
 html {
     font-size: 11px;
     scroll-behavior: smooth;
@@ -116,14 +133,4 @@ button {
     height: 1px;
     background-color: $lightGray2;
     margin: 2rem 0;
-}
-
-.not-found {
-    padding: 1rem;
-    font: $general;
-    color: $darkGray2;
-    
-    > span {
-        line-height: 4rem;
-    }
 }

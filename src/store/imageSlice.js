@@ -72,7 +72,7 @@ export const postImage = createAsyncThunk(
         
         const endpoint = [__API_URL__, 'images/post', drive, id].join('/');
         const token = getState().auth?.token;
-
+        
         const formData = new FormData();
         formData.append('file', file)
 
@@ -87,21 +87,54 @@ export const postImage = createAsyncThunk(
     }
 );
 
+export const deleteImage = createAsyncThunk(
+    'images/deleteImage',
+    async ({ id, drive },{ getState }) => {
+        if(!id || !drive) return;
+        
+        const endpoint = [__API_URL__, 'images/delete', drive, id].join('/');
+        const token = getState().auth?.token;
+
+        return await fetch(endpoint, {
+            'method': 'DELETE',
+            'headers': {
+                'Authorization': token
+            }
+        })
+            .then(res => res.json())
+    }
+)
+
 export const copyWishCover = createAsyncThunk(
     'images/copyWishCover',
     async ({ sourceId, targetId, extension },{ getState }) => {
         if(!sourceId || !targetId || !extension) return;
+
         const token = getState().auth?.token;
 
         await fetch(__API_URL__ + '/images/copy-wish-cover', {
             'method': 'POST',
             'headers': {
-                'Authorization': token
+                'Authorization': token,
+                'Content-Type': 'application/json',
             },
             'body': JSON.stringify({ sourceId, targetId, extension })
         })
     }
 )
+
+function populateQueue(state, item, idList) {
+    if(!idList.includes(item.id)) {
+        const type = item.title ? 'cover' : 'avatar'
+        if(item.imageExtension) {
+            state.queue.push({
+                id: item.id,
+                ext: item.imageExtension,
+                type
+            })
+        }
+    }
+}
 
 
 const defaultState = {
@@ -117,7 +150,17 @@ const imageSlice = createSlice({
     initialState: defaultState,
     reducers: {
         resetImageStore(state) {
-            state = defaultState
+            for(const url of Object.values(current(state).imageURLs)) {
+                URL.revokeObjectURL(url)
+            }
+            for(const backupUrl of Object.values(current(state).backupURLs)) {
+                URL.revokeObjectURL(backupUrl)
+            }
+            state.imageURLs = {}
+            state.backupURLs = {}
+            state.loading = {}
+            state.queue = []
+            state.prior = []
         },
         addImageURL(state,{ payload }) {
             const { id, url } = payload;
@@ -172,18 +215,35 @@ const imageSlice = createSlice({
             const { id, file } = action.meta.arg;
             state.backupURLs[id] = state.imageURLs[id] || null;
             state.imageURLs[id] = URL.createObjectURL(file);
-            state.loading[id] = true;
         });
         builder.addCase(postImage.fulfilled, (state, action) => {
-            const { id } = action.meta.arg
+            const { id } = action.meta.arg;
+            URL.revokeObjectURL(state.backupURLs[id]);
             delete state.backupURLs[id];
-            delete state.loading[id];
         });
         builder.addCase(postImage.rejected, (state, action) => {
             const { id } = action.meta.arg;
             state.imageURLs[id] = state.backupURLs[id];
+            URL.revokeObjectURL(state.backupURLs[id]);
             delete state.backupURLs[id];
-            delete state.loading[id];
+        });
+
+
+        builder.addCase(deleteImage.pending, (state, action) => {
+            const { id } = action.meta.arg;
+            delete state.loading[id]
+            state.backupURLs[id] = state.imageURLs[id];
+            delete state.imageURLs[id]
+        });
+        builder.addCase(deleteImage.fulfilled, (state, action) => {
+            const { id } = action.meta.arg;
+            URL.revokeObjectURL(state.backupURLs[id]);
+            delete state.backupURLs[id]
+        });
+        builder.addCase(deleteImage.rejected, (state, action) => {
+            const { id } = action.meta.arg;
+            state.imageURLs[id] = state.backupURLs[id];
+            delete state.backupURLs[id]
         });
 
         
@@ -201,28 +261,20 @@ const imageSlice = createSlice({
             builder.addMatcher(
                 endpoint.matchFulfilled,
                 (state,{ payload }) => {
-                    if(payload instanceof Array && payload.length) {
-                        const type = payload[0]?.title ? 'cover' : 'avatar'
-                        payload.forEach(item => {
-                            if(item?.imageExtension) {
+                    const currentState = current(state)
+                    const currentQueueIds = currentState.queue.map(item => item.id);
+                    const currentPriorIds = currentState.prior.map(item => item.id);
+                    const currentImageIds = Object.keys(currentState.imageURLs);
+                    const currentBackupIds = Object.keys(currentState.backupURLs);
+                    const currentLoadingIds = Object.keys(currentState.loading);
+                    const idList = [...currentQueueIds, ...currentPriorIds, ...currentImageIds, ...currentBackupIds, ...currentLoadingIds]
 
-                                state.queue.push({
-                                    id: item.id,
-                                    ext: item.imageExtension,
-                                    type
-                                })
-                            }
+                    if(payload instanceof Array && payload.length) {
+                        payload.forEach(item => {
+                            populateQueue(state, item, idList)
                         })
                     } else if(payload && typeof payload === 'object') {
-                        const type = payload.title ? 'cover' : 'avatar'
-                        if(payload.imageExtension) {
-
-                            state.queue.push({
-                                id: payload.id,
-                                ext: payload.imageExtension,
-                                type
-                            })
-                        }
+                        populateQueue(state, payload, idList)
                     }
                 }
             )

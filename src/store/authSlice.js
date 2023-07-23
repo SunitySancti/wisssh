@@ -47,7 +47,7 @@ const authSlice = createSlice({
                 }
             )
         })
-    },
+    }
 });
 
 export async function reAuth(thunkApi) {
@@ -76,7 +76,6 @@ export async function reAuth(thunkApi) {
         if(__DEV_MODE__) {
             console.log('Re-auth error:', error)
         }
-        thunkApi.dispatch(authSlice.actions.logout())
     }
 
     return({ reAuthSuccess: !!data })

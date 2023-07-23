@@ -2,7 +2,8 @@ import   React,
        { useState,
          useCallback,
          useMemo,
-         useRef } from 'react'
+         useRef, 
+         useEffect} from 'react'
 import { useDropzone } from 'react-dropzone'
 
 import './styles.scss'
@@ -10,6 +11,74 @@ import { Icon,
          WishPlaceholder,
          UserPlaceholder } from 'atoms/Icon'
 import { Button } from 'atoms/Button'
+
+const __DEV_MODE__ = import.meta.env.VITE_DEV_MODE === 'true';
+
+
+export function compressAndDoSomething(file, doSomething, options) {
+    const { maxWidth, maxHeight, quality, softCompress } = options;
+
+    if(__DEV_MODE__) {
+        console.log('input image size: ', file.size);
+    }
+
+    const blobURL = URL.createObjectURL(file);
+    const img = new Image();
+    img.src = blobURL;
+    img.onerror = function () {
+        URL.revokeObjectURL(this.src);
+        console.log("Cannot compress image");
+    };
+    img.onload = function () {
+        URL.revokeObjectURL(this.src);
+
+        let width = img.width;
+        let height = img.height;
+    
+        function constraintByWidth() {
+            if (width > maxWidth) {
+                height = Math.round(height * maxWidth / width);
+                width = maxWidth;
+            }
+        }
+        function constraintByHeight() {
+            if (height > maxHeight) {
+                width = Math.round(width * maxHeight / height);
+                height = maxHeight;
+            }
+        }
+    
+        if(softCompress) {
+            if(width / height > maxWidth / maxHeight) {
+                constraintByHeight()
+            } else {
+                constraintByWidth()
+            }
+        } else {
+            if(width / height > maxWidth / maxHeight) {
+                constraintByWidth()
+            } else {
+                constraintByHeight()
+            }
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(
+            blob => {
+                if(__DEV_MODE__) {
+                    console.log('output image size: ', blob.size)
+                }
+                doSomething(blob)
+            },
+            file.type,
+            quality
+        );
+    };
+}
 
 export const ImageInput = ({
     register,
@@ -19,16 +88,34 @@ export const ImageInput = ({
     setImage,
     isUser
 }) => {
-    const [ ignoreHover, setIgnoreHover ] = useState(false);
     const imgRef = useRef(null);
-    const imageURL = useMemo(() => {
+    const [ignoreHover, setIgnoreHover] = useState(false);
+    const [imageURL, setImageURL] = useState(null);
+    
+    useEffect(() => {
+        if(imageURL) {
+            URL.revokeObjectURL(imageURL)
+        }
         if(image) {
-            return URL.createObjectURL(image)
-        } else return null
+            setImageURL(URL.createObjectURL(image))
+        } else {
+            setImageURL(null)
+        }
     },[ image ])
 
+    // COMPRESS IMAGE //
+
+    const compressOptions = {
+        maxWidth: isUser ? 440 : 1000,
+        maxHeight: isUser ? 440 : 1000,
+        quality: 0.6,
+        softCompress: isUser
+    }
+
+    // HANDLE INPUT //
+
     const onDrop = useCallback(acceptedFiles => {
-        setImage(acceptedFiles[0])
+        compressAndDoSomething(acceptedFiles[0], setImage, compressOptions)
     },[ setImage ]);
 
     const { getRootProps, isDragAccept, isDragReject } = useDropzone({
@@ -39,10 +126,15 @@ export const ImageInput = ({
     const setSecondaryData = () => {
         if(image) {
             const aspectRatio = (imgRef.current?.offsetWidth / imgRef.current?.offsetHeight).toFixed(3);
-            const extension   = image.name?.split('.').at(-1);
-            
             setValue('imageAR', aspectRatio);
-            if(extension) setValue('imageExtension', extension)
+            
+            // let extension = image?.type?.split('/').at(-1);
+            // if(extension === 'jpeg' || extension === 'pjpeg') {
+            //     extension = 'jpg'
+            // } else if(extension !== 'png') {
+            //     return
+            // }
+            // setValue('imageExtension', extension)
         }
     }
 
@@ -52,12 +144,12 @@ export const ImageInput = ({
 
         setImage(null);
         setValue('imageAR', 1);
-        setValue('imageExtension', '');
-    },[ setValue ]);
+        // setValue('imageExtension', '');
+    },[ setImage, setValue ]);
 
     if(imageInputRef) imageInputRef.current.deleteImage = deleteImage;
 
-    // set dropzone styles:
+    // DROPZONE STYLING //
 
     const classes = useMemo(() => {
         let result = isUser ? 'image-input user-avatar' : 'image-input wish-cover';
@@ -68,7 +160,6 @@ export const ImageInput = ({
         else result += ' no-image'
         return result
     },[ isUser, isDragAccept, isDragReject, imageURL, ignoreHover ]);
-
 
     const content = useMemo(() => {
         if(imageURL) {
@@ -125,11 +216,11 @@ export const ImageInput = ({
                 type='text'
                 {...register('imageAR')}
             />
-            <input
+            {/* <input
                 className='invis'
                 type='text'
                 {...register('imageExtension')}
-            />
+            /> */}
 
             { content }
             

@@ -9,13 +9,20 @@
     border: none;
     background: none;
     cursor: pointer;
+    opacity: 1;
+    transition: opacity 0.2s ease-in-out;
   
-    &:hover svg {
+    &:hover .icon {
         fill: $darkGray2;
     }
+
+    &.loading .icon {
+        opacity: 0;
+    }
   
-    &:disabled svg {
+    &:disabled {
         fill: $gray1 !important;
+        background: none !important;
     }
 }
 
@@ -34,12 +41,11 @@
     outline: none;
     border: none;
     transition: all ease-in-out .12s;
+    white-space: nowrap;
 
     &.round {
         border-radius: 6px;
     }
-
-    // переписать в стиле kind/state
 
     &:not(:disabled):hover {
         cursor: pointer;
@@ -49,65 +55,70 @@
         cursor: default;
         pointer-events: none;
     }
-    
-    &:not(.clear){
+
+    &:not(.clear) {
         &:not(:disabled) {
-            color: $darkGray2;
-        }
-    
-        &:disabled {
-            // opacity: 0.33;
-            background: none;
-            // border: solid 1px $lightGray3;
-            color: rgba(0,0,0,.66);
-        }
-
-        &.secondary {
-            background-color: $lightGray1;
-            border: solid 1px $lightGray2;
-        }
-
-        &:not(.negative) {
             &.primary {
                 background-color: $primary;
-
-                &:hover {
+                color: $darkGray2;
+        
+                &:hover,
+                &:active,
+                &:focus {
                     background-color: $primaryHover;
                     border-color: $primaryHover;
                 }
             }
-
+      
+            &.secondary {
+                background-color: $lightGray1;
+                color: $darkGray2;
+                border: solid 1px $lightGray2;
+        
+                &:hover,
+                &:active,
+                &:focus {
+                    background-color: $primaryHover;
+                    border-color: $primaryHover;
+                }
+            }
+        
             &.accent {
                 background-color: $accent;
                 color: white;
                 border: none;
-
-                &:hover:not(:disabled),
-                &:active:not(:disabled),
-                &:focus:not(:disabled) {
+        
+                &:hover,
+                &:active,
+                &:focus {
                     background-color: $accentHover;
                 }
-
-                &:disabled {
-                    background-color: rgba(199, 109, 241, 0.33);
-                    color: rgba(255, 255, 255, 0.5);
-                    pointer-events: none;
+            }
+        
+            &.negative {
+                background-color: $negative;
+                color: white;
+        
+                &:hover,
+                &:active,
+                &:focus {
+                    background-color: $negativeHover;
                 }
             }
-
-            &.secondary:hover {
-                background-color: $lightGray2;
-            }
         }
+    
+        &:disabled {
+            background: rgba(0,0,0,.03);
+            color: rgba(0,0,0,.33);
 
-        &.negative {
-            color: white;
-
-            &.primary {
-                background-color: $negative;
+            &:not(.accent) {
+                border: solid 1px $lightGray2;
             }
-            &:hover {
-                background-color: $negativeHover;
+        
+            &.accent {
+                background-color: rgba(199, 109, 241, 0.33);
+                color: rgba(255, 255, 255, 0.5);
+                pointer-events: none;
             }
         }
     }

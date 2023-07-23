@@ -34,14 +34,10 @@ export const WithTooltip = ({
         let left = rect?.left
             ? Math.max(rect.left, minPadding)
             : null;
-        // let right = dropToRight ? null : window.innerWidth - rect?.right || null;
 
         if(left && left < minPadding) {
             left = minPadding
         }
-        // if(right && right < minPadding) {
-        //     right = minPadding
-        // }
 
         setCoords({ left, top: rect?.bottom })
     }

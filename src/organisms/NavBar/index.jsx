@@ -5,11 +5,14 @@ import { Outlet,
          useLocation } from 'react-router'
 
 import './styles.scss'
+import { Button } from 'atoms/Button'
+import { WithTooltip } from 'atoms/WithTooltip'
 import { BreadCrumbs } from 'molecules/BreadCrumbs'
 import { ModeToggle } from 'molecules/ModeToggle'
 import { ScrollBox } from 'containers/ScrollBox'
 
-import { getFriends,
+import { getCurrentUser,
+         getFriends,
          getUserWishlists,
          getUserWishes,
          getInvites,
@@ -20,21 +23,44 @@ import { usePrefetch } from 'store/apiSlice'
 export const NavBar = () => {
     const locationCase = useLocation().pathname.split('/').slice(1,3).join('/');
     
-    const   triggerUserWishes          = usePrefetch('getUserWishes');
-    const { userWishesHaveLoaded }     = getUserWishes();
-        
-    const   triggerUserWishlists       = usePrefetch('getUserWishlists');
-    const { userWishlistsHaveLoaded }  = getUserWishlists();
-            
-    const   triggerFriendWishes        = usePrefetch('getFriendWishes');
-    const { friendWishesHaveLoaded }   = getFriendWishes();
-                
-    const   triggerInvites             = usePrefetch('getInvites');
-    const { invitesHaveLoaded }        = getInvites();
+    const { refreshUser,
+            fetchingUser }           = getCurrentUser();
 
-    const   triggerFriends             = usePrefetch('getFriends');
-    const { friendsHaveLoaded }        = getFriends();
+    const   triggerFriends          = usePrefetch('getFriends');
+    const { friendsHaveLoaded,
+            refreshFriends,
+            fetchingFriends }        = getFriends();
+
+    const   triggerUserWishes       = usePrefetch('getUserWishes');
+    const { userWishesHaveLoaded,
+            refreshUserWishes,
+            fetchingUserWishes }     = getUserWishes();
         
+    const   triggerUserWishlists    = usePrefetch('getUserWishlists');
+    const { userWishlistsHaveLoaded,
+            refreshUserWishlists,
+            fetchingUserWishlists }  = getUserWishlists();
+            
+    const   triggerFriendWishes     = usePrefetch('getFriendWishes');
+    const { friendWishesHaveLoaded,
+            refreshFriendWishes,
+            fetchingFriendWishes }   = getFriendWishes();
+                
+    const   triggerInvites          = usePrefetch('getInvites');
+    const { invitesHaveLoaded,
+            refreshInvites,
+            fetchingInvites }        = getInvites();
+     
+    const isLoading = fetchingUser || fetchingFriends || fetchingUserWishes || fetchingUserWishlists || fetchingFriendWishes || fetchingInvites
+
+    const refreshData = () => {
+        refreshUser();
+        refreshFriends();
+        refreshUserWishes();
+        refreshUserWishlists();
+        refreshFriendWishes();
+        refreshInvites();
+    }
 
     const fetchRest = useCallback(() => {
         if(!userWishesHaveLoaded) {
@@ -101,6 +127,18 @@ export const NavBar = () => {
                 <ScrollBox>
                     <ModeToggle/>
                     <BreadCrumbs/>
+                    <WithTooltip
+                        trigger={
+                            <Button
+                                icon='refresh'
+                                kind='clear'
+                                onClick={ refreshData }
+                                isLoading={ isLoading }
+                                spinnerSize={ 1.5 }
+                            />
+                        }
+                        text='Обновить данные'
+                    />
                 </ScrollBox>
             </div>
             <div

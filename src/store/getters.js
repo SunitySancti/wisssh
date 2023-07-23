@@ -12,9 +12,11 @@ import { useGetCurrentUserQuery,
 const getCurrentUser = () => {
     const { data:       user,
             isLoading:  awaitingUser,
-            isSuccess:  userHasLoaded } = useGetCurrentUserQuery(null);
+            isSuccess:  userHasLoaded,
+            refetch:    refreshUser,
+            isFetching: fetchingUser } = useGetCurrentUserQuery(null);
             
-    return { user, awaitingUser, userHasLoaded }
+    return { user, awaitingUser, userHasLoaded, refreshUser, fetchingUser }
 }
 
 const getFriends = () => {
@@ -23,9 +25,10 @@ const getFriends = () => {
             isLoading:  awaitingFriends,
             isSuccess:  friendsHaveLoaded,
             isError:    loadingFriendsWasCrashed,
-            refetch:    refreshFriends } = useGetFriendsQuery(null);
+            refetch:    refreshFriends,
+            isFetching: fetchingFriends } = useGetFriendsQuery(null);
 
-    return { friends, friendsError, awaitingFriends, friendsHaveLoaded, loadingFriendsWasCrashed, refreshFriends }
+    return { friends, friendsError, awaitingFriends, friendsHaveLoaded, loadingFriendsWasCrashed, refreshFriends, fetchingFriends }
 }
 
 const getAllRelevantUsers = () => {
@@ -48,9 +51,10 @@ const getAllUserNames = () => {
             isLoading:  awaitingAllUserNames,
             isSuccess:  allUserNamesHaveLoaded,
             isError:    loadingAllUserNamesWasCrashed,
-            refetch:    refreshAllUserNames } = useGetAllUserNamesQuery(null);
+            refetch:    refreshAllUserNames,
+            isFetching: fetchingAllUserNames } = useGetAllUserNamesQuery(null);
 
-    return { allUserNames, allUserNamesError, awaitingAllUserNames, allUserNamesHaveLoaded, loadingAllUserNamesWasCrashed, refreshAllUserNames }
+    return { allUserNames, allUserNamesError, awaitingAllUserNames, allUserNamesHaveLoaded, loadingAllUserNamesWasCrashed, refreshAllUserNames, fetchingAllUserNames }
 }
 
 
@@ -62,9 +66,10 @@ const getUserWishlists = () => {
             isLoading:  awaitingUserWishlists,
             isSuccess:  userWishlistsHaveLoaded,
             isError:    loadingUserWishlistsWasCrashed,
-            refetch:    refreshUserWishlists } = useGetUserWishlistsQuery(null);
+            refetch:    refreshUserWishlists,
+            isFetching: fetchingUserWishlists } = useGetUserWishlistsQuery(null);
 
-    return { userWishlists, userWishlistsError, awaitingUserWishlists, userWishlistsHaveLoaded, loadingUserWishlistsWasCrashed, refreshUserWishlists }
+    return { userWishlists, userWishlistsError, awaitingUserWishlists, userWishlistsHaveLoaded, loadingUserWishlistsWasCrashed, refreshUserWishlists, fetchingUserWishlists }
 }
 
 const getInvites = () => {
@@ -73,9 +78,10 @@ const getInvites = () => {
             isLoading:  awaitingInvites,
             isSuccess:  invitesHaveLoaded,
             isError:    loadingInvitesWasCrashed,
-            refetch:    refreshInvites } = useGetInvitesQuery(null);
+            refetch:    refreshInvites,
+            isFetching: fetchingInvites } = useGetInvitesQuery(null);
 
-    return { invites, invitesError, awaitingInvites, invitesHaveLoaded, loadingInvitesWasCrashed, refreshInvites }
+    return { invites, invitesError, awaitingInvites, invitesHaveLoaded, loadingInvitesWasCrashed, refreshInvites, fetchingInvites }
 }
 
 const getAllRelevantWishlists = () => {
@@ -101,9 +107,10 @@ const getUserWishes = () => {
             isLoading:  awaitingUserWishes,
             isSuccess:  userWishesHaveLoaded,
             isError:    loadingUserWishesWasCrashed,
-            refetch:    refreshUserWishes } = useGetUserWishesQuery(null);
+            refetch:    refreshUserWishes,
+            isFetching: fetchingUserWishes } = useGetUserWishesQuery(null);
 
-    return { userWishes, userWishesError, awaitingUserWishes, userWishesHaveLoaded, loadingUserWishesWasCrashed, refreshUserWishes }
+    return { userWishes, userWishesError, awaitingUserWishes, userWishesHaveLoaded, loadingUserWishesWasCrashed, refreshUserWishes, fetchingUserWishes }
 }
 
 const getFriendWishes = () => {
@@ -112,9 +119,10 @@ const getFriendWishes = () => {
             isLoading:  awaitingFriendWishes,
             isSuccess:  friendWishesHaveLoaded,
             isError:    loadingFriendWishesWasCrashed,
-            refetch:    refreshFriendWishes } = useGetFriendWishesQuery(null);
+            refetch:    refreshFriendWishes,
+            isFetching: fetchingFriendWishes } = useGetFriendWishesQuery(null);
 
-    return { friendWishes, friendWishesError, awaitingFriendWishes, friendWishesHaveLoaded, loadingFriendWishesWasCrashed, refreshFriendWishes }
+    return { friendWishes, friendWishesError, awaitingFriendWishes, friendWishesHaveLoaded, loadingFriendWishesWasCrashed, refreshFriendWishes, fetchingFriendWishes }
 }
 
 const getAllRelevantWishes = () => {
@@ -133,7 +141,9 @@ const getWishesByIdList = (ids) => {
 
 const getActualWishes = () => {
     const { userWishes } = getUserWishes();
-    return userWishes?.filter(wish => !wish?.isCompleted) || []
+    return ({
+        actualWishes: userWishes?.filter(wish => !wish?.isCompleted) || []
+    })
 }
 
 const getWishesByWishlistId = (wishlistId) => {

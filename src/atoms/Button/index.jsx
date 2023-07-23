@@ -23,10 +23,8 @@ export const Button = ({
     ...rest
 }) => {
     const classes = useMemo(() => {
-        if(!text) {
-            return className ? 'icon-button ' + className : 'icon-button'
-        };
-        let result = 'button';
+        let result = text ? 'button' : 'icon-button';
+        if(className) result += (' ' + className);
         if(kind) { result += ' ' + kind } else { result += ' secondary' };
         if(round) result += ' round';
         if(isLoading) result += ' loading';

@@ -5,15 +5,13 @@ import { apiSlice } from 'store/apiSlice'
 import   authReducer from 'store/authSlice'
 import   historyReducer from 'store/historySlice'
 import   imageReducer from 'store/imageSlice'
-import   processingReducer from 'store/processingSlice'
 
 
 const rootReducer = combineReducers({
     [apiSlice.reducerPath]: apiSlice.reducer,
     auth: authReducer,
     history: historyReducer,
-    images: imageReducer,
-    processing: processingReducer
+    images: imageReducer
 });
 
 export const store = configureStore({

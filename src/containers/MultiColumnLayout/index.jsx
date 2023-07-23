@@ -19,7 +19,6 @@ export const MultiColumnLayout = ({ Card, data, ...cardProps }) => {
     const gap = 22;
     const minWidth = 270;
     const defaultMaxWidth = 400;
-
     const [ maxWidth, setMaxWidth ] = useState(defaultMaxWidth);
 
     const containerStyles = {
@@ -27,6 +26,7 @@ export const MultiColumnLayout = ({ Card, data, ...cardProps }) => {
         flexFlow: 'row nowrap',
         width: '100%',
         gap: `${ gap }px`,
+        paddingBottom: '1rem'
     };
     const columnStyles = {
         display: 'flex',
@@ -82,7 +82,7 @@ export const MultiColumnLayout = ({ Card, data, ...cardProps }) => {
     // LIFE CYCLE //
     useEffect(() => {
         resetState();
-    },[ location ]);
+    },[ location, data ]);
 
     useEffect(() => {
         updateColumnsQty(); 

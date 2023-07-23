@@ -16,16 +16,16 @@ import { PasswordInput } from 'inputs/PasswordInput'
 
 import { getCurrentUser } from 'store/getters'
 import { useUpdateProfileMutation } from 'store/apiSlice'
-import { postImage } from 'store/imageSlice'
+import { postImage,
+         deleteImage } from 'store/imageSlice'
 
 
 export const ProfilePage = () => {
     const dispatch = useDispatch();
-    const { user } = getCurrentUser();
-    const [     updateProfile, {
-        data:   updateProfileResponse }] = useUpdateProfileMutation();
+    const { user, userHasLoaded } = getCurrentUser();
+    const [ updateProfile ] = useUpdateProfileMutation();
 
-    // setting form:
+    // FORM SETTINGS //
 
     const defaultValues = {
         id: user?.id || '',
@@ -35,27 +35,52 @@ export const ProfilePage = () => {
         newPassword: '',
         confirmPassword: '',
     }
-    const { handleSubmit, register, setValue, watch, formState } = useForm({
-        mode: 'onChange',
+
+    const { handleSubmit, register, setValue, watch, formState, trigger } = useForm({
+        mode: 'onBlur',
         defaultValues
     });
+    const [isSubmitted, setIsSubmitted] = useState(false);
+
+    useEffect(() => {
+        if(userHasLoaded && user && typeof user === 'object') {
+            for (let [key, value] of Object.entries(user)) {
+                setValue(key, value)
+            }
+            trigger()
+        }
+    },[ userHasLoaded ]);
+
+    const watchName = watch('name');
+    const watchEmail = watch('email');
     const watchNewPassword = watch('newPassword');
     const watchConfirmPassword = watch('confirmPassword');
     const passwordsNotSame = watchConfirmPassword && (watchNewPassword !== watchConfirmPassword);
 
-    // setting image:
+    useEffect(() => {
+        if(formState.isDirty) {
+            setIsSubmitted(false)
+        }
+    },[ watchName, watchEmail, watchNewPassword ])
+
+
+    // IMAGE SETTINGS //
     
     const [ image, setImage ] = useState(null);
-    const [ imageIsNew, setImageIsNew ] = useState(false);
+    const [ isNewImage, setIsNewImage ] = useState(false);
+    const [ wasImageSet, setWasImageSet ] = useState(false);
     const currentImageURL = useSelector(state => state.images.imageURLs[user?.id]);
     
     function setNewImage(file) {
         setImage(file);
-        if(!imageIsNew) setImageIsNew(true)
+        setIsSubmitted(false)
+        setIsNewImage(true)
     }
 
     useEffect(() => {
         if(!currentImageURL) return
+        // if(!currentImageURL || wasImageSet) return
+
         
         async function setImageFromURL() {
             await fetch(currentImageURL)
@@ -63,40 +88,39 @@ export const ProfilePage = () => {
                 .then(blob => setImage(blob))
                 .catch(err => console.error(err))
         };
-        setImageFromURL()
-    },[ currentImageURL ]);
+        setImageFromURL();
+        setWasImageSet(true)
+    },[ currentImageURL, wasImageSet ]);
     
-    //form methods:
+    // FORM SUBMITTING //
 
     const onSubmit = async (data, e) => {
         e.preventDefault();
         e.stopPropagation();
         
         updateProfile(data);
-        if(image && imageIsNew) {
+        
+        if(image && isNewImage) {
             dispatch(postImage({
                 id: data.id,
                 file: image,
                 drive: 'avatars'
-            }));
+            }))
         }
+        if(!image) {
+            dispatch(deleteImage({
+                id: data.id,
+                drive: 'avatars'
+            }))
+        }
+        setIsSubmitted(true)
     }
-
-    useEffect(() => {
-        if(!image) console.log('image was discarded')
-    },[ image ])
 
     useEffect(() => {
         if(!watchNewPassword) setValue('confirmPassword', '')
     },[ watchNewPassword ])
-
-    useEffect(() => {
-        if(updateProfileResponse) {
-            console.log(updateProfileResponse)
-        }
-    },[ updateProfileResponse ])
     
-    // align labels:
+    // ALIGNMENTS //
 
     const [maxLabelWidth, setMaxLabelWidth] = useState(null);
 
@@ -144,7 +168,6 @@ export const ProfilePage = () => {
                                 <TextInput
                                     name='name'
                                     register={ register }
-                                    // placeholder='AmonRa'
                                     label='Никнейм'
                                     labelWidth={ maxLabelWidth }
                                     required
@@ -155,7 +178,6 @@ export const ProfilePage = () => {
                                     register={ register }
                                     type='email'
                                     patternType='email'
-                                    placeholder='sun@inner.space'
                                     label='email'
                                     labelWidth={ maxLabelWidth }
                                     required
@@ -186,10 +208,11 @@ export const ProfilePage = () => {
                                     <Button
                                         type='submit'
                                         kind='primary'
-                                        text='Сохранить изменения'
-                                        icon='ok'
+                                        text={ isSubmitted ? 'Изменения сохранены' : 'Сохранить изменения'}
+                                        icon={isSubmitted ? 'ok' : 'save'}
                                         round
                                         disabled={
+                                            isSubmitted ||
                                             !formState.isValid ||
                                             formState.isSubmitting ||
                                             passwordsNotSame

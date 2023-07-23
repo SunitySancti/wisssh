@@ -12,7 +12,9 @@ import { Icon } from 'atoms/Icon'
 import { NavbarEllipsis } from 'atoms/Preloaders'
 import { WithTooltip } from 'atoms/WithTooltip'
 
-import { getWishlistById,
+import { getUserWishes,
+         getFriendWishes,
+         getWishlistById,
          getWishById,
          getLoadingStatus } from 'store/getters'
 
@@ -27,14 +29,16 @@ export const BreadCrumbs = () => {
 
     const wishlist = getWishlistById(wishlistId);
     const wish = getWishById(wishId);
-    const { awaitingWishes,
+    const { userWishes } = getUserWishes();
+    const { friendWishes } = getFriendWishes();
+    const { awaitingUserWishes,
+            awaitingWishes,
             awaitingWishlists } = getLoadingStatus();
 
     const itemsModeOptions = useMemo(() => {
-        const pathElems = location.split('/');
-        const section = pathElems[1];
-        const isNew = (pathElems[3] === 'new');
-        const isWishEditing = (pathElems[5] === 'editing');
+        const [, section, , newMark, , wishEditMark] = location.split('/');
+        const isNew = newMark === 'new';
+        const isWishEditing = wishEditMark === 'editing';
 
         let options = [];
         switch (section) {
@@ -47,15 +51,10 @@ export const BreadCrumbs = () => {
                     text: 'Исполненные'
                 }, {
                     to: '/my-wishes/items/all',
-                    text: 'Все'
+                    text: userWishes?.length
+                        ? `Все (${userWishes.length})`
+                        : 'Все'
                 }];
-
-                if(isWishEditing) {
-                    options.push({
-                        to: location,
-                        text: wish?.title ? wish.title + ': редактирование' : 'Желание не найдено'
-                    })
-                }
 
                 if(isNew) {
                     options.push({
@@ -74,22 +73,35 @@ export const BreadCrumbs = () => {
                     text: 'Подарено'
                 }, {
                     to: '/my-invites/items/all',
-                    text: 'Все'
+                    text: friendWishes?.length
+                    ? `Все (${friendWishes.length})`
+                    : 'Все'
                 }];
         }
         return <>
-            { options.map((option, index) => <>
-                { isWishEditing && index === 3 &&
+            {   options.map((option, index) =>
+                    <NavLink
+                        key={ index }
+                        className='nav-elem option'
+                        to={ option.to }
+                        children={ option.text }
+                        end={ isWishEditing }
+                    />
+            )}
+            { isWishEditing &&
+                <>
                     <div className='nav-elem'>/</div>
-                }
-                <NavLink
-                    key={ index }
-                    className='nav-elem option'
-                    to={ option.to }
-                    children={ option.text }
-                    end={ isWishEditing }
-                />
-            </>)}
+                    { awaitingUserWishes
+                        ?   <NavbarEllipsis/>
+                        :   <NavLink
+                                className='nav-elem option'
+                                to={ location }
+                                children={ wish.title + ': редактирование' }
+                                end
+                            />
+                    }
+                </>
+            }
             { !isNew && section === 'my-wishes' &&
                 <WithTooltip
                     trigger={
@@ -104,13 +116,16 @@ export const BreadCrumbs = () => {
             }
         </>
     },[ location,
-        wish?.title
+        wish?.title,
+        userWishes?.length,
+        friendWishes?.length
     ]);
 
     const listsModeOptions = useMemo(() => {
-        const pathElements = location.split('/');
-        const section = pathElements[1];
-        const isNew = pathElements[3] === 'new';
+        const [, section, , newMark, wishlistEditMark, wishEditMark] = location.split('/');
+        const isNew = newMark === 'new';
+        const isWishlistEditing = wishlistEditMark === 'editing';
+        const isWishEditing = wishEditMark === 'editing';
         
         return <>
             <NavLink
@@ -120,48 +135,70 @@ export const BreadCrumbs = () => {
                 end
             />
 
-            { wishlistId && <div className='nav-elem'>/</div> }
-            { awaitingWishlists
-                ?   <NavbarEllipsis/>
-                : wishlist?.title &&
-                    <NavLink
-                        className='nav-elem option'
-                        to={ `/${ section }/lists/${ wishlistId }` }
-                        children={ wishlist?.title || 'Вишлист не найден' }
-                        end
-                    />
+            { wishlistId &&
+                <>
+                    <div className='nav-elem'>/</div>
+                    { awaitingWishlists
+                        ?   <NavbarEllipsis/>
+                        : isWishlistEditing
+                        ?   <NavLink
+                                className='nav-elem option'
+                                to={ location }
+                                children={ wishlist?.title + ': редактирование' }
+                                end
+                            />
+                        : wishlist?.title &&
+                            <NavLink
+                                className='nav-elem option'
+                                to={ `/${ section }/lists/${ wishlistId }` }
+                                children={ wishlist?.title || 'Вишлист не найден' }
+                                end
+                            />
+                    }
+                </>
             }
             
-            { wishlist?.title && wishId && <div className='nav-elem'>/</div> }
-            { wishlist?.title && wishId && awaitingWishes
-                ?   <NavbarEllipsis/>
-                : wish?.title &&
-                    <NavLink
-                        className='nav-elem option'
-                        to={ `/${ section }/lists/${ wishlistId }/${ wishId }` }
-                        children={ wish?.title || 'Желание не найдено' }
-                        end
-                    />
+            { wishlist?.title && wishId &&
+                <>
+                    <div className='nav-elem'>/</div>
+                    { awaitingWishes
+                    ?   <NavbarEllipsis/>
+                    : isWishEditing
+                    ?   <NavLink
+                            className='nav-elem option'
+                            to={ location }
+                            children={ wish?.title + ': редактирование' }
+                            end
+                        />
+                    : wish?.title &&
+                        <NavLink
+                            className='nav-elem option'
+                            to={ `/${ section }/lists/${ wishlistId }/${ wishId }` }
+                            children={ wish?.title || 'Желание не найдено' }
+                            end
+                        />
+                    }
+                </>
             }
 
-            { isNew
-                ?   <NavLink
-                        className='nav-elem option'
-                        to='/my-wishes/lists/new'
-                        children='Новый вишлист'
-                        end
-                    />
-                : !wishlistId && !wishId && section === 'my-wishes' &&
-                    <WithTooltip
-                        trigger={
-                            <Link
-                                className='icon-link'
-                                to='/my-wishes/lists/new'
-                                children={ <Icon name='plus'/> }
-                            />
-                        }
-                        text='Новый вишлист'
-                    />
+            { isNew && !wishlistEditMark && !wishEditMark
+            ?   <NavLink
+                    className='nav-elem option'
+                    to='/my-wishes/lists/new'
+                    children='Новый вишлист'
+                    end
+                />
+            : !wishlistId && !wishId && section === 'my-wishes' &&
+                <WithTooltip
+                    trigger={
+                        <Link
+                            className='icon-link'
+                            to='/my-wishes/lists/new'
+                            children={ <Icon name='plus'/> }
+                        />
+                    }
+                    text='Новый вишлист'
+                />
             }
         </>
     },[ location,
@@ -225,7 +262,7 @@ export const BreadCrumbs = () => {
     useEffect(() => {
         startSliderMove();
         setTimeout(finishSliderMove, 300);
-    },[location, currentTab?.innerHTML]);
+    },[ location, currentTab?.innerHTML, userWishes?.length, friendWishes?.length ]);
 
     return (
         <div className='bread-crumbs'>

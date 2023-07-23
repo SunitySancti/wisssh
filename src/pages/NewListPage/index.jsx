@@ -16,8 +16,8 @@ import { LineContainer } from 'containers/LineContainer'
 import { generateUniqueId,
          formatDateToArray } from 'utils'
 import { usePostWishlistMutation } from 'store/apiSlice'
-import { getActualWishes,
-         getCurrentUser,
+import { getCurrentUser,
+         getActualWishes,
          getWishlistById } from 'store/getters'
 import { promoteImages } from 'store/imageSlice'
 
@@ -25,34 +25,45 @@ export const NewListPage = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     
-    const [ , , , wishlistId, editing ] = useLocation().pathname?.split('/');
+    const location = useLocation().pathname;
+    const [ , , , wishlistId, editing ] = location?.split('/');
     const isNewWishlist = (wishlistId === 'new');
     const isEditing = (editing === 'editing');
 
+    const [ postWishlist,{ isLoading: awaitPostWishlist }] = usePostWishlistMutation();
     const { user } = getCurrentUser();
-    const actualWishes = getActualWishes();
+    const { actualWishes } = getActualWishes();
     const actualWishIds = actualWishes?.map(wish => wish.id);
     const editingWishlist = getWishlistById(wishlistId);
-    const [ postWishlist,{ isLoading: awaitPostWishlist }] = usePostWishlistMutation();
 
     // FORM SETTINGS //
 
-    const defaultValues = isNewWishlist && !isEditing
-        ? {
-            id: '',
-            invitationCode: '',
-            title: '',
-            author: user?.id,
-            description: '',
-            wishes: [],
-            date: formatDateToArray(new Date()),
-        }
-        :   editingWishlist
+    const defaultValues = {
+        id: '',
+        invitationCode: '',
+        title: '',
+        author: user?.id,
+        description: '',
+        wishes: [],
+        date: formatDateToArray(new Date()),
+    }
 
     const { handleSubmit, register, reset, control, formState, setValue } = useForm({
         mode: 'onChange',
         defaultValues
     });
+
+    useEffect(() => {
+        if(editingWishlist && isEditing) {
+            for (let [key, value] of Object.entries(editingWishlist)) {
+                setValue(key, value)
+            }
+        } else {
+            for (let [key, value] of Object.entries(defaultValues)) {
+                setValue(key, value)
+            }
+        }
+    },[ editingWishlist?.id, location ]);
 
     async function setIdAndInvitationCode() {
         const id = await generateUniqueId();
@@ -77,7 +88,6 @@ export const NewListPage = () => {
     
     const onSubmit = async (data, e) => {
         e.preventDefault();
-        console.log(data)
         postWishlist(data);
         navigate(`/my-wishes/lists/${ data.id }`)
     }
@@ -191,11 +201,11 @@ export const NewListPage = () => {
                     <Button
                         type='submit'
                         kind='primary'
-                        text='Сохранить желание'
-                        icon='ok'
+                        text='Сохранить вишлист'
+                        icon='save'
                         round
                         onClick={ handleSubmit(onSubmit) }
-                        disabled={ !formState.isValid }
+                        disabled={ formState.isDirty && !formState.isValid }
                         isLoading={ formState.isSubmitting || awaitPostWishlist }
                     />
                 </LineContainer>

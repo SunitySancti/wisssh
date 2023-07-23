@@ -1,12 +1,14 @@
 import   React,
-       { useMemo,
+       { useState,
+         useMemo,
          useRef } from 'react'
 import { useNavigate,
          useLocation } from 'react-router-dom'
-import { useSelector } from 'react-redux'
+import { useSelector,
+         useDispatch } from 'react-redux'
 
 import './styles.scss'
-import { KebapBackground } from 'atoms/Icon'
+import { Icon, KebapBackground } from 'atoms/Icon'
 import { Button } from 'atoms/Button'
 import { User } from 'atoms/User'
 import { StarRating } from 'inputs/StarRating'
@@ -26,7 +28,61 @@ import { copyWishCover } from 'store/imageSlice'
 import { generateUniqueId } from 'utils'
 
 
-export const WishCover = ({ wish, withUserPic }) => {
+export const StatusBar = ({ wish, onCard }) => {
+    const { user } = getCurrentUser();
+    const innerRef = useRef(null);
+    const defaultWidth = 34;
+    const [width, setWidth] = useState(defaultWidth);
+
+    const showText = e => {
+        if(onCard) {
+            const width = innerRef.current?.offsetWidth;
+            setWidth(width + 22 || defaultWidth)
+        }
+    }
+    const hideText = e => {
+        if(onCard) {
+            setWidth(defaultWidth)
+        }
+    }
+
+    let text, icon;
+    if(wish.isCompleted) {
+        text = 'Желание исполнено';
+        icon = 'completed';
+
+        if(wish.author !== user?.id && wish.reservedBy === user?.id) {
+            text += ' вами'
+        }
+    } else if(wish.reservedBy) {
+        if(wish.reservedBy === user?.id) {
+            text = 'Вы исполняете это желание'
+        } else {
+            text = 'Желание исполняется'
+        }
+        icon = 'inProgress'
+    }
+
+    return ( text &&
+        <div
+            className={ onCard ? 'status-bar on-card' : 'status-bar' }
+            onClick={e => e.stopPropagation()}
+            onMouseEnter={ showText }
+            onMouseLeave={ hideText }
+            style={onCard ? { width } : null}
+        >
+            <div
+                className='inner-container'
+                ref={ innerRef }
+            >
+                <Icon name={ icon } size={ 34 }/>
+                <span>{ text }</span>
+            </div>
+        </div>
+    )
+}
+
+export const WishCover = ({ wish, withUserPic, onCard }) => {
     const author = getUserById(wish?.author);
     const imageURL = useSelector(state => state.images?.imageURLs[wish?.id]);
     const isLoading = useSelector(state => state.images?.loading[wish?.id]);
@@ -46,6 +102,9 @@ export const WishCover = ({ wish, withUserPic }) => {
                     onClick={e => e.stopPropagation()}
                 />
             }
+            { onCard &&
+                <StatusBar wish={ wish } onCard={ onCard }/>
+            }
             { imageURL
                 ? <img src={ imageURL }/>
                 : <WishPreloader isLoading={ isLoading }/>
@@ -58,68 +117,63 @@ export const WishButton = ({ wish }) => {
     const isCurrentUserWish = useLocation().pathname.split('/').at(1) === 'my-wishes';
 
     const { user } = getCurrentUser();
-    const [ completeWish, completeWishReturn ] = useCompleteWishMutation();
-    const [ uncompleteWish, uncompleteWishReturn ] = useUncompleteWishMutation();
-    const [ reserveWish, reserveWishReturn ] = useReserveWishMutation();
-    const [ unreserveWish, unreserveWishReturn ] = useUnreserveWishMutation();
+    const [ completeWish ] = useCompleteWishMutation();
+    const [ reserveWish ] = useReserveWishMutation();
+    const [ unreserveWish ] = useUnreserveWishMutation();
 
     const buttonProps = useMemo(() => {
-        if(!wish?.id) return {}
-
-        if(wish.isCompleted) {  // completed wishes of any user
-            // Для желания текущего юзера добавить отмену исполнения
+        if(!wish || typeof wish !== 'object' || wish.isCompleted) return null
+        
+        if(isCurrentUserWish) { // actual and reserved wishes of current user
             return {
-                icon: 'ok',
-                text: 'Желание исполнено',
-                disabled: true,
-            }
-        } else if(isCurrentUserWish) {  // actual and reserved wishes of current user
-            return {
-                icon: 'ok',
+                icon: 'completed',
                 text: 'Отметить исполненным',
                 onClick: () => completeWish(wish.id),
             }
-        } else if(!wish.reservedBy) {   // actual wishes of other users
+        } else if(!wish.reservedBy) { // actual wishes of other users
             return {
-                icon: 'present',    // Заменить на magicWand
+                icon: 'magicWand',
                 text: 'Исполнить желание',
+                kind: 'primary',
                 onClick: () => reserveWish(wish.id),
             }
-        } else if(wish.reservedBy === user?.id) {
-            // Добавить отмену резервирования
+        } else if(wish.reservedBy === user?.id) { // reserved by current user
             return {
-                icon: 'star',   // Заменить на processing
-                text: 'Вы исполняете это желание',
-                disabled: true,
-            }
-        } else {
-            return {
-                icon: 'lock',
-                text: 'Зарезервировано',                
-                disabled: true,
+                icon: 'cancel',
+                text: 'Отменить резервирование',
+                onClick: () => unreserveWish(wish.id),
             }
         }
     });
 
-    return <Button {...buttonProps }/>
+    return buttonProps
+        ? <Button {...buttonProps }/>
+        : null
 }
 
 export const WishMenu = ({ wish }) => {
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const location = useLocation().pathname;
-    const [, section, mode, tabOrWishlistId ] = location.split('/');
+    const [, section, mode, tabOrWishlistId, wishId ] = location.split('/');
     const isCurrentUserWish = section === 'my-wishes';
 
     const { user } = getCurrentUser();
     const deleteModalRef = useRef(null);
     const uncompleteModalRef = useRef(null);
 
-    const [ postWish, postWishReturn ] = usePostWishMutation();
-    const [ deleteWish, deleteWishReturn ] = useDeleteWishMutation();
-    const [ completeWish, completeWishReturn ] = useCompleteWishMutation();
-    const [ uncompleteWish, uncompleteWishReturn ] = useUncompleteWishMutation();
-    const [ reserveWish, reserveWishReturn ] = useReserveWishMutation();
-    const [ unreserveWish, unreserveWishReturn ] = useUnreserveWishMutation();
+    const [ postWish ] = usePostWishMutation();
+    const [ deleteWish ] = useDeleteWishMutation();
+    const [ completeWish ] = useCompleteWishMutation();
+    const [ uncompleteWish ] = useUncompleteWishMutation();
+    const [ reserveWish ] = useReserveWishMutation();
+    const [ unreserveWish ] = useUnreserveWishMutation();
+
+    const handleEdit = (e) => {
+        e.stopPropagation();
+        const path = [, section, mode, tabOrWishlistId, wish.id, 'editing'].join('/')
+        navigate(path)
+    }
 
     const handleCopy = async (e) => {
         e.stopPropagation();
@@ -132,7 +186,8 @@ export const WishMenu = ({ wish }) => {
             author: user.id,
             inWishlists: [],
             reservedBy: '',
-            isCompleted: false
+            isCompleted: false,
+            completedAt: null
         }
         postWish(newWish);
         if(wish.imageExtension) {
@@ -151,7 +206,8 @@ export const WishMenu = ({ wish }) => {
 
         deleteWish(wish.id);
         deleteModalRef?.current?.hideModal(e);
-        navigate(['/my-wishes', mode, tabOrWishlistId].join('/'),{ replace: true })
+        const path = ['/my-wishes', mode, tabOrWishlistId].join('/');
+        navigate('/redirect',{ state:{ to: path }})
     }
 
     const handleComplete = (e) => {
@@ -159,7 +215,12 @@ export const WishMenu = ({ wish }) => {
         if(!wish?.id) return
 
         completeWish(wish.id);
-        navigate('/redirect',{ state:{ to: location }})
+
+        if((mode === 'items') && (wishId === wish.id)) {
+            navigate('/' + section + '/items/completed/' + wishId)
+        } else {
+            navigate('/redirect',{ state:{ to: location }})
+        }
     }
 
     const handleActualize = (e) => {
@@ -168,7 +229,12 @@ export const WishMenu = ({ wish }) => {
 
         uncompleteWish(wish.id);
         uncompleteModalRef?.current?.hideModal(e);
-        navigate('/redirect',{ state:{ to: location }})
+
+        if((mode === 'items') && (wishId === wish.id)) {
+            navigate('/my-wishes/items/actual/' + wishId)
+        } else {
+            navigate('/redirect',{ state:{ to: location }})
+        }
     }
 
     const dropdownOptions = useMemo(() => {
@@ -184,8 +250,8 @@ export const WishMenu = ({ wish }) => {
         if(isCurrentUserWish) {
             result = [{
                 icon: 'edit',
-                text: 'Редактировать',
-                onClick: () => navigate('/my-wishes/items/' + wish.id + '/editing')
+                text: 'Редактировать желание',
+                onClick: handleEdit
             },{
                 icon: 'copy',
                 text: 'Создать копию',
@@ -197,13 +263,13 @@ export const WishMenu = ({ wish }) => {
             }];
             if(wish.isCompleted) {
                 result.push({
-                    icon: 'undo',
+                    icon: 'actualize',
                     text: `Актуализировать`,
                     onClick: (e) => uncompleteModalRef?.current?.showModal(e)
                 })
             } else {
                 result.push({
-                    icon: 'ok',
+                    icon: 'completed',
                     text: 'Отметить исполненным',
                     onClick: handleComplete,
                 })
@@ -217,7 +283,7 @@ export const WishMenu = ({ wish }) => {
             if(!wish.isCompleted) {
                 if(!wish.reservedBy) {
                     result.push({
-                        icon: 'present',    // Заменить на magicWand
+                        icon: 'magicWand',
                         text: 'Исполнить желание',
                         onClick: () => reserveWish(wish.id),
                     })
@@ -227,7 +293,7 @@ export const WishMenu = ({ wish }) => {
                         text: 'Отменить резервирование',
                         onClick: () => unreserveWish(wish.id),
                     },{
-                        icon: 'ok',
+                        icon: 'completed',
                         text: 'Желание исполнено!',
                         onClick: handleComplete,
                     })
@@ -238,7 +304,11 @@ export const WishMenu = ({ wish }) => {
         return result
     },[ isCurrentUserWish,
         wish?.id,
-        wish?.isCompleted
+        wish?.isCompleted,
+        wish?.reservedBy,
+        handleEdit,
+        handleCopy,
+        handleComplete
     ]);
 
     const deleteModalProps = {
@@ -258,16 +328,16 @@ export const WishMenu = ({ wish }) => {
 
     const uncompleteModalProps = {
         header: 'Пожалуйста, подтвердите действие',
-        body: `Не рекомендуется актуализировать желание, если оно было исполнено. Если вы хотите создать ещё одно такое же желание, используйте "Создать копию"`,
+        body: `Желание будет отмечено как неисполненное. Рассматривайте актуализацию желания как отмену ошибочной отметки об исполнении. Не рекомендуется использовать актуализацию для создания нового желания по шаблону исполненного — для этого лучше подойдет действие "Создать копию"`,
         actions: [{
+            icon: 'actualize',
+            text: 'Актуализировать',
+            onClick: handleActualize
+        }, {
+            kind: 'primary',
             icon: 'cancel',
             text: 'Отмена',
             onClick: (e) => uncompleteModalRef?.current?.hideModal(e)
-        }, {
-            kind: 'negative primary',
-            icon: 'delete',
-            text: 'Актуализировать желание',
-            onClick: handleActualize
         }]
     }
 

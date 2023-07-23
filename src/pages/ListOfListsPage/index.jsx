@@ -5,10 +5,9 @@ import { useNavigate,
          useLocation } from 'react-router'
 
 import './styles.scss'
-import { WishlistLine } from 'molecules/WishlistLine'
-import { Button } from 'atoms/Button'
-import { LineContainer } from 'containers/LineContainer'
+import { WishlistHeader } from 'molecules/WishlistHeader'
 import { WishPreloader } from 'atoms/Preloaders'
+import { Plug } from 'atoms/Plug'
 
 import { getDaysToEvent,
          sortByDateAscend,
@@ -24,6 +23,7 @@ export const ListOfListsPage = () => {
     const section = location.split('/').at(1);
     const isInvite = section === 'my-invites';
 
+    const { awaitingWishlists: isLoading } = getLoadingStatus();
     const { userWishlists,
             userWishlistsHaveLoaded } = getUserWishlists();
     const { invites,
@@ -35,7 +35,6 @@ export const ListOfListsPage = () => {
     const isSuccess = (section === 'my-wishes') ? userWishlistsHaveLoaded
                     : (section === 'my-invites') ? invitesHaveLoaded : false;
 
-    const { awaitingWishlists: isLoading } = getLoadingStatus();
     
     const pastEvents = useMemo(() => {
         if(wishlists instanceof Array || wishlists?.length) {
@@ -61,7 +60,7 @@ export const ListOfListsPage = () => {
         const thisNode = document.getElementById(wishlistId);
         const allNodes = document.querySelectorAll(`.list-of-lists-page > div`);
         const workSpace = document.querySelector('.work-space');
-        const navbar = document.querySelector('.navbar');
+        const navbar = document.querySelector('.navbar > .scroll-box > .content');
 
         const currentCoords = thisNode.getBoundingClientRect();
         const navbarCoords = navbar.getBoundingClientRect();
@@ -80,7 +79,7 @@ export const ListOfListsPage = () => {
         }
         const thirdStep = () => {
             thisNode.style.top = `${navbarCoords.y + navbarCoords.height}px`
-            thisNode.style.padding = `1rem 2rem`;
+            thisNode.style.padding = `2rem`;
             navbar.classList.remove('with-shadow');
         }
         const lastStep = () => {
@@ -96,7 +95,7 @@ export const ListOfListsPage = () => {
 
     const mapWishlists = (items = [], ) => {
         return items.map((item, index) => (
-            <WishlistLine
+            <WishlistHeader
                 wishlist={ item }
                 onClick={() => handleClick(item?.id)}
                 key={ index }
@@ -111,28 +110,21 @@ export const ListOfListsPage = () => {
             </div>
         :   <div className='list-of-lists-page'>
                 { isSuccess && !wishlists?.length &&
-                    <LineContainer
-                        className='not-found'
-                        children={ isInvite
-                            ?  <span>Вас пока не пригласили в вишлисты</span>
-                            :   <>
-                                    <span>У вас нет вишлистов</span>
-                                    <Button
-                                        kind='primary'
-                                        text='Создадим ?'
-                                        onClick={() => navigate('/my-wishes/lists/new')}
-                                        round
-                                    />
-                                </>
+                    <>
+                        { isInvite
+                            ?   <Plug message='Вас пока не пригласили в вишлисты'/>
+                            :   <Plug
+                                    message='У вас пока нет вишлистов'
+                                    btnText='Создать первый вишлист'
+                                    navPath='/my-wishes/lists/new'
+                                />
                         }
-                    />
+                    </>
                 }
                 { actualEvents?.length
                     ?   mapWishlists(actualEvents)
-                    :   <LineContainer
-                            className='not-found'
-                            children={ <span>Нет предстоящих событий</span> }
-                        />
+                    :   !!wishlists?.length &&
+                            <Plug message='Нет предстоящих событий'/>
                 }
                 { pastEvents?.length
                     ?   <>

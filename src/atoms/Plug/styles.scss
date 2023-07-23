@@ -1,0 +1,12 @@
+@import '../../_style-config';
+
+.plug {
+    padding: 2rem;
+    font: $action;
+    color: $gray2;
+    display: flex;
+    flex-flow: row wrap;
+    align-items: center;
+    gap: 2rem;
+    width: 100%;
+}

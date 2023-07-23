@@ -1,26 +1,21 @@
 import   React,
        { useMemo } from 'react'
-import { useNavigate,
-         useLocation } from 'react-router-dom'
 
 import './styles.scss'
 import { User } from 'atoms/User'
-import { WishlistLinePointer } from 'atoms/Icon'
-import { Button } from 'atoms/Button'
-import { WithDropDown } from 'atoms/WithDropDown'
+import { WithTooltip } from 'atoms/WithTooltip'
+import { WishlistHeaderPointer } from 'atoms/Icon'
+import { WishlistMenu } from 'molecules/WishlistStuff/index.jsx'
 
 import { getUserById } from 'store/getters'
 
 
-export const WishlistLine = ({
+export const WishlistHeader = ({
     wishlist,
     onWishlistPage,
-    setAndOpenDeletingModal,
     isDeleting,
     ...rest
 }) => {
-    const navigate = useNavigate();
-    const isInvite = useLocation().pathname.split('/').at(1) === 'my-invites';
     const author = getUserById(wishlist?.author);
 
     const TimeInfo = () => {
@@ -32,7 +27,7 @@ export const WishlistLine = ({
 
         // проверка на число:
 
-        if(!(String(parseInt(daysToEvent, 10)) === String(daysToEvent))) return null;
+        if(String(parseInt(daysToEvent, 10)) !== String(daysToEvent)) return null;
 
         if((daysToEvent > 2) && (daysToEvent < 7)) {
             const lastNum = parseInt(daysToEvent.toString().at(-1));
@@ -71,36 +66,8 @@ export const WishlistLine = ({
         }
     }
 
-    // DROPDOWN SETTINGS //
-
-    function copyInvitationLink(e) {
-        e.stopPropagation();
-        e.preventDefault();
-        const url = window.location.origin + '/share/' + wishlist.invitationCode;
-        navigator.clipboard.writeText(url)
-    }
-
-    const dropdownOptions =  [{
-        icon: 'copy',
-        text: 'Копировать ссылку',
-        clickedIcon: 'ok',
-        clickedText: 'Ссылка скопирована',
-        dontHideAfterClick: true,
-        onClick: copyInvitationLink,
-    },{
-        icon: 'edit',
-        text: 'Редактировать',
-        onClick: () => navigate('/my-wishes/lists/' + wishlist.id + '/editing')
-    },{
-        icon: 'delete',
-        text: isInvite
-            ? 'Удалить из списка приглашений'
-            : 'Удалить вишлист',
-        onClick: (e) => setAndOpenDeletingModal(e, wishlist)
-    }];
-
     const classes = useMemo(() => {
-        let result = 'wishlist-line';
+        let result = 'wishlist-header';
         if(onWishlistPage) result += ' selected on-wishlist-page'
         if(isDeleting) result += ' deleted'
         return result
@@ -112,20 +79,28 @@ export const WishlistLine = ({
             id={ wishlist?.id }
             { ...rest }
         >
-            <User user={ author } picSize={ 6 } picOnly />
+            <WithTooltip
+                trigger={ <User user={ author } picSize={ 6 } picOnly />}
+                text={ author?.name }
+            />
+            
 
-            <div className='title-container'>
-                <WishlistLinePointer/>
-                <div className='title'>{ wishlist?.title }</div>
+            <div className='wishlist-body'>
+                <div className='preview-container'>
+                    <div className='title-container'>
+                        <WishlistHeaderPointer/>
+                        <div className='title'>{ wishlist?.title }</div>
+                    </div>
+                    <span className='description line'>{ wishlist?.description }</span>
+                    <TimeInfo/>
+                </div>
+                { wishlist?.description &&
+                    <span className='description full'>{ wishlist?.description }</span>
+                }
             </div>
 
-            <span className='description'>{ wishlist?.description }</span>
 
-            <TimeInfo/>
-            <WithDropDown
-                trigger={ <Button icon='kebap' size={ 4 }/> }
-                options={ dropdownOptions }
-            />
+            <WishlistMenu {...{ wishlist }}/>
         </div>
     );
 }

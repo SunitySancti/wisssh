@@ -17,7 +17,7 @@ export const UserPic = ({ imageURL, isLoading, size }) => {
         colorTheme: 'light',
         strokeWidth: 6,
     }
-
+    
     return (
         <div className='user-pic' style={{
             minWidth: `${size}rem`,
@@ -38,6 +38,7 @@ export const User = ({
     tooltip,
     ...rest
 }) => {
+    
     const imageURL = useSelector(state => state.images?.imageURLs[user?.id]);
     const isLoading = useSelector(state => state.images?.loading[user?.id]);
 

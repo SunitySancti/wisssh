@@ -34,8 +34,8 @@ export const SectionSwitcher = ({ isShort }) => {
     const navigate = useNavigate();
     const handleLogoClick = __DEV_MODE__
         ? async () => {
-            await fetch(__API_URL__ + '/consistency/run-checking')
-            // console.log(state)
+            // await fetch(__API_URL__ + '/consistency/update')
+            console.log(state)
         }
         : () => navigate('/my-wishes/items/actual')
 
@@ -162,6 +162,7 @@ export const SectionSwitcher = ({ isShort }) => {
                     <Goo/>
                 </div>
                 <LogoIcon isShort={ isShort }/>
+                <div className='beta'>Beta</div>
             </button>
             
             <div

@@ -27,6 +27,11 @@ export const WishlistMenu = ({ wishlist }) => {
         const url = window.location.origin + '/share/' + wishlist.invitationCode;
         navigator.clipboard.writeText(url)
     }
+    
+    const handleEdit = (e) => {
+        e.stopPropagation();
+        navigate('/my-wishes/lists/' + wishlist.id + '/editing')
+    }
 
     const handleDelete = (e) => {
         e.stopPropagation();
@@ -42,26 +47,32 @@ export const WishlistMenu = ({ wishlist }) => {
         navigate('/' + section + '/lists')
     }
 
-    const dropdownOptions = useMemo(() => ([{
-        icon: 'copy',
-        text: 'Копировать ссылку',
-        clickedIcon: 'ok',
-        clickedText: 'Ссылка скопирована',
-        dontHideAfterClick: true,
-        onClick: copyInvitationLink,
-    },{
-        icon: 'edit',
-        text: 'Редактировать',
-        onClick: () => navigate('/my-wishes/lists/' + wishlist.id + '/editing')
-    },{
-        icon: 'delete',
-        text: isInvite
-            ? 'Удалить из списка приглашений'
-            : 'Удалить вишлист',
-        onClick: (e) => deleteModalRef?.current?.showModal(e)
-    }]),[
-        wishlist,
-        navigate,
+    const dropdownOptions = useMemo(() => {
+        return isInvite
+            ?   [{
+                    icon: 'delete',
+                    text: 'Удалить из списка приглашений',
+                    onClick: (e) => deleteModalRef?.current?.showModal(e)
+                }]
+            :   [{
+                    icon: 'copy',
+                    text: 'Скопировать пригласительную ссылку',
+                    clickedIcon: 'ok',
+                    clickedText: 'Ссылка скопирована',
+                    dontHideAfterClick: true,
+                    onClick: copyInvitationLink,
+                },{
+                    icon: 'edit',
+                    text: 'Редактировать вишлист',
+                    onClick: handleEdit
+                },{
+                    icon: 'delete',
+                    text: 'Удалить вишлист',
+                    onClick: (e) => deleteModalRef?.current?.showModal(e)
+                }]
+    },[
+        isInvite,
+        handleEdit,
         copyInvitationLink
     ]);
 

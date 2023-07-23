@@ -9,9 +9,11 @@ import './styles.scss'
 import { WithDropDown } from 'atoms/WithDropDown'
 import { UserPic } from 'atoms/User'
 
+import { compressAndDoSomething } from 'inputs/ImageInput'
 import { postImage,
          promoteImages } from 'store/imageSlice'
 import { getCurrentUser } from 'store/getters'
+import { useUpdateProfileMutation } from 'store/apiSlice'
 
 
 export const UserGroup = ({ isShort }) => {
@@ -20,17 +22,21 @@ export const UserGroup = ({ isShort }) => {
     const dropdownRef = useRef(null);
 
     const { user } = getCurrentUser();
+    const [ updateProfile ] = useUpdateProfileMutation();
     const imageURL = useSelector(state => state.images?.imageURLs[user?.id]);
     const isLoading = useSelector(state => state.images?.loading[user?.id]);
+    const shouldSwowImage = (imageURL || isLoading) && user?.imageExtension;
 
     useEffect(() => {
-        dispatch(promoteImages(user?.id))
+        if(user?.imageExtension) {
+            dispatch(promoteImages(user?.id))
+        }
     },[ user?.id ]);
 
     const dropdownOptions = [
         {
-            text: imageURL || isLoading ? 'Поменять аватарку' : 'Загрузить аватарку',
-            icon: imageURL || isLoading ? 'change' : 'upload',
+            text: shouldSwowImage ? 'Поменять аватарку' : 'Загрузить аватарку',
+            icon: shouldSwowImage ? 'change' : 'upload',
             onClick: () => document.getElementById('uploadUserAvatar').click()
         },{
             text: 'Настройки профиля',
@@ -46,8 +52,25 @@ export const UserGroup = ({ isShort }) => {
     function handleImagePick(e)  {
         dropdownRef.current?.closeDropDown();
         const file = e.target.files[0];
-        if(!file) return;
-        dispatch(postImage({ id: user?.id, file, drive: 'avatars' }));
+        if(!file || !user?.id) return;
+        const handlePostImage = (file) => {
+            dispatch(postImage({ id: user.id, file, drive: 'avatars' }));
+        }
+        const compressOptions = {
+            maxWidth: 440,
+            maxHeight: 440,
+            quality: 0.6,
+            softCompress: true
+        }
+        compressAndDoSomething(file, handlePostImage, compressOptions);
+        
+        let extension = file?.type?.split('/').at(-1);
+        if(extension === 'jpeg' || extension === 'pjpeg') {
+            extension = 'jpg'
+        } else if(extension !== 'png') {
+            return
+        }
+        updateProfile({ extension });
     }
     
 
@@ -60,14 +83,18 @@ export const UserGroup = ({ isShort }) => {
                         <input
                             id='uploadUserAvatar'
                             type='file'
-                            accept='image/*'
+                            accept='image/png, image/jpeg'
                             onChange={ handleImagePick }
                             style={{ display: 'none', height: 0 }}
                         />
                         { user?.name &&
                             <span className='user-name'>@ { user.name }</span>
                         }
-                        <UserPic {...{ imageURL, isLoading, size: 6 }}/>
+                        <UserPic 
+                            imageURL={ user?.imageExtension ? imageURL : null }
+                            isLoading={ isLoading }
+                            size={ 6 }
+                        />
                     </div>
                 </>}
             />

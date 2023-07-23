@@ -4,8 +4,7 @@ import   React,
          useMemo } from 'react'
 import { Link,
          Navigate,
-         useLocation,
-         useNavigate } from 'react-router-dom'
+         useLocation } from 'react-router-dom'
 import { useDispatch,
          useSelector } from 'react-redux'
 
@@ -17,10 +16,10 @@ import { User } from 'atoms/User'
 import { WishPreloader } from 'atoms/Preloaders'
 import { WishCover,
          WishButton,
-         WishMenu } from 'molecules/WishStuff'
+         WishMenu,
+         StatusBar } from 'molecules/WishStuff'
 
-import { getCurrentUser,
-         getWishById,
+import { getWishById,
          getWishlistsByIdList,
          getUserById,
          getLoadingStatus } from 'store/getters'
@@ -97,10 +96,8 @@ const OuterLink = ({ urlString }) => {
     let url = null
     try {
         url = new URL(urlString);
-    } catch(err) {
-        return;
-    }
-    return (
+    } catch(err) {}
+    return ( urlString &&
         <a
             href={ urlString }
             className='inline-link'
@@ -113,25 +110,15 @@ const OuterLink = ({ urlString }) => {
 
 export const SingleWishPage = () => {
     const dispatch = useDispatch();
-    const navigate = useNavigate();
     const location = useLocation().pathname;
     const [, section, mode, tab, wishId] = location.split('/');
     
-    const { user } = getCurrentUser();
     const { awaitingWishes,
             awaitingWishlists } = getLoadingStatus();
     const isLoading = awaitingWishes || awaitingWishlists;
     const wish = getWishById(wishId);
     const author = getUserById(wish?.author);
     const wishlists = getWishlistsByIdList(wish?.inWishlists);
-
-    // REDIRECT IF WISH NOT FOUND
-
-    useEffect(() => {
-        if(!isLoading && !wish) {
-            navigate(['', section, mode, tab].join('/'), { replace: true })
-        }
-    },[ isLoading, wish, section, mode, tab ]);
 
     // PROMOTE IMAGES
 
@@ -181,7 +168,7 @@ export const SingleWishPage = () => {
         ?   <div className='wish-page'>
                 <WishPreloader isLoading/>
             </div>
-        :   wish
+        :   wish?.id
         ?   <div className='wish-page'>
                 <DoubleColumnAdaptiveLayout
                     firstColumn={ <WishCover wish={ wish }/> }
@@ -193,29 +180,29 @@ export const SingleWishPage = () => {
                     secondColumn={
                         <>
                             <div className='header'>
-                                { (user?.id === author?.id) &&
-                                    <WishMenu wish={ wish }/>
-                                }
+                                <WishMenu wish={ wish }/>
                                 <span className='title'>{ wish?.title }</span>
                                 <OuterLink urlString={ wish?.external }/>
                                 
                             </div>
 
+                            <StatusBar wish={ wish }/>
+
                             <div className='info'>
                                 <WishlistEntries {...{ wishlists, section }}/>
-                                { author?.id &&
+                                { !!author?.id &&
                                     <div className='info-field'>
                                         <span className='label'>Желает</span>
                                         <User user={ author }/>
                                     </div>
                                 }
-                                { wish?.description &&
+                                { !!wish?.description &&
                                     <Description description={ wish.description } pointerOffset={ pointerOffset }/>
                                 }
                             </div>
                             
                             <div className='actions'>
-                                { wish?.price &&
+                                { !!wish?.price &&
                                     <PriceLine price={ wish.price } currency={ wish.currency } />
                                 }
                                 <WishButton
@@ -228,7 +215,7 @@ export const SingleWishPage = () => {
                 />
             </div>
         :   <Navigate
-                to={ '/' + section + '/lists' }
+                to={ ['', section, mode, tab].join('/') }
                 replace
             />
     )

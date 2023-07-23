@@ -16,11 +16,15 @@ export const InvitationAcceptancePage = () => {
     const [         acceptInvitation, {
         data:       acceptanceResponse,
         isSuccess:  invitationAccepted,
+        isLoading:  awaitingAcceptance,
+        isError:    aceptanceDeclined
     }] = useAcceptInvitationMutation(invitationCode);
 
     useEffect(() => {
-        acceptInvitation(invitationCode);
-    },[ invitationCode ]);
+        if(invitationCode && !awaitingAcceptance) {
+            acceptInvitation(invitationCode);
+        }
+    },[ invitationCode, awaitingAcceptance ]);
 
     useEffect(() => {
         if(invitationAccepted) {
@@ -30,6 +34,12 @@ export const InvitationAcceptancePage = () => {
             navigate(section + '/lists/' + acceptanceResponse.inviteId)
         }
     },[ invitationAccepted ]);
+
+    useEffect(() => {
+        if(aceptanceDeclined) {
+            navigate(-1)
+        }
+    },[ aceptanceDeclined ])
 
     return (
         <div className='invitation-acceptance-page'>

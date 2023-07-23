@@ -54,20 +54,10 @@ export const apiSlice = createApi({
     reducerPath: 'api',
     baseQuery: baseQueryWithReauth,
     refetchOnReconnect: true,
+    // refetchOnMountOrArgChange: 10,
     tagTypes: ['Auth', 'User', 'Friends', 'UserWishes', 'FriendWishes', 'UserWishlists', 'Invites'],
     endpoints: builder => ({
 
-        login: builder.mutation({
-            query: (credentials) => ({
-                url: 'auth/login',
-                method: 'POST',
-                body: credentials,
-                validateStatus: (response, result) => {
-                    return (response.status === 200 && result.token)
-                }
-            }),
-            invalidatesTags: ['Auth']
-        }),
         signup: builder.mutation({
             query: ({ name, email, password }) => ({
                 url: 'auth/signup',
@@ -79,13 +69,32 @@ export const apiSlice = createApi({
             }),
             invalidatesTags: ['Auth']
         }),
+        login: builder.mutation({
+            query: (credentials) => ({
+                url: 'auth/login',
+                method: 'POST',
+                body: credentials,
+                validateStatus: (response, result) => {
+                    return (response.status === 200 && result.token)
+                }
+            }),
+            invalidatesTags: ['Auth', 'User', 'Friends', 'UserWishes', 'FriendWishes', 'UserWishlists', 'Invites']
+        }),
         updateProfile: builder.mutation({
-            query: (profileData) => ({
+            query: (userUpdates) => ({
                 url: 'users/update-profile',
                 method: 'POST',
-                body: profileData
+                body: userUpdates
             }),
-            invalidatesTags: ['User']
+            async onQueryStarted( userUpdates,{ dispatch, getState, queryFulfilled }) {
+                const updateUser = dispatch(
+                    apiSlice.util.updateQueryData('getCurrentUser', null, (draftUser) => {
+                        Object.assign(draftUser, userUpdates)
+                    })
+                )
+                const currentUser = getState().api.queries['getCurrentUser(null)'].data;
+                queryFulfilled.catch(updateUser.undo)
+            }
         }),
 
 
@@ -294,7 +303,7 @@ export const apiSlice = createApi({
 
         getAllUserNames: builder.query({
             query: () => 'auth/get-all-usernames',
-            providesTags: ['User']
+            providesTags: ['Auth', 'User']
         }),
         getCurrentUser: builder.query({
             query: () => 'users/single/current',
@@ -308,10 +317,16 @@ export const apiSlice = createApi({
 
         getUserWishes: builder.query({
             query: () => 'wishes/get-user-wishes',
+            transformResponse: res => res.sort((a, b) => {
+                return b.createdAt - a.createdAt
+            }),
             providesTags: ['Auth', 'UserWishes']
         }),
         getFriendWishes: builder.query({
             query: () => 'wishes/get-friend-wishes',
+            transformResponse: res => res.sort((a, b) => {
+                return b.createdAt - a.createdAt
+            }),
             providesTags: ['Auth', 'FriendWishes']
         }),
 
@@ -328,13 +343,14 @@ export const apiSlice = createApi({
 });
 
 export const getUserNameByEmail = async (email) => {
-    return await fetch(__API_URL__ + '/auth/get-username-by-email/' + email)
+    const username = await fetch(__API_URL__ + '/auth/get-username-by-email/' + email)
         .then(res => res.json())
+    return username
 }
 
 export const {
-    useLoginMutation,
     useSignupMutation,
+    useLoginMutation,
     useUpdateProfileMutation,
 
     usePostWishMutation,
@@ -352,11 +368,12 @@ export const {
     useGetAllUserNamesQuery,
     useGetCurrentUserQuery,
     useGetFriendsQuery,
-
+    
     useGetUserWishesQuery,
     useGetFriendWishesQuery,
-
+    
     useGetUserWishlistsQuery,
+    useLazyGetUserWishlistsQuery,
     useGetInvitesQuery,
 
     usePrefetch,

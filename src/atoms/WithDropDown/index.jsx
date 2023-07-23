@@ -52,7 +52,6 @@ export const WithDropDown = forwardRef(({
     ...rest
 },  ref ) => {
     const [ isDropped, setIsDropped ] = useState(false);
-    const [ dropToRight, setDropToRight ] = useState(true);
     const [ coords, setCoords ] = useState({});
     const dropdownRef = useRef(null);
     const triggerRef = useRef(null);
@@ -77,28 +76,21 @@ export const WithDropDown = forwardRef(({
 
     const alignDropdown = () => {
         const rect = triggerRef.current?.getBoundingClientRect();
+        if(!rect) return
+        
+        const dropToRight = (rect.left + rect.width / 2) < (window.innerWidth * 2 / 3);
+        let left = null, right = null;
 
-        let left = dropToRight ? rect?.left || null : null;
-        let right = dropToRight ? null : window.innerWidth - rect?.right || null;
-
-        if(left && left < minPadding) {
-            left = minPadding
-        }
-        if(right && right < minPadding) {
-            right = minPadding
+        if(dropToRight) {
+            left = Math.max(rect.left, minPadding);
+        } else {
+            right = Math.max(window.innerWidth - rect.right, minPadding)
         }
 
         setCoords({ left, right, top: rect?.bottom })
     }
-    const setDirection = () => {
-        const triggerRect = triggerRef.current?.getBoundingClientRect();
-        const triggerMid = triggerRect.left + triggerRect.width / 2;
-        const windowMid = window.innerWidth / 2;
-        setDropToRight(triggerMid < windowMid)
-    }
 
     useEffect(() => {
-        setDirection();
         window.addEventListener('resize', alignDropdown);
         document.addEventListener('mousedown', closeDropDown);
         return () => {
@@ -106,7 +98,6 @@ export const WithDropDown = forwardRef(({
             document.removeEventListener('mousedown', closeDropDown)
         }
     },[ dropdownRef.current ]);
-
 
     return <>
         <div

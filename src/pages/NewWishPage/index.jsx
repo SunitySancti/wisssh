@@ -10,6 +10,7 @@ import { useLocation,
          useNavigate } from 'react-router-dom'
 
 import './styles.scss'
+import { WishPreloader } from 'atoms/Preloaders'
 import { Button } from 'atoms/Button'
 import { ImageInput } from 'inputs/ImageInput'
 import { TextInput } from 'inputs/TextInput'
@@ -22,48 +23,64 @@ import { DoubleColumnAdaptiveLayout } from 'containers/DoubleColumnAdaptiveLayou
 import { generateUniqueId } from 'utils'
 import { getCurrentUser,
          getUserWishlists,
-         getWishById } from 'store/getters'
+         getWishById,
+         getLoadingStatus } from 'store/getters'
 import { usePostWishMutation } from 'store/apiSlice'
-import { postImage } from 'store/imageSlice'
+import { postImage,
+         deleteImage } from 'store/imageSlice'
 
 export const NewWishPage = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const imageInputRef = useRef({});
 
-    const [ , , , tab, editingWishId, editing ] = useLocation().pathname?.split('/');
+    const location = useLocation().pathname
+    const [ , , , tab, editingWishId, editing ] = location?.split('/');
     const isNewWish = (tab === 'new');
     const isEditing = (editing === 'editing');
 
     const { user } = getCurrentUser();
     const { userWishlists } = getUserWishlists();
     const editingWish = getWishById(editingWishId);
+    const { awaitingUserWishes } = getLoadingStatus();
     const [ postWish,{ isLoading: awaitPostWish }] = usePostWishMutation();
 
     // FORM SETTINGS //
 
-    const defaultValues = isNewWish && !isEditing
-        ? {
-            id: '',
-            author: user?.id,
-            inWishlists: [],
-            reservedBy: '',
-            title: '',
-            description: '',
-            imageExtension: '',
-            imageAR: 1,
-            external: '',
-            price: 0,
-            currency: 'rouble',
-            stars: 0,
-            isCompleted: false
-        }
-        :   editingWish
+    const defaultValues = {
+        id: '',
+        author: user?.id,
+        inWishlists: [],
+        reservedBy: '',
+        title: '',
+        description: '',
+        imageExtension: '',
+        imageAR: 1,
+        external: '',
+        price: null,
+        currency: 'rouble',
+        stars: 0,
+        isCompleted: false,
+        createdAt: null,
+        completedAt: null
+    }
 
     const { handleSubmit, register, setValue, reset, watch, control, formState } = useForm({
         mode: 'onChange',
-        defaultValues: defaultValues
+        defaultValues
     });
+
+    useEffect(() => {
+        if(editingWish && isEditing) {
+            for (let [key, value] of Object.entries(editingWish)) {
+                setValue(key, value)
+            }
+        } else {
+            for (let [key, value] of Object.entries(defaultValues)) {
+                setValue(key, value)
+            }
+        }
+    },[ editingWish?.id, location ]);
     
     const statusOptions = [
         { value: false, label: 'Актуально' },
@@ -95,8 +112,8 @@ export const NewWishPage = () => {
             setValue('author', user?.id)
         }
     },[ user?.id, isNewWish, isEditing ]);
-        
-    // setting image:
+
+    // IMAGE SETTINGS //
 
     const [ image, setImage ] = useState(null);
     const [ isNewImage, setIsNewImage ] = useState(false);
@@ -119,18 +136,25 @@ export const NewWishPage = () => {
         setImageFromURL()
     },[ currentImageURL ]);
     
-    // FORM SUBMITTING
+    // FORM SUBMITTING //
 
     const onSubmit = async (data, e) => { 
         e.preventDefault();
         
         postWish(data);
+
         if(image && (isNewImage || isNewWish)) {
             dispatch(postImage({
                 id: data.id,
                 file: image,
                 drive: 'covers'
-            }));
+            }))
+        }
+        if(!image && !isNewWish && isEditing) {
+            dispatch(deleteImage({
+                id: data.id,
+                drive: 'covers'
+            }))
         }
         navigate(`/my-wishes/items/${ data.isCompleted ? 'completed' : 'actual' }/${ data.id }`)
     }
@@ -145,7 +169,7 @@ export const NewWishPage = () => {
         imageInputRef.current.deleteImage();
     }
     
-    // ALIGNMENTS
+    // ALIGNMENTS //
 
     const [ maxLabelWidth, setMaxLabelWidth ] = useState(null);
 
@@ -178,136 +202,150 @@ export const NewWishPage = () => {
         else return minHeight * watchImageAR;
     },[ image, watchImageAR ]);
 
+    const invisibleFields = [{
+        name: 'id',
+        required: true
+    },{
+        name: 'author',
+        required: true
+    },{
+        name: 'createdAt',
+        required: false
+    },{
+        name: 'completedAt',
+        required: false
+    }];
 
-    return (
-        <div className='new-wish-page'>
-            <form onSubmit={ handleSubmit(onSubmit) }>
-                <DoubleColumnAdaptiveLayout
-                    widthBreakpoint={ 1140 }
-                    firstColumn={
-                        <>
-                            <input
-                                className='invis'
-                                type='text'
-                                {...register('author',{ required: true })}
-                            />
-                            <ImageInput
-                                register={ register }
-                                setValue={ setValue }
-                                imageInputRef={ imageInputRef }
-                                image={ image }
-                                setImage={ setNewImage }
-                            />
-                        </>
-                    }
-                    firstColumnLimits={{
-                        min: firstColumnMinWidth,
-                        max: firstColumnMaxWidth
-                    }}
-                    secondColumn={
-                        <>
-                            <input
-                                className='invis'
-                                type='text'
-                                {...register('id',{ required: true })}
-                            />
-                            <TextInput
-                                name='title'
-                                register={ register }
-                                placeholder='Таинственный артефакт'
-                                label='Название'
-                                labelWidth={ maxLabelWidth }
-                                required
-                                formState={ formState }
-                            />
-                            <TextInput
-                                name='description'
-                                register={ register }
-                                placeholder='Отметьте моменты, которые вам важны. Чем точнее вы опишете желание, тем проще друзьям будет его исполнить'
-                                label='Описание'
-                                labelWidth={ maxLabelWidth }
-                                multiline
-                                
-                            />
-                            <TextInput
-                                name='external'
-                                register={ register }
-                                placeholder='https://magicstore.com/goods/mysterious-artefact'
-                                label='Ссылка'
-                                labelWidth={ maxLabelWidth }
-                            />
-                            <LineContainer>
-                                <TextInput
-                                    name='price'
-                                    formState={ formState }
-                                    patternType='number'
+
+    return ( awaitingUserWishes
+        ?   <div className='wish-page'>
+                <WishPreloader isLoading/>
+            </div>
+        :   <div className='new-wish-page'>
+                <form onSubmit={ handleSubmit(onSubmit) }>
+                    <DoubleColumnAdaptiveLayout
+                        widthBreakpoint={ 1140 }
+                        firstColumn={
+                            <>
+                                <ImageInput
                                     register={ register }
-                                    placeholder='4200'
-                                    label='Цена'
+                                    setValue={ setValue }
+                                    imageInputRef={ imageInputRef }
+                                    image={ image }
+                                    setImage={ setNewImage }
+                                />
+                            </>
+                        }
+                        firstColumnLimits={{
+                            min: firstColumnMinWidth,
+                            max: firstColumnMaxWidth
+                        }}
+                        secondColumn={
+                            <>
+                                { invisibleFields.map(({name, required}) => (
+                                    <input
+                                        className='invis'
+                                        type='text'
+                                        {...register(name,{ required })}
+                                    />
+                                ))}
+                                <TextInput
+                                    name='title'
+                                    register={ register }
+                                    placeholder='Таинственный артефакт'
+                                    label='Название'
+                                    labelWidth={ maxLabelWidth }
+                                    required
+                                    formState={ formState }
+                                />
+                                <TextInput
+                                    name='description'
+                                    register={ register }
+                                    placeholder='Отметьте моменты, которые вам важны. Чем точнее вы опишете желание, тем проще друзьям будет его исполнить'
+                                    label='Описание'
+                                    labelWidth={ maxLabelWidth }
+                                    multiline
+                                    
+                                />
+                                <TextInput
+                                    name='external'
+                                    register={ register }
+                                    placeholder='https://magicstore.com/goods/mysterious-artefact'
+                                    label='Ссылка'
                                     labelWidth={ maxLabelWidth }
                                 />
-                                <ToggleInput
-                                    name='currency'
-                                    control={ control }
-                                    options={ currencyOptions }
-                                />
-                            </LineContainer>
-                            <LineContainer>
+                                <LineContainer>
+                                    <TextInput
+                                        name='price'
+                                        formState={ formState }
+                                        patternType='number'
+                                        register={ register }
+                                        placeholder='4200'
+                                        label='Цена'
+                                        labelWidth={ maxLabelWidth }
+                                    />
+                                    <ToggleInput
+                                        name='currency'
+                                        control={ control }
+                                        options={ currencyOptions }
+                                    />
+                                </LineContainer>
+                                <LineContainer>
+                                    <SelectBox
+                                        name='isCompleted'
+                                        control={ control }
+                                        options={ statusOptions }
+                                        placeholder='Актуально'
+                                        label='Статус'
+                                        labelWidth={ maxLabelWidth }
+                                    />
+                                    <StarRating
+                                        name='stars'
+                                        control={ control }
+                                        maxStars={ 3 }
+                                        starBoxSize={ 4 }
+                                    />
+                                </LineContainer>
                                 <SelectBox
-                                    name='isCompleted'
+                                    name='inWishlists'
                                     control={ control }
-                                    options={ statusOptions }
-                                    placeholder='Актуально'
-                                    label='Статус'
+                                    isMulti
+                                    options={ wishlistOptions }
+                                    placeholder='Можно сразу добавить в вишлисты'
+                                    label='Вишлисты'
                                     labelWidth={ maxLabelWidth }
+                                    noOptionsMessage={() => 'У вас пока нет актуальных вишлистов'}
                                 />
-                                <StarRating
-                                    name='stars'
-                                    control={ control }
-                                    maxStars={ 3 }
-                                    starBoxSize={ 4 }
-                                />
-                            </LineContainer>
-                            <SelectBox
-                                name='inWishlists'
-                                control={ control }
-                                isMulti
-                                options={ wishlistOptions }
-                                placeholder='Можно сразу добавить в вишлисты'
-                                label='Вишлисты'
-                                labelWidth={ maxLabelWidth }
-                                noOptionsMessage={() => 'У вас пока нет актуальных вишлистов'}
-                            />
 
-                            <div className='divider'/>
+                                <div className='divider'/>
 
-                            <LineContainer className='align-right'>
-                                <Button
-                                    icon='clear'
-                                    onClick={ resetForm }
-                                />
-                                <Button
-                                    icon='cancel'
-                                    onClick={ cancelForm }
-                                />
-                                <Button
-                                    type='submit'
-                                    kind='primary'
-                                    text='Сохранить желание'
-                                    icon='ok'
-                                    round
-                                    onClick={ handleSubmit(onSubmit) }
-                                    disabled={ !formState.isValid }
-                                    isLoading={ formState.isSubmitting || awaitPostWish }
-                                />
-                            </LineContainer>
-                        </>
-                    }
-                    secondColumnLimits={{
-                        min: 500
-                    }}
-                />
-            </form>
-        </div>
+                                <LineContainer className='align-right'>
+                                    <Button
+                                        icon='clear'
+                                        onClick={ resetForm }
+                                    />
+                                    <Button
+                                        icon='cancel'
+                                        onClick={ cancelForm }
+                                    />
+                                    <Button
+                                        type='submit'
+                                        kind='primary'
+                                        text='Сохранить желание'
+                                        icon='save'
+                                        round
+                                        onClick={ handleSubmit(onSubmit) }
+                                        disabled={ formState.isDirty && !formState.isValid }
+                                        isLoading={ formState.isSubmitting || awaitPostWish }
+                                    />
+                                </LineContainer>
+                            </>
+                        }
+                        secondColumnLimits={{
+                            min: 500
+                        }}
+                    />
+                </form>
+            </div>
     );
 }

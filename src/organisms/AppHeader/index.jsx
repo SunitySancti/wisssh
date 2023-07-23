@@ -4,7 +4,8 @@ import   React,
          useMemo } from 'react'
 import { Outlet,
          Navigate,
-         useLocation } from 'react-router'
+         useNavigate,
+         useLocation } from 'react-router-dom'
 import { useDispatch,
          useSelector } from 'react-redux'
 
@@ -15,14 +16,37 @@ import { UserGroup } from 'molecules/UserGroup'
 
 import { updateHistory,
          clearHistory } from 'store/historySlice'
-import { getCurrentUser } from 'store/getters'
-
+import { getImage } from 'store/imageSlice'
+import { getCurrentUser} from 'store/getters'
 
 export const AppHeader = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const location = useLocation().pathname;
     const token = useSelector(state => state.auth?.token);
-    const { user } = getCurrentUser();
+    const { user, awaitingUser } = getCurrentUser();
+
+    useEffect(() => {
+        if(!user && !awaitingUser) navigate('/logout')
+    });
+    
+    // FETCH IMAGES //
+    const queue = useSelector(state => state.images?.queue);
+    const prior = useSelector(state => state.images?.prior);
+    const isLoading = useSelector(state => Boolean(Object.keys(state.images?.loading)?.length));
+
+    useEffect(() => {
+        if(!isLoading) {
+            let part;
+            if(prior instanceof Array && prior.length) {
+                part = prior.slice(0,8)
+            } else if(queue instanceof Array && queue.length) {
+                part = queue.slice(0,8)
+            }
+
+            part?.forEach(item => dispatch(getImage(item)))
+        }
+    },[ queue, prior, isLoading ]);
 
     // HISTORY UPDATING
     useEffect(() => { dispatch(updateHistory(location)) },[ location ]);
@@ -55,7 +79,7 @@ export const AppHeader = () => {
     },[]);
 
     // CENTERIZE LOGO
-    const [groupsMaxWidth, setGroupsMaxWidth] = useState(220);
+    const [groupsMaxWidth, setGroupsMaxWidth] = useState(300);
     
     useEffect(() => {
         const creationGroupRef = document.querySelector('.app-header .creation-group');
@@ -68,21 +92,18 @@ export const AppHeader = () => {
 
         setGroupsMaxWidth(leftGroupWidth > rightGroupWidth
                         ? leftGroupWidth : rightGroupWidth)
-    },[ isShort ]);
+    },[ isShort, user?.name ]);
 
 
     // MORE OPTIMAL REALIZATION WITH USEMEMO. NEEDS FORWARD REF IN CREATIONGROUP AND USERGROUP FOR CORRECT WORK
 
     // const groupsMaxWidth = useMemo(() => {
-    //     console.log({ isShort })
     //     const creationGroupRef = document.querySelector('.app-header .creation-group');
     //     const userGroupRef = document.querySelector('.app-header .user-group');
-    //     console.log({ creationGroupRef, userGroupRef })
     //     if(!creationGroupRef || !userGroupRef) return 220
         
     //     const leftGroupWidth = creationGroupRef?.offsetWidth;
     //     const rightGroupWidth = userGroupRef?.offsetWidth;
-    //     console.log({ leftGroupWidth, rightGroupWidth })
     //     if(!leftGroupWidth || !rightGroupWidth) return 220
 
     //     return leftGroupWidth > rightGroupWidth
