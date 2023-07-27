@@ -6,8 +6,8 @@ import { Mutex } from 'async-mutex'
 import { reAuth } from 'store/authSlice'
 import { apiSlice } from 'store/apiSlice'
 
-const __API_URL__ = import.meta.env.VITE_API_URL;
-const __DEV_MODE__ = import.meta.env.VITE_DEV_MODE === 'true';
+import { __API_URL__ } from 'environment'
+const __DEV_MODE__ = import.meta.env.DEV
 
 
 const mutex = new Mutex();

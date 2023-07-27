@@ -2,10 +2,10 @@ import { createApi,
          fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import { Mutex } from 'async-mutex'
 
-import { reAuth } from 'store/authSlice';
+import { reAuth } from 'store/authSlice'
 
-const __API_URL__ = import.meta.env.VITE_API_URL;
-const __DEV_MODE__ = import.meta.env.VITE_DEV_MODE === 'true';
+import { __API_URL__ } from 'environment'
+const __DEV_MODE__ = import.meta.env.DEV
 
 
 const mutex = new Mutex();
@@ -17,7 +17,7 @@ const baseQuery = fetchBaseQuery({
         if(token) {
             headers.set('Authorization', token)
         }
-        headers.set('Access-Control-Request-Headers', 'Authorization,Content-Type');
+        // headers.set('Access-Control-Request-Headers', 'Authorization,Content-Type');
         return headers
     }
 });

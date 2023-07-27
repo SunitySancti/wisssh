@@ -27,7 +27,7 @@ import { setRemember } from 'store/authSlice'
 import { getAllUserNames } from 'store/getters'
 import { decodeEmail } from 'utils'
 
-const __DEV_MODE__ = import.meta.env.VITE_DEV_MODE === 'true';
+const __DEV_MODE__ = import.meta.env.DEV
 
 
 const ButtonGroup = ({

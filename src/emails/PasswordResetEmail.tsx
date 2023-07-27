@@ -12,7 +12,7 @@ import { Hr } from '@react-email/hr'
 import { Preview } from '@react-email/preview'
 import { render } from '@react-email/render'
 
-const apiUrl = import.meta.env.VITE_API_URL;
+import { __API_URL__ } from 'environment'
 
 // colors:
 const primary = '#F3E672';
@@ -170,10 +170,11 @@ export const PasswordResetEmail = () => (
 );
 
 export async function sendPasswordResetEmail(email: string) {
-    return await fetch(apiUrl + '/mail/send-password-reset-email', {
+    return await fetch(__API_URL__ + '/mail/send-password-reset-email', {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
+            "Origin": "https://wisssh.me"
         },
         body: JSON.stringify({
             email,
@@ -186,7 +187,7 @@ export async function sendPasswordResetEmail(email: string) {
 }
 
 export async function verificateCode(code: string, callback: Function) {
-    await fetch(apiUrl + '/mail/verificate-password-reset/' + code)
+    await fetch(__API_URL__ + '/mail/verificate-password-reset/' + code)
         .then(res => res.json())
         .then(success => {
             if(success) callback()

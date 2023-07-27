@@ -12,9 +12,9 @@ import './styles.scss'
 import { LogoBack,
          LogoIcon,
          Goo } from 'atoms/Icon'
-         
-const __API_URL__ = import.meta.env.VITE_API_URL;
-const __DEV_MODE__ = import.meta.env.VITE_DEV_MODE === 'true';
+
+import { __API_URL__ } from 'environment'
+const __DEV_MODE__ = import.meta.env.DEV
 
 
 const slidersDefaultStyles = (side) => {

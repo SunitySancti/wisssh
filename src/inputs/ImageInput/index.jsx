@@ -12,7 +12,7 @@ import { Icon,
          UserPlaceholder } from 'atoms/Icon'
 import { Button } from 'atoms/Button'
 
-const __DEV_MODE__ = import.meta.env.VITE_DEV_MODE === 'true';
+const __DEV_MODE__ = import.meta.env.DEV
 
 
 export function compressAndDoSomething(file, doSomething, options) {

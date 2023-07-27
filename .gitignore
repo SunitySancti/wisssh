@@ -1,4 +1,6 @@
 .env
+src/environment.js
 .glitchdotcom.json
 build
 node_modules
+.space

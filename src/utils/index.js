@@ -1,4 +1,4 @@
-const __API_URL__ = import.meta.env.VITE_API_URL;
+import { __API_URL__ } from 'environment'
 
 
 export function checkStatus(res) {
