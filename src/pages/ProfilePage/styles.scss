@@ -16,7 +16,7 @@
 .profile-body {
     padding: 4rem var(--app-body-padding) 10rem;
     width: 100%;
-    background-color: white;
+    background-color: $background;
     overflow: overlay;
     
     &.with-shadow {

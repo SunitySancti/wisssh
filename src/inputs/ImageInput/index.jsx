@@ -1,5 +1,4 @@
-import   React,
-       { useState,
+import { useState,
          useCallback,
          useMemo,
          useRef, 
@@ -125,16 +124,8 @@ export const ImageInput = ({
     
     const setSecondaryData = () => {
         if(image) {
-            const aspectRatio = (imgRef.current?.offsetWidth / imgRef.current?.offsetHeight).toFixed(3);
-            setValue('imageAR', aspectRatio);
-            
-            // let extension = image?.type?.split('/').at(-1);
-            // if(extension === 'jpeg' || extension === 'pjpeg') {
-            //     extension = 'jpg'
-            // } else if(extension !== 'png') {
-            //     return
-            // }
-            // setValue('imageExtension', extension)
+            const aspectRatio = Number((imgRef.current?.offsetWidth / imgRef.current?.offsetHeight).toFixed(3));
+            setValue('imageAR', aspectRatio ? aspectRatio : 1);
         }
     }
 
@@ -144,7 +135,6 @@ export const ImageInput = ({
 
         setImage(null);
         setValue('imageAR', 1);
-        // setValue('imageExtension', '');
     },[ setImage, setValue ]);
 
     if(imageInputRef) imageInputRef.current.deleteImage = deleteImage;
@@ -216,11 +206,6 @@ export const ImageInput = ({
                 type='text'
                 {...register('imageAR')}
             />
-            {/* <input
-                className='invis'
-                type='text'
-                {...register('imageExtension')}
-            /> */}
 
             { content }
             

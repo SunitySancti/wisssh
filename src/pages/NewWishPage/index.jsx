@@ -50,19 +50,19 @@ export const NewWishPage = () => {
     const defaultValues = {
         id: '',
         author: user?.id,
-        inWishlists: [],
-        reservedBy: '',
         title: '',
         description: '',
-        imageExtension: '',
-        imageAR: 1,
         external: '',
+        imageExtension: null,
+        imageAR: 1,
+        stars: 0,
         price: null,
         currency: 'rouble',
-        stars: 0,
+        inWishlists: [],
+        reservedBy: null,
         isCompleted: false,
-        createdAt: null,
-        completedAt: null
+        completedAt: null,
+        createdAt: null
     }
 
     const { handleSubmit, register, setValue, reset, watch, control, formState } = useForm({
@@ -242,8 +242,9 @@ export const NewWishPage = () => {
                         }}
                         secondColumn={
                             <>
-                                { invisibleFields.map(({name, required}) => (
+                                { invisibleFields.map(({name, required}, index) => (
                                     <input
+                                        key={ index }
                                         className='invis'
                                         type='text'
                                         {...register(name,{ required })}
@@ -280,7 +281,7 @@ export const NewWishPage = () => {
                                         formState={ formState }
                                         patternType='number'
                                         register={ register }
-                                        placeholder='4200'
+                                        placeholder={ 4200 }
                                         label='Цена'
                                         labelWidth={ maxLabelWidth }
                                     />

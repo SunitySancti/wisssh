@@ -1,5 +1,4 @@
-import   React,
-       { useState,
+import { useState,
          useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate,
@@ -41,8 +40,8 @@ export const NewListPage = () => {
     const defaultValues = {
         id: '',
         invitationCode: '',
-        title: '',
         author: user?.id,
+        title: '',
         description: '',
         wishes: [],
         date: formatDateToArray(new Date()),
@@ -79,8 +78,8 @@ export const NewListPage = () => {
     },[ isNewWishlist, isEditing ]);
 
     useEffect(() => {
-        if(user?.id && isNewWishlist && !isEditing) {
-            setValue('author', user?.id)
+        if(user && user.id && isNewWishlist && !isEditing) {
+            setValue('author', user.id)
         }
     },[ user?.id, isNewWishlist, isEditing ]);
     
@@ -181,14 +180,6 @@ export const NewListPage = () => {
 
                 <div className='divider'/>
 
-                <CardSelect
-                    name='wishes'
-                    control={ control }
-                    options={ actualWishes }
-                />
-
-                <div className='divider'/>
-                
                 <LineContainer className='align-right'>
                     <Button
                         icon='clear'
@@ -209,6 +200,14 @@ export const NewListPage = () => {
                         isLoading={ formState.isSubmitting || awaitPostWishlist }
                     />
                 </LineContainer>
+
+                <div className='divider'/>
+
+                <CardSelect
+                    name='wishes'
+                    control={ control }
+                    options={ actualWishes }
+                />
             </form>
         </div> 
     )

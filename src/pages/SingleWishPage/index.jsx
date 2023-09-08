@@ -62,7 +62,8 @@ const WishlistEntries = ({ wishlists, section }) => {
     );
 }
 
-const Description = ({ description, pointerOffset }) => (
+const Description = ({ description, pointerOffset }) => {
+    return (
     <div className='description'>
         <div
             className='description-pointer'
@@ -77,10 +78,12 @@ const Description = ({ description, pointerOffset }) => (
             className='description-container'
             style={{minWidth: `${pointerOffset + 77}px`}}
         >
-            { description }
+            { description.split(/\r?\n/).map((line, index) => (
+                <span key={ index }>{ line }</span>
+            ))}
         </div>
     </div>
-);
+)};
 
 const PriceLine = ({ price, currency }) => (
     <span className='price'>
@@ -119,6 +122,10 @@ export const SingleWishPage = () => {
     const wish = getWishById(wishId);
     const author = getUserById(wish?.author);
     const wishlists = getWishlistsByIdList(wish?.inWishlists);
+
+    // useEffect(() => {
+    //     console.log(wish.description.split(/\r?\n/))
+    // },[wish?.id])
 
     // PROMOTE IMAGES
 

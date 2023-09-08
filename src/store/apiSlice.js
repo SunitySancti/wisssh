@@ -17,7 +17,6 @@ const baseQuery = fetchBaseQuery({
         if(token) {
             headers.set('Authorization', token)
         }
-        // headers.set('Access-Control-Request-Headers', 'Authorization,Content-Type');
         return headers
     }
 });
@@ -70,10 +69,10 @@ export const apiSlice = createApi({
             invalidatesTags: ['Auth']
         }),
         login: builder.mutation({
-            query: (credentials) => ({
+            query: ({ email, password, newPassword }) => ({
                 url: 'auth/login',
                 method: 'POST',
-                body: credentials,
+                body: { email, password, newPassword },
                 validateStatus: (response, result) => {
                     return (response.status === 200 && result.token)
                 }
@@ -81,10 +80,10 @@ export const apiSlice = createApi({
             invalidatesTags: ['Auth', 'User', 'Friends', 'UserWishes', 'FriendWishes', 'UserWishlists', 'Invites']
         }),
         updateProfile: builder.mutation({
-            query: (userUpdates) => ({
+            query: ({ id: userId, name, email, newPassword }) => ({
                 url: 'users/update-profile',
                 method: 'POST',
-                body: userUpdates
+                body: { userId, name, email, newPassword }
             }),
             async onQueryStarted( userUpdates,{ dispatch, getState, queryFulfilled }) {
                 const updateUser = dispatch(

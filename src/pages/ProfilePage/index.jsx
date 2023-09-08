@@ -1,5 +1,4 @@
-import   React,
-       { useState,
+import { useState,
          useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { useSelector,
@@ -43,7 +42,7 @@ export const ProfilePage = () => {
     const [isSubmitted, setIsSubmitted] = useState(false);
 
     useEffect(() => {
-        if(userHasLoaded && user && typeof user === 'object') {
+        if(userHasLoaded && user) {
             for (let [key, value] of Object.entries(user)) {
                 setValue(key, value)
             }
@@ -68,7 +67,6 @@ export const ProfilePage = () => {
     
     const [ image, setImage ] = useState(null);
     const [ isNewImage, setIsNewImage ] = useState(false);
-    const [ wasImageSet, setWasImageSet ] = useState(false);
     const currentImageURL = useSelector(state => state.images.imageURLs[user?.id]);
     
     function setNewImage(file) {
@@ -79,8 +77,6 @@ export const ProfilePage = () => {
 
     useEffect(() => {
         if(!currentImageURL) return
-        // if(!currentImageURL || wasImageSet) return
-
         
         async function setImageFromURL() {
             await fetch(currentImageURL)
@@ -89,12 +85,12 @@ export const ProfilePage = () => {
                 .catch(err => console.error(err))
         };
         setImageFromURL();
-        setWasImageSet(true)
-    },[ currentImageURL, wasImageSet ]);
+    },[ currentImageURL ]);
     
     // FORM SUBMITTING //
 
     const onSubmit = async (data, e) => {
+        console.log({data})
         e.preventDefault();
         e.stopPropagation();
         

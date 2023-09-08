@@ -101,12 +101,18 @@
                 }
         
                 .description-container {
+                    display: flex;
+                    flex-flow: column;
                     width: fit-content;
                     font: $general;
                     color: $darkGray2;
                     background-color: white;
                     padding: 1rem 2rem;
                     border-radius: 1rem;
+
+                    > span {
+                        min-height: 1.5rem;
+                    }
                 }
             }
         }

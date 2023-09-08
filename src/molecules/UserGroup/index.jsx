@@ -1,5 +1,4 @@
-import   React,
-       { useRef,
+import { useRef,
          useEffect } from 'react'
 import { useDispatch,
          useSelector } from 'react-redux'
@@ -13,7 +12,6 @@ import { compressAndDoSomething } from 'inputs/ImageInput'
 import { postImage,
          promoteImages } from 'store/imageSlice'
 import { getCurrentUser } from 'store/getters'
-import { useUpdateProfileMutation } from 'store/apiSlice'
 
 
 export const UserGroup = ({ isShort }) => {
@@ -22,7 +20,6 @@ export const UserGroup = ({ isShort }) => {
     const dropdownRef = useRef(null);
 
     const { user } = getCurrentUser();
-    const [ updateProfile ] = useUpdateProfileMutation();
     const imageURL = useSelector(state => state.images?.imageURLs[user?.id]);
     const isLoading = useSelector(state => state.images?.loading[user?.id]);
     const shouldSwowImage = (imageURL || isLoading) && user?.imageExtension;
@@ -63,14 +60,6 @@ export const UserGroup = ({ isShort }) => {
             softCompress: true
         }
         compressAndDoSomething(file, handlePostImage, compressOptions);
-        
-        let extension = file?.type?.split('/').at(-1);
-        if(extension === 'jpeg' || extension === 'pjpeg') {
-            extension = 'jpg'
-        } else if(extension !== 'png') {
-            return
-        }
-        updateProfile({ extension });
     }
     
 

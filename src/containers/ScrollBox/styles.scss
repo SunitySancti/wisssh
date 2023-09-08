@@ -22,7 +22,7 @@ $maskWidth: 4rem;
     .field {
         width: var(--app-body-padding);
         height: inherit;
-        background-color: white;
+        background-color: $background;
         display: flex;
         flex-flow: row nowrap;
         align-items: center;

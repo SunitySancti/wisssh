@@ -164,8 +164,8 @@ export const sortByDateDescend = (a, b) => {
 
 export const formatDateToArray = (date) => {
     const d = date?.getDate() + '';
-    let m = date?.getMonth() + 1;
-    if(m < 10) m = '0' + m;
+    let m = date?.getMonth() + 1 + '';
+    if(m.length === 1) m = '0' + m;
     const y = date?.getFullYear() + '';
     return [d, m, y];
 }
