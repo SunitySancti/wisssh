@@ -10,7 +10,7 @@
 .scroll-container {
     display: flex;
     flex-shrink: 0;
-    overflow-x: overlay;
+    overflow-x: scroll;
     width: inherit;
 }
 
@@ -35,7 +35,6 @@
     flex-grow: 1;
     flex-direction: row;
     justify-content: space-between;
-    margin-bottom: 18px;
 
     .user-group,
     .section-switcher,

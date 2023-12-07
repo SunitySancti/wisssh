@@ -9,6 +9,9 @@ export default defineConfig({
     build: {
         outDir: "build"
     },
+    resolve: {
+      extensions: ['.ts', '.tsx', '.js', '.jsx'],
+    },
     server: {
         host: "localhost",
         port: 3000,

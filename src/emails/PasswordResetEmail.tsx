@@ -173,8 +173,7 @@ export async function sendPasswordResetEmail(email: string) {
     return await fetch(__API_URL__ + '/mail/send-password-reset-email', {
         method: "POST",
         headers: {
-            "Content-Type": "application/json",
-            "Origin": "https://wisssh.me"
+            "Content-Type": "application/json"
         },
         body: JSON.stringify({
             email,

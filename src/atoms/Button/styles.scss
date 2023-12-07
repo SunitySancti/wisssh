@@ -23,6 +23,7 @@
     &:disabled {
         fill: $gray1 !important;
         background: none !important;
+        pointer-events: none;
     }
 }
 
