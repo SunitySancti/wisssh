@@ -3,7 +3,7 @@ import { generateId } from 'utils'
 import { Icon } from 'atoms/Icon'
 import { TextLabel } from 'atoms/TextLabel'
 
-import type { ReactNode } from 'react'
+import type { ReactNode, SyntheticEvent } from 'react'
 import type { FieldValues,
               UseFormRegister,
               FormState,
@@ -16,8 +16,8 @@ interface TextInputProps<FV extends FieldValues> {
     label: string;
     register: UseFormRegister<FV>;
     onChange?: () => void;
-    onBlur?: (e: KeyboardEvent & FocusEvent) => void;
-    onKeyDown?: (e: KeyboardEvent & FocusEvent) => void;
+    onBlur?: (e: SyntheticEvent) => void;
+    onKeyDown?: (e: SyntheticEvent) => void;
     labelWidth?: number;    // in px
     type?: string;          // input 'type' field
     multiline?: boolean;
@@ -29,7 +29,8 @@ interface TextInputProps<FV extends FieldValues> {
     className?: string;
     rightAlignedComponent?: ReactNode;
     autoComplete?: string;
-    [prop: string]: any
+    placeholder?: string;
+    disabled?: boolean
 }
 
 
@@ -51,7 +52,8 @@ export const TextInput = <FV extends FieldValues>({
     className,
     rightAlignedComponent,
     autoComplete,
-    ...rest
+    placeholder,
+    disabled
 } : TextInputProps<FV>
 ) => {
     const id = generateId<BasicId>();
@@ -92,7 +94,6 @@ export const TextInput = <FV extends FieldValues>({
             { multiline
             ?   <>
                     <textarea
-                        id={id}
                         {...register(name as Path<FV>, {
                             required,
                             maxLength,
@@ -102,13 +103,11 @@ export const TextInput = <FV extends FieldValues>({
                         })}
                         className={ shouldShowError ? 'error' : undefined }
                         autoComplete={ autoComplete || name || 'off' }
-                        {...rest}
+                        {...{ id, placeholder, disabled, onKeyDown }}
                     />
                     <Icon name='resizer' size={ 22 }/>
                 </>
             :   <input
-                    id={id}
-                    type={type || 'text'}
                     {...register(name as Path<FV>, {
                         required,
                         maxLength,
@@ -117,8 +116,9 @@ export const TextInput = <FV extends FieldValues>({
                         onBlur
                     })}
                     className={ shouldShowError ? 'error' : undefined }
+                    type={ type || 'text' }
                     autoComplete={ autoComplete || name || 'off' }
-                    {...rest}
+                    {...{ id, placeholder, disabled, onKeyDown }}
                 />
             }
             { rightAlignedComponent &&

@@ -20,7 +20,6 @@ import { useAppDispatch,
 import { getLocationConfig,
          getWishById,
          getWishlistsByIdList,
-         getUserById,
          getLoadingStatus } from 'store/getters'
 import { promoteImages } from 'store/imageSlice'
 
@@ -151,7 +150,6 @@ export const SingleWishPage = () => {
             awaitingWishlists } = getLoadingStatus();
     const isLoading = awaitingWishes || awaitingWishlists;
     const wish = getWishById(wishId);
-    const author = getUserById(wish?.author);
     const wishlists = getWishlistsByIdList(wish?.inWishlists);
 
     // PROMOTE IMAGES
@@ -160,10 +158,10 @@ export const SingleWishPage = () => {
         if(wishId) {
             dispatch(promoteImages(wishId))
         }
-        if(author) {
-            dispatch(promoteImages(author.id))
-        }
-    },[ wishId, author?.id ]);
+        // if(author) {
+        //     dispatch(promoteImages(author.id))
+        // }
+    },[ wishId ]);
 
     // ALIGN SVG POINTER
     
@@ -227,10 +225,10 @@ export const SingleWishPage = () => {
 
                             <div className='info'>
                                 <WishlistEntries {...{ wishlists, section }}/>
-                                { !!author &&
+                                { !!wish.author &&
                                     <div className='info-field'>
-                                        <span className='label'>Желает</span>
-                                        <User user={ author }/>
+                                        <span className='label'>Автор</span>
+                                        <User id={ wish.author }/>
                                     </div>
                                 }
                                 { !!wish.description &&

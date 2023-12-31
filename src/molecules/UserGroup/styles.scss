@@ -8,7 +8,7 @@
     
     &:hover {
         cursor: pointer;
-        .user-name {
+        .user .name {
             color: $darkGray2;
         }
         .user-pic {
@@ -16,7 +16,7 @@
         }
     }
 
-    .user-name {
+    .user .name {
         margin-top: 6px;
         font: $general;
         color: $darkGray1;

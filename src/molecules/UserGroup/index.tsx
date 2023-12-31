@@ -1,22 +1,54 @@
-import { useRef,
-         useEffect } from 'react'
+import { useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import './styles.scss'
 import { WithDropDown } from 'atoms/WithDropDown'
-import { UserPic } from 'atoms/User'
+import { User } from 'atoms/User'
 
 import { compressAndDoSomething } from 'inputs/ImageInput'
-import { postImage,
-         promoteImages } from 'store/imageSlice'
+import { postImage } from 'store/imageSlice'
 import { useUpdateProfileMutation } from 'store/apiSlice'
 import { getCurrentUser } from 'store/getters'
-import { useAppDispatch,
-         useAppSelector } from 'store'
+import { useAppDispatch } from 'store'
 
-import type { ChangeEvent } from 'react'
-import type { WithDropDownRef } from 'atoms/WithDropDown'
+import type { ChangeEvent,
+              RefObject } from 'react'
+import type { DropdownOption,
+              WithDropDownRef } from 'atoms/WithDropDown'
+import type { UserId } from 'typings'
 
+
+interface UserGroupViewProps {
+    dropdownRef: RefObject<WithDropDownRef>;
+    dropdownOptions: DropdownOption[];
+    handleImagePick(e: ChangeEvent<HTMLInputElement>): void;
+    userId?: UserId
+}
+
+const UserGroupView = ({
+    dropdownRef,
+    dropdownOptions,
+    handleImagePick,
+    userId
+} : UserGroupViewProps
+) => (
+    <WithDropDown
+        ref={ dropdownRef }
+        options={ dropdownOptions }
+        trigger={
+            <div className='user-group'>
+                <input
+                    id='uploadUserAvatar'
+                    type='file'
+                    accept='image/png, image/jpeg'
+                    onChange={ handleImagePick }
+                    style={{ display: 'none', height: 0 }}
+                />
+                <User id={ userId } picSize={ 6 } reverse />
+            </div>
+        }
+    />
+)
 
 export const UserGroup = () => {
     const dispatch = useAppDispatch();
@@ -25,28 +57,19 @@ export const UserGroup = () => {
     const [ updateProfile ] = useUpdateProfileMutation();
 
     const { user } = getCurrentUser();
-    const imageURL = useAppSelector(state => state.images.imageURLs[user ? user.id : 'undefined']);
-    const isLoading = useAppSelector(state => state.images.loading[user ? user.id : 'undefined']);
-    const shouldShowImage = (imageURL || isLoading) && user?.imageExtension;
-
-    useEffect(() => {
-        if(user?.imageExtension) {
-            dispatch(promoteImages(user?.id))
-        }
-    },[ user?.id ]);
 
     const dropdownOptions = [
         {
-            text: shouldShowImage ? 'Поменять аватарку' : 'Загрузить аватарку',
-            icon: shouldShowImage ? 'change' : 'upload',
+            text: user?.imageExtension ? 'Поменять аватарку' : 'Загрузить аватарку',
+            icon: user?.imageExtension ? 'change' as const   : 'upload' as const,
             onClick: () => document.getElementById('uploadUserAvatar')?.click()
         },{
             text: 'Настройки профиля',
-            icon: 'settings',
+            icon: 'settings' as const,
             onClick: () => navigate('/profile')
         },{
             text: 'Выйти',
-            icon: 'logout',
+            icon: 'logout' as const,
             onClick: () => navigate('/logout')
         }
     ];
@@ -74,28 +97,11 @@ export const UserGroup = () => {
     
 
     return (
-        <WithDropDown
-            ref={ dropdownRef }
-            options={ dropdownOptions }
-            trigger={<>
-                <div className='user-group'>
-                    <input
-                        id='uploadUserAvatar'
-                        type='file'
-                        accept='image/png, image/jpeg'
-                        onChange={ handleImagePick }
-                        style={{ display: 'none', height: 0 }}
-                    />
-                    { user?.name &&
-                        <span className='user-name'>@ { user.name }</span>
-                    }
-                    <UserPic 
-                        imageURL={ user?.imageExtension ? imageURL : null }
-                        isLoading={ isLoading }
-                        size={ 6 }
-                    />
-                </div>
-            </>}
-        />
-    );
+        <UserGroupView {...{
+            dropdownRef,
+            dropdownOptions,
+            handleImagePick,
+            userId: user?.id
+        }}/>
+    )
 }

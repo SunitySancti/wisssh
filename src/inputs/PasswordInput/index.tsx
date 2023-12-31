@@ -9,41 +9,61 @@ import type { FieldValues,
 
 
 interface PasswordInputProps<FV extends FieldValues> {
-    name: string;
-    label: string;
     register: UseFormRegister<FV>;
+    name: string;
+    label?: string;
     className?: string;
     autoComplete?: string;
-    [prop: string]: any
+    labelWidth?: number;
+    warningMessage?: string;
+    required?: boolean;
+    disabled?: boolean
+}
+
+interface PasswordInputViewProps<FV extends FieldValues> extends PasswordInputProps<FV> {
+    setType(type: 'password' | 'text'): void
+    type: 'password' | 'text';
 }
 
 
-export const PasswordInput = <FV extends FieldValues>({
+const PasswordInputView = <FV extends FieldValues>({
+    register,
+    setType,
+    type,
     name,
     label,
-    register,
     className,
     autoComplete,
-    ...rest
-} : PasswordInputProps<FV>
-) => {
-    const [passwordInputType, setPasswordInputType] = useState('password');
+    labelWidth,
+    warningMessage,
+    required,
+    disabled,
+} : PasswordInputViewProps<FV>
+) => (
+    <div className={ 'password-input ' + (className || '') }>
+        <TextInput {...{
+            name: name || 'password',
+            label: label || 'Password',
+            autoComplete: autoComplete || name || "password",
+            register,
+            type,
+            labelWidth,
+            warningMessage,
+            required,
+            disabled
+        }}
+        />
+        <Icon
+            name='lookPass'
+            onMouseOver={ () => setType('text') }
+            onMouseOut={ () => setType('password') }
+        />
+    </div>
+);
 
-    return (
-        <div className={ 'password-input ' + (className || '') }>
-            <TextInput
-                name={ name || 'password' }
-                label={ label || 'Password' }
-                type={ passwordInputType }
-                register={ register }
-                autoComplete={ autoComplete || name || "password" }
-                { ...rest }
-            />
-            <Icon
-                name='lookPass'
-                onMouseOver={ () => setPasswordInputType('text') }
-                onMouseOut={ () => setPasswordInputType('password') }
-            />
-        </div>
-    )
+export const PasswordInput = <FV extends FieldValues>(
+    props : PasswordInputProps<FV>
+) => {
+    const [type, setType] = useState<'password' | 'text'>('password');
+    return <PasswordInputView {...{ ...props, type, setType }}/>
 }

@@ -28,7 +28,8 @@ import { usePostWishMutation } from 'store/apiSlice'
 import { postImage,
          deleteImage } from 'store/imageSlice'
 
-import type { BaseSyntheticEvent } from 'react'
+import type { SyntheticEvent,
+              BaseSyntheticEvent } from 'react'
 import type { SubmitHandler } from 'react-hook-form'
 import type { WishId,
               WishDefaultValues } from 'typings'
@@ -57,7 +58,7 @@ const defaultValues: WishDefaultValues = {
 export const NewWishPage = () => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
-    const imageInputRef = useRef({ deleteImage(_e: Event){} });
+    const imageInputRef = useRef({ deleteImage(_e: SyntheticEvent){} });
 
     const { location,
             wishId,
@@ -187,7 +188,7 @@ export const NewWishPage = () => {
         e.preventDefault();
         navigate(-1);
     }
-    const resetForm = (e: Event) => {
+    const resetForm = (e: SyntheticEvent) => {
         e.preventDefault();
         reset(defaultValues);
         imageInputRef.current.deleteImage(e);
@@ -305,10 +306,10 @@ export const NewWishPage = () => {
                                 <LineContainer>
                                     <TextInput
                                         name='price'
+                                        register={ register }
                                         formState={ formState }
                                         patternType='number'
-                                        register={ register }
-                                        placeholder={ 4200 }
+                                        placeholder='4200'
                                         label='Цена'
                                         labelWidth={ maxLabelWidth }
                                     />

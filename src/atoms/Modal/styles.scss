@@ -9,15 +9,7 @@
         align-items: center;
         justify-content: center;
         cursor: pointer;
-
-        &.hidden {
-            visibility: hidden;
-            pointer-events: none;
-        }
-        &.visible {
-            visibility: visible;
-            pointer-events: all;
-        }
+        pointer-events: all;
 
         .modal-window {
             position: relative;

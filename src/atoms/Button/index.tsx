@@ -40,7 +40,8 @@ export const Button = ({
     spinnerSize,    // in rem
     spinnerWidth,   // in px
     ...rest
-} : ButtonProps) => {
+} : ButtonProps
+) => {
     const classes = useMemo(() => {
         let result = text ? 'button' : 'icon-button';
         if(className) result += (' ' + className);

@@ -25,6 +25,7 @@ import { getAllUserNames, getLocationConfig } from 'store/getters'
 import { decodeEmail } from 'utils'
 
 import type { ChangeEvent,
+              SyntheticEvent,
               BaseSyntheticEvent } from 'react'
 import type { Control,
               Path,
@@ -331,8 +332,8 @@ export const LoginPage = () => {
         } else setConnectionErrorMessage('')
     },[ loadingAllUserNamesWasCrashed ]);
 
-    function handleEmailEvents(e: KeyboardEvent & FocusEvent) {
-        if((e.type === 'keydown' && e.key === 'Enter') || (e.type === 'blur')) {
+    function handleEmailEvents(e: SyntheticEvent) {
+        if((e.type === 'keydown' && 'key' in e && e.key === 'Enter') || (e.type === 'blur')) {
             const wrongEmail = errors?.email?.type === 'pattern';
             if(wrongEmail) {
                 setEmailErrorMessage('Проверьте написание почты. Кажется, закралась ошибка')

@@ -5,16 +5,45 @@ import './styles.scss'
 import { Button } from 'atoms/Button'
 
 import type { IconName } from 'atoms/Icon'
+import type { SyntheticEvent } from 'react';
 
 
-interface PlugProps {
-    position?: 'wishlistPageNoWishes' | 'newListNoWishes';
+interface PlugBaseProps {
     message?: string;
     btnIcon?: IconName;
     btnText?: string;
+}
+
+interface PlugViewProps extends PlugBaseProps {
+    btnHandleClick(e: SyntheticEvent): void
+}
+
+interface PlugProps extends PlugBaseProps {
+    position?: 'wishlistPageNoWishes' | 'newListNoWishes';
     navPath?: string
 }
 
+
+const PlugView = ({
+    message,
+    btnIcon,
+    btnText,
+    btnHandleClick
+}:  PlugViewProps
+) => (
+    <div className='plug'>
+        { !!message && <span>{ message }</span> }
+        { btnHandleClick && !!(btnIcon || btnText) &&
+            <Button
+                icon={ btnIcon }
+                text={ btnText }
+                kind='primary'
+                round
+                onClick={ btnHandleClick }
+            />
+        }
+    </div>
+);
 
 export const Plug = ({
     position,
@@ -26,7 +55,6 @@ export const Plug = ({
 ) => {
     const navigate = useNavigate();
     const location = useLocation().pathname;
-    const isInvite = location.split('/').at(1) === 'my-invites';
 
     switch(position) {
         case 'wishlistPageNoWishes':
@@ -42,18 +70,5 @@ export const Plug = ({
             navPath = '/my-wishes/items/new'
     }
 
-    return (
-        <div className='plug'>
-            <span>{ message }</span>
-            {!isInvite &&
-                <Button
-                    icon={ btnIcon }
-                    text={ btnText }
-                    kind='primary'
-                    round
-                    onClick={ () => navigate(navPath) }
-                />
-            }
-        </div>
-    )
+    return <PlugView {...{ message, btnIcon, btnText }} btnHandleClick={ (_e) => navigate(navPath) }/>
 }

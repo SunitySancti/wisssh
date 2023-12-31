@@ -10,22 +10,49 @@ import { useDeleteWishlistMutation,
          useDeleteInvitationMutation } from 'store/apiSlice'
 import { getLocationConfig } from 'store/getters'
 
-import type { SyntheticEvent } from 'react'
-import { Wishlist } from 'typings'
-import { ModalRef } from 'atoms/Modal'
+import type { SyntheticEvent,
+              RefObject } from 'react'
+import type { Wishlist } from 'typings'
+import type { ModalRef,
+              ModalProps } from 'atoms/Modal'
+import type { DropdownOption } from 'atoms/WithDropDown'
 
 
 interface WishlistMenuProps {
     wishlist: Wishlist
 }
 
+interface WishlistMenuViewProps {
+    dropdownOptions: DropdownOption[];
+    modalRef: RefObject<ModalRef>;
+    modalProps: ModalProps
+}
+
+
+const WishlistMenuView = ({
+    dropdownOptions,
+    modalRef,
+    modalProps
+} : WishlistMenuViewProps
+) => (
+    <>
+        <WithDropDown
+            trigger={ <Button icon='kebap' size={ 4 }/> }
+            options={ dropdownOptions }
+        />
+        <Modal
+            ref={ modalRef }
+            {...modalProps }
+        />
+    </>
+);
 
 export const WishlistMenu = ({
     wishlist
 } : WishlistMenuProps
 ) => {
     const navigate = useNavigate();
-    const deleteModalRef = useRef<ModalRef>(null);
+    const modalRef = useRef<ModalRef>(null);
     const { section,
             isInvitesSection } = getLocationConfig();
 
@@ -54,32 +81,32 @@ export const WishlistMenu = ({
             deleteWishlist(wishlist.id)
         }
 
-        deleteModalRef?.current?.hideModal(e);
+        modalRef?.current?.hideModal(e);
         navigate('/' + section + '/lists')
     }
 
     const dropdownOptions = useMemo(() => {
         return isInvitesSection
             ?   [{
-                    icon: 'delete',
+                    icon: 'delete' as const,
                     text: 'Удалить из списка приглашений',
-                    onClick: (e: SyntheticEvent) => deleteModalRef.current?.showModal(e)
+                    onClick: (e: SyntheticEvent) => modalRef.current?.showModal(e)
                 }]
             :   [{
-                    icon: 'copy',
+                    icon: 'copy' as const,
                     text: 'Скопировать пригласительную ссылку',
-                    clickedIcon: 'ok',
+                    clickedIcon: 'ok' as const,
                     clickedText: 'Ссылка скопирована',
                     dontHideAfterClick: true,
                     onClick: copyInvitationLink,
                 },{
-                    icon: 'edit',
+                    icon: 'edit' as const,
                     text: 'Редактировать вишлист',
                     onClick: handleEdit
                 },{
-                    icon: 'delete',
+                    icon: 'delete' as const,
                     text: 'Удалить вишлист',
-                    onClick: (e: SyntheticEvent) => deleteModalRef.current?.showModal(e)
+                    onClick: (e: SyntheticEvent) => modalRef.current?.showModal(e)
                 }]
     },[
         isInvitesSection,
@@ -87,7 +114,7 @@ export const WishlistMenu = ({
         copyInvitationLink
     ]);
 
-    const deleteModalProps = {
+    const modalProps = {
         header: 'Пожалуйста, подтвердите действие',
         body: isInvitesSection
             ? `Вишлист "${ wishlist.title }" будет удален из списка приглашений. Чтобы добавить его обратно, вам понадобится пригласительная ссылка.`
@@ -95,7 +122,7 @@ export const WishlistMenu = ({
         actions: [{
             icon: 'cancel' as const,
             text: 'Отмена',
-            onClick: (e: SyntheticEvent) => deleteModalRef.current?.hideModal(e)
+            onClick: (e: SyntheticEvent) => modalRef.current?.hideModal(e)
         }, {
             kind: 'negative primary' as const,
             icon: 'delete' as const,
@@ -106,16 +133,6 @@ export const WishlistMenu = ({
         }]
     }
 
-    return wishlist
-        ?   <>
-                <WithDropDown
-                    trigger={ <Button icon='kebap' size={ 4 }/> }
-                    options={ dropdownOptions }
-                />
-                <Modal
-                    ref={ deleteModalRef }
-                    {...deleteModalProps }
-                />
-            </>
-        : null
+    return !!wishlist &&
+        <WishlistMenuView {...{ dropdownOptions, modalRef, modalProps }}/>
 }

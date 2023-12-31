@@ -16,8 +16,7 @@ import { Modal } from 'atoms/Modal'
 import { useAppSelector,
          useAppDispatch } from 'store'
 import { getLocationConfig,
-         getCurrentUser,
-         getUserById } from 'store/getters'
+         getCurrentUser } from 'store/getters'
 import { usePostWishMutation,
          useDeleteWishMutation,
          useCompleteWishMutation,
@@ -27,11 +26,14 @@ import { usePostWishMutation,
 import { copyWishCover } from 'store/imageSlice'
 import { generateUniqueId } from 'utils'
             
-import type { SyntheticEvent } from 'react'
+import type { SyntheticEvent,
+              RefObject } from 'react'
 import type { Wish,
               ImageId } from 'typings'
 import type { IconName } from 'atoms/Icon'
-import type { ModalRef } from 'atoms/Modal'
+import type { ModalRef,
+              ModalProps } from 'atoms/Modal'
+import type { DropdownOption } from 'atoms/WithDropDown'
 
 
 interface StatusBarProps {
@@ -39,10 +41,26 @@ interface StatusBarProps {
     onCard?: boolean
 }
 
+interface StatusBarViewProps {
+    onCard: boolean;
+    width: number;
+    showText(): void;
+    hideText(): void;
+    innerRef: RefObject<HTMLDivElement>;
+    isCompleted: boolean;
+    ofCurrentUser: boolean;
+    isReservedByCurrentUser: boolean
+}
+
 interface WishCoverProps {
     wish: Wish;
     withUserPic?: boolean;
     onCard?: boolean
+}
+
+interface WishCoverViewProps extends WishCoverProps {
+    imageURL: string | null;
+    isLoading: boolean
 }
 
 interface WishButtonProps {
@@ -53,6 +71,14 @@ interface WishMenuProps {
     wish: Wish
 }
 
+interface WishMenuViewProps {
+    dropdownOptions: DropdownOption[];
+    deleteModalRef: RefObject<ModalRef>;
+    deleteModalProps: ModalProps
+    uncompleteModalRef: RefObject<ModalRef>;
+    uncompleteModalProps: ModalProps
+}
+
 interface DropDownOption {
     icon: IconName;
     text: string;
@@ -60,20 +86,58 @@ interface DropDownOption {
 }
 
 
+const StatusBarView = ({
+    onCard,
+    width,
+    showText,
+    hideText,
+    innerRef,
+    isCompleted,
+    ofCurrentUser,
+    isReservedByCurrentUser
+} : StatusBarViewProps
+) => {
+    const text = isCompleted && isReservedByCurrentUser && !ofCurrentUser ? 'Желание исполнено вами'
+               : isCompleted                                              ? 'Желание исполнено'
+               : isReservedByCurrentUser                                  ? 'Вы исполняете это желание'
+                                                                          : 'Желание исполняется';
+
+    const icon = isCompleted ? 'completed' as const
+                             : 'inProgress' as const;
+    return (
+        <div
+            className={ 'status-bar' + (onCard ? ' on-card' : '') }
+            style={ onCard ? { width } : undefined }
+            onClick={ e => e.stopPropagation() }
+            onMouseEnter={ showText }
+            onMouseLeave={ hideText }
+        >
+            <div
+                className='inner-container'
+                ref={ innerRef }
+            >
+                { icon &&
+                    <Icon name={ icon } size={ 34 }/>
+                }
+                <span>{ text }</span>
+            </div>
+        </div>
+    )
+}
+
 export const StatusBar = ({
     wish,
     onCard
 } : StatusBarProps
 ) => {
-    const { user } = getCurrentUser();
-    const innerRef = useRef<HTMLDivElement>(null);
     const defaultWidth = 34;
-    const [width, setWidth] = useState(defaultWidth);
+    const innerRef = useRef<HTMLDivElement>(null);
+    const [ width, setWidth ] = useState(defaultWidth);
+    const { user } = getCurrentUser();
 
     const showText = () => {
         if(onCard) {
-            const width = innerRef.current?.offsetWidth;
-            setWidth(width ? width + 22 : defaultWidth)
+            setWidth(innerRef.current ? innerRef.current.offsetWidth + 22 : defaultWidth)
         }
     }
     const hideText = () => {
@@ -82,79 +146,57 @@ export const StatusBar = ({
         }
     }
 
-    let text, icon;
-    if(wish.isCompleted) {
-        text = 'Желание исполнено';
-        icon = 'completed' as const;
-
-        if(wish.author !== user?.id && wish.reservedBy === user?.id) {
-            text += ' вами'
-        }
-    } else if(wish.reservedBy) {
-        if(wish.reservedBy === user?.id) {
-            text = 'Вы исполняете это желание'
-        } else {
-            text = 'Желание исполняется'
-        }
-        icon = 'inProgress' as const
-    }
-
-    return (text
-        ?   <div
-                className={ onCard ? 'status-bar on-card' : 'status-bar' }
-                onClick={e => e.stopPropagation()}
-                onMouseEnter={ showText }
-                onMouseLeave={ hideText }
-                style={onCard ? { width } : undefined}
-            >
-                <div
-                    className='inner-container'
-                    ref={ innerRef }
-                >
-                    { icon &&
-                        <Icon name={ icon } size={ 34 }/>
-                    }
-                    <span>{ text }</span>
-                </div>
-            </div>
-        : null
-    );
+    return (wish.isCompleted || wish.reservedBy) &&
+        <StatusBarView {...{
+            onCard: onCard || false,
+            width,
+            showText,
+            hideText,
+            innerRef,
+            isCompleted: wish.isCompleted,
+            ofCurrentUser: wish.author === user?.id,
+            isReservedByCurrentUser: wish.reservedBy === user?.id
+        }}/>
 }
 
-export const WishCover = ({
+
+const WishCoverView = ({
     wish,
     withUserPic,
-    onCard
-} : WishCoverProps
-) => {
-    const author = getUserById(wish?.author);
-    const imageURL = useAppSelector(state => state.images?.imageURLs[wish?.id]);
-    const isLoading = useAppSelector(state => state.images?.loading[wish?.id]);
+    onCard,
+    imageURL,
+    isLoading
+} : WishCoverViewProps
+) => (
+    <div
+        className='wish-cover'
+        style={{ aspectRatio: (wish?.imageAR || 1) + '' }}
+    >
+        <StarRating readOnly rating={ wish?.stars }/>
+        { withUserPic &&
+            <User
+                id={ wish.author }
+                picSize={ 6 }
+                picOnly
+                withTooltip
+                onClick={(e: SyntheticEvent) => e.stopPropagation()}
+            />
+        }
+        { onCard &&
+            <StatusBar wish={ wish } onCard={ onCard }/>
+        }
+        { imageURL
+            ? <img src={ imageURL }/>
+            : <WishPreloader isLoading={ isLoading }/>
+        }
+    </div>
+);
+
+export const WishCover = (props : WishCoverProps) => {
+    const imageURL = useAppSelector(state => state.images?.imageURLs[props.wish?.id]);
+    const isLoading = useAppSelector(state => state.images?.loading[props.wish?.id]);
     
-    return (
-        <div
-            className='wish-cover'
-            style={{ aspectRatio: (wish?.imageAR || 1) + '' }}
-        >
-            <StarRating readOnly rating={ wish?.stars }/>
-            { withUserPic &&
-                <User
-                    user={ author }
-                    picSize={ 6 }
-                    picOnly
-                    tooltip={ author ? `@ ${author.name}` : undefined }
-                    onClick={(e: MouseEvent) => e.stopPropagation()}
-                />
-            }
-            { onCard &&
-                <StatusBar wish={ wish } onCard={ onCard }/>
-            }
-            { imageURL
-                ? <img src={ imageURL }/>
-                : <WishPreloader isLoading={ isLoading }/>
-            }
-        </div>
-    );
+    return <WishCoverView {...{...props, imageURL, isLoading }}/>
 }
 
 
@@ -195,8 +237,38 @@ export const WishButton = ({
         wish.reservedBy
     ]);
 
-    return buttonProps ? <Button {...buttonProps }/> : null
+    return buttonProps &&
+        <Button { ...buttonProps }/>
 }
+
+
+const WishMenuView = ({
+    dropdownOptions,
+    deleteModalRef,
+    deleteModalProps,
+    uncompleteModalRef,
+    uncompleteModalProps
+} : WishMenuViewProps
+) => (
+    <>
+        <WithDropDown
+            trigger={<>
+                <KebapBackground/>
+                <Button icon='kebap' size={ 4 }/>
+            </>}
+            options={ dropdownOptions }
+            className='wish-menu'
+        />
+        <Modal
+            ref={ deleteModalRef }
+            {...deleteModalProps }
+        />
+        <Modal
+            ref={ uncompleteModalRef }
+            {...uncompleteModalProps }
+        />
+    </>
+);
 
 export const WishMenu = ({
     wish
@@ -226,7 +298,7 @@ export const WishMenu = ({
 
     const handleEdit = (e: SyntheticEvent) => {
         e.stopPropagation();
-        navigate([, section, mode, (tab || wishlistId), wishId, 'editing'].join('/'));
+        navigate([, section, mode, (tab || wishlistId), wish.id, 'editing'].join('/'));
     }
 
     const handleCopy = async (e: SyntheticEvent) => {
@@ -268,7 +340,7 @@ export const WishMenu = ({
 
         completeWish(wish.id);
 
-        if((isItemsMode) && (wishId === wish.id)) {
+        if(isItemsMode && wishId) {
             navigate('/' + section + '/items/completed/' + wishId)
         } else {
             navigate('/redirect',{ state:{ redirectTo: location }})
@@ -291,7 +363,7 @@ export const WishMenu = ({
     const dropdownOptions = useMemo(() => {
         if(!user) {
             return [{
-                icon: 'change',
+                icon: 'change' as const,
                 text: 'Обновить страницу',
                 onClick: () => window.location.reload()
             }]
@@ -395,23 +467,12 @@ export const WishMenu = ({
     }
 
     return (
-        <>
-            <WithDropDown
-                trigger={<>
-                    <KebapBackground/>
-                    <Button icon='kebap' size={ 4 }/>
-                </>}
-                options={ dropdownOptions }
-                className='wish-menu'
-            />
-            <Modal
-                ref={ deleteModalRef }
-                {...deleteModalProps }
-            />
-            <Modal
-                ref={ uncompleteModalRef }
-                {...uncompleteModalProps }
-            />
-        </>
-    );
+        <WishMenuView {...{
+            dropdownOptions,
+            deleteModalRef,
+            deleteModalProps,
+            uncompleteModalRef,
+            uncompleteModalProps
+        }}/>
+    )
 }

@@ -1,6 +1,6 @@
-.env
 src/environment.js
-build
-node_modules
+.env
 .space
 Spacefile
+build
+node_modules

@@ -227,7 +227,7 @@ export const ProfilePage = () => {
                                         label='Подтверждение'
                                         labelWidth={ maxLabelWidth }
                                         required
-                                        warningMessage={ passwordsNotSame && 'Пароли не совпадают' }
+                                        warningMessage={ passwordsNotSame ? 'Пароли не совпадают' : undefined }
                                     />
                                 }
 

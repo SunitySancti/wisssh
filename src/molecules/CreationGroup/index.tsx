@@ -13,34 +13,32 @@ const Gratitude = () => (
     </svg>
 );
 
-export const CreationGroup = () => {
-    return (
-        <div className='creation-group'>
-            {/* <WithTooltip
-                trigger={ <Gratitude/> }
-                text='Благодарность разработчику'
-            /> */}
-            <Gratitude/>
-            <WithTooltip
-                trigger={
-                    <Link
-                        to='/my-wishes/items/new'
-                        className='icon-link'
-                        children={ <Icon name='newWish'/> }
-                    />
-                }
-                text='Новое желание'
-            />
-            <WithTooltip
-                trigger={
-                    <Link
-                        to='/my-wishes/lists/new'
-                        className='icon-link'
-                        children={ <Icon name='newList'/> }
-                    />
-                }
-                text='Новый вишлист'
-            />
-        </div>
-    );
-}
+export const CreationGroup = () => (
+    <div className='creation-group'>
+        {/* <WithTooltip
+            trigger={ <Gratitude/> }
+            text='Благодарность разработчику'
+        /> */}
+        <Gratitude/>
+        <WithTooltip
+            trigger={
+                <Link
+                    to='/my-wishes/items/new'
+                    className='icon-link'
+                    children={ <Icon name='newWish'/> }
+                />
+            }
+            text='Новое желание'
+        />
+        <WithTooltip
+            trigger={
+                <Link
+                    to='/my-wishes/lists/new'
+                    className='icon-link'
+                    children={ <Icon name='newList'/> }
+                />
+            }
+            text='Новый вишлист'
+        />
+    </div>
+)

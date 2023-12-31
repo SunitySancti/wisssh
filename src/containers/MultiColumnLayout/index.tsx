@@ -41,7 +41,7 @@ export const MultiColumnLayout = ({
         flexFlow: 'row nowrap',
         width: '100%',
         gap: `${ gap }px`,
-        paddingBottom: '1rem'
+        paddingBottom: '20rem'
     };
     const columnStyles = {
         display: 'flex',

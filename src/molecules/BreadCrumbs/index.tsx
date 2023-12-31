@@ -16,10 +16,12 @@ import { getUserWishes,
          getLoadingStatus,
          getLocationConfig } from 'store/getters'
 
+import type { Wish,
+              Wishlist } from 'typings'
 
-interface LinkOption {
-    to: string;
-    text: string
+
+interface SliderProps {
+    location: string
 }
 
 interface TabCoords {
@@ -32,10 +34,87 @@ interface SliderStyles {
     width?: number
 }
 
+interface LinkOption {
+    to: string;
+    text: string
+}
 
-export const BreadCrumbs = () => {
-    // LINKS DEFINITION //
+interface BreadCrumbsViewProps {
+    wish: Wish | undefined;
+    wishlist: Wishlist | undefined;
+    userWishes: Wish[];
+    friendWishes: Wish[];
+    awaitingWishes: boolean;
+    awaitingUserWishes: boolean;
+    awaitingWishlists: boolean
+}
+
+const Slider = ({ location }: SliderProps) => {
+    const sliderPadding = 19;
+    const [sliderStyles, setSliderStyles] = useState<SliderStyles | undefined>(undefined);
+    const [lastActiveTab, setLastActiveTab] = useState<TabCoords | undefined>(undefined);
+    const currentTab = document.querySelector<HTMLAnchorElement>('.nav-elem.option.active');
+
+    const startSliderMove = () => {
+        const slider = document.querySelector<HTMLDivElement>('.bc-slider');
+        const activeTab = document.querySelector<HTMLAnchorElement>('.nav-elem.option.active');
+        if(!slider || !activeTab || !lastActiveTab) return;
+
+        slider.classList.add('animated');
+        const lastLeft = lastActiveTab.offsetLeft;
+        const lastWidth = lastActiveTab.offsetWidth;
+        const nextLeft = activeTab.offsetLeft;
+        const nextWidth = activeTab.offsetWidth;
+        if(nextLeft === lastLeft && nextWidth === lastWidth) return;
+
+        if(nextLeft > lastLeft) {
+            setSliderStyles({
+                ...sliderStyles,
+                width: (nextLeft - lastLeft) + nextWidth - 2 * sliderPadding
+            })
+        } else if(nextLeft < lastLeft) {
+            setSliderStyles({
+                left: nextLeft + sliderPadding,
+                width: lastWidth + (lastLeft - nextLeft) - 2 * sliderPadding
+            })
+        } else return
+    }
     
+    const finishSliderMove = () => {
+        const activeTab = document.querySelector<HTMLAnchorElement>('.nav-elem.option.active');
+        if(!activeTab) return;
+
+        setSliderStyles({
+            left: activeTab.offsetLeft + sliderPadding,
+            width: activeTab.offsetWidth - 2 * sliderPadding
+        });
+        setLastActiveTab({
+            offsetLeft: activeTab.offsetLeft,
+            offsetWidth: activeTab.offsetWidth
+        });
+        setTimeout(() => {
+            document.querySelector<HTMLDivElement>('.bc-slider')?.classList.remove('animated')
+        }, 300);
+    }
+
+    useEffect(() => {
+        startSliderMove();
+        setTimeout(finishSliderMove, 300);
+    },[ location, currentTab?.innerHTML ]);
+
+    return <div className='bc-slider' style={ sliderStyles }/>
+}
+
+const BreadCrumbsView = ({
+    wish,
+    wishlist,
+    userWishes,
+    friendWishes,
+    awaitingWishes,
+    awaitingUserWishes,
+    awaitingWishlists
+} : BreadCrumbsViewProps
+) => {
     const { location,
             section,
             wishId,
@@ -47,15 +126,7 @@ export const BreadCrumbs = () => {
             isNewWish,
             isNewWishlist,
             isEditWish,
-            isEditWishlist } = getLocationConfig()
-
-    const wish = getWishById(wishId);
-    const wishlist = getWishlistById(wishlistId);
-    const { userWishes } = getUserWishes();
-    const { friendWishes } = getFriendWishes();
-    const { awaitingUserWishes,
-            awaitingWishes,
-            awaitingWishlists } = getLoadingStatus();
+            isEditWishlist } = getLocationConfig();
 
     const itemsModeOptions = useMemo(() => {
         const options: LinkOption[] = [];
@@ -222,68 +293,10 @@ export const BreadCrumbs = () => {
         awaitingWishlists,
         awaitingWishes
     ]);
-    
-
-    // SLIDER ANIMATION //
-
-    const sliderPadding = 19;
-
-    const [sliderStyles, setSliderStyles] = useState<SliderStyles | undefined>(undefined);
-    const [lastActiveTab, setLastActiveTab] = useState<TabCoords | undefined>(undefined);
-    const currentTab = document.querySelector<HTMLAnchorElement>('.nav-elem.option.active');
-
-    const startSliderMove = () => {
-        const slider = document.querySelector<HTMLDivElement>('.bc-slider');
-        const activeTab = document.querySelector<HTMLAnchorElement>('.nav-elem.option.active');
-        if(!slider || !activeTab || !lastActiveTab) return;
-
-        slider.classList.add('animated');
-        const lastLeft = lastActiveTab.offsetLeft;
-        const lastWidth = lastActiveTab.offsetWidth;
-        const nextLeft = activeTab.offsetLeft;
-        const nextWidth = activeTab.offsetWidth;
-        if(nextLeft === lastLeft && nextWidth === lastWidth) return;
-
-        if(nextLeft > lastLeft) {
-            setSliderStyles({
-                ...sliderStyles,
-                width: (nextLeft - lastLeft) + nextWidth - 2 * sliderPadding
-            })
-        } else if(nextLeft < lastLeft) {
-            setSliderStyles({
-                left: nextLeft + sliderPadding,
-                width: lastWidth + (lastLeft - nextLeft) - 2 * sliderPadding
-            })
-        } else return
-    }
-    const finishSliderMove = () => {
-        const activeTab = document.querySelector<HTMLAnchorElement>('.nav-elem.option.active');
-        if(!activeTab) return;
-
-        setSliderStyles({
-            left: activeTab.offsetLeft + sliderPadding,
-            width: activeTab.offsetWidth - 2 * sliderPadding
-        });
-        setLastActiveTab({
-            offsetLeft: activeTab.offsetLeft,
-            offsetWidth: activeTab.offsetWidth
-        });
-        setTimeout(() => {
-            document.querySelector('.bc-slider')?.classList.remove('animated')
-        }, 300);
-    }
-
-    useEffect(() => {
-        startSliderMove();
-        setTimeout(finishSliderMove, 300);
-    },[ location, currentTab?.innerHTML, userWishes?.length, friendWishes?.length ]);
 
     return (
         <div className='bread-crumbs'>
-            <div
-                className='bc-slider'
-                style={ sliderStyles }
-            />
+            <Slider {...{userWishes, friendWishes, location}}/>
             {   isItemsMode
                     ?   itemsModeOptions
               : isListsMode
@@ -291,5 +304,30 @@ export const BreadCrumbs = () => {
                     :   null
             }
         </div>
-    );
+    )
+}
+
+export const BreadCrumbs = () => {
+    const { wishId,
+            wishlistId } = getLocationConfig()
+
+    const   wish = getWishById(wishId);
+    const   wishlist = getWishlistById(wishlistId);
+    const { userWishes } = getUserWishes();
+    const { friendWishes } = getFriendWishes();
+    const { awaitingUserWishes,
+            awaitingWishes,
+            awaitingWishlists } = getLoadingStatus();
+
+    return (
+        <BreadCrumbsView {...{
+            wish,
+            wishlist,
+            userWishes,
+            friendWishes,
+            awaitingWishes,
+            awaitingUserWishes,
+            awaitingWishlists
+        }}/>
+    )
 }

@@ -1,25 +1,41 @@
+import { useEffect } from 'react'
+    
 import './styles.scss'
 import { UserPlaceholder } from 'atoms/Icon'
 import { Spinner } from 'atoms/Preloaders'
 import { WithTooltip } from 'atoms/WithTooltip'
 
-import { useAppSelector } from 'store'
+import { useAppSelector,
+         useAppDispatch } from 'store'
+import { getUserById } from 'store/getters'
+import { promoteImages } from 'store/imageSlice'
 
-import type { User as UserType } from 'typings'
+import type { UserId } from 'typings'
+import type { SyntheticEvent } from 'react'
 
 
 interface UserPicProps {
     imageURL?: string | null;
     isLoading?: boolean;
-    size?: number           // in rem
+    size?: number       // in rem
 }
 
-interface UserProps {
-    user?: UserType;
-    picSize?: number;       // in rem
+interface optionalUserParameters {
+    picSize?: number;   // in rem
     picOnly?: boolean;
-    tooltip?: string;
-    [rest: string]: any
+    withTooltip?: boolean;
+    onClick?: (e: SyntheticEvent) => void;
+    reverse?: boolean
+}
+
+interface UserProps extends optionalUserParameters {
+    id?: UserId;
+}
+
+interface UserViewProps extends optionalUserParameters {
+    name?: string;
+    imageURL?: string | null;
+    isLoading?: boolean;
 }
 
 
@@ -52,37 +68,46 @@ export const UserPic = ({
         </div>
     )
 }
-export const User = ({
-    user,
+
+const UserView = ({
     picSize,
     picOnly,
-    tooltip,
-    ...rest
+    withTooltip,
+    onClick,
+    name,
+    imageURL,
+    isLoading,
+    reverse
+} : UserViewProps) => (
+    <div
+        className={ 'user ' + (reverse ? 'text-left' : 'text-right') }
+        onClick={ onClick }
+    >
+        { (withTooltip && name)
+            ?   <WithTooltip
+                    trigger={<UserPic {...{ imageURL, isLoading, size: picSize }}/>}
+                    text={ '@ ' + name }
+                />
+            :   <UserPic {...{ imageURL, isLoading, size: picSize }}/>
+        }
+        { (name && !picOnly) && <span className='name'>@ { name }</span> }
+    </div>
+);
+
+export const User = ({
+    id,
+    ...optionalParams
 } : UserProps
 ) => {
-    
-    const imageURL = useAppSelector(state => user ? state.images.imageURLs[user.id] : undefined);
-    const isLoading = useAppSelector(state => user ? state.images.loading[user.id] : undefined);
+    const dispatch = useAppDispatch();
+    const user = getUserById(id);
+    const imageURL = useAppSelector(state => id ? state.images.imageURLs[id] : undefined);
+    const isLoading = useAppSelector(state => id ? state.images.loading[id] : undefined);
 
-    return (
-        <div
-            className='user'
-            {...rest}
-        >
-            { tooltip
-                ?   <WithTooltip
-                        trigger={<>
-                            <UserPic {...{ imageURL, isLoading, size: picSize }}/>
-                            { !picOnly &&
-                                <span className='name'>@{ user?.name }</span> }
-                        </>}
-                        text={ tooltip }
-                    />
-                :   <>
-                        <UserPic {...{ imageURL, isLoading, size: picSize }}/>
-                        { !picOnly && <span className='name'>@{ user?.name }</span> }
-                    </>
-            }
-        </div>
-    );
+    useEffect(() => {
+        if(id && user?.imageExtension) dispatch(promoteImages(id))
+    },[ id, user?.imageExtension ]);
+
+    return user &&
+        <UserView {...{...optionalParams, name: user?.name, imageURL, isLoading }} />
 }

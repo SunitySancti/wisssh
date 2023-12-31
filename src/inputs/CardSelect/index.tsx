@@ -27,6 +27,54 @@ interface CardSelectControllerRenderProps {
     }
 }
 
+interface CardSelectViewProps {
+    options: Wish[];
+    value: WishId[];
+    onChange: (newValue: WishId[]) => void
+}
+
+
+const CardSelectView = ({
+    options,
+    value,
+    onChange
+} : CardSelectViewProps
+) => (
+    <div className='card-select'>
+        <LineContainer>
+            <span
+                children={
+                    value?.length
+                    ? `Выбрано желаний: ${value?.length}`                           
+                    : 'Кликните на карточку, чтобы добавить желание в вишлист'
+                }
+            />
+            <div style={{flex: 1}}/>
+            <Button
+                icon='clear'
+                onClick={(e: MouseEvent) => {
+                    e.preventDefault();
+                    onChange([]);
+                }}
+            />
+            <Button
+                text='Выделить все'
+                onClick={(e: MouseEvent) => {
+                    e.preventDefault();
+                    onChange(options.map(option => option.id));
+                }}
+                round
+                disabled={value?.length === options?.length}
+            />
+        </LineContainer>
+        <MultiColumnLayout
+            Card={WishCard}
+            data={options}
+            value={value}
+            onChange={onChange}
+        />
+    </div>
+);
 
 export const CardSelect = <FV extends FieldValues>({
     control,
@@ -39,40 +87,7 @@ export const CardSelect = <FV extends FieldValues>({
                 control={control}
                 name={name as Path<FV>}
                 render={({ field: { value, onChange }}: CardSelectControllerRenderProps) => (
-                    <div className='card-select'>
-                        <LineContainer>
-                            <span
-                                children={
-                                    value?.length
-                                    ? `Выбрано желаний: ${value?.length}`                           
-                                    : 'Кликните на карточку, чтобы добавить желание в вишлист'
-                                }
-                            />
-                            <div style={{flex: 1}}/>
-                            <Button
-                                icon='clear'
-                                onClick={(e: MouseEvent) => {
-                                    e.preventDefault();
-                                    onChange([]);
-                                }}
-                            />
-                            <Button
-                                text='Выделить все'
-                                onClick={(e: MouseEvent) => {
-                                    e.preventDefault();
-                                    onChange(options.map(option => option.id!));
-                                }}
-                                round
-                                disabled={value?.length === options?.length}
-                            />
-                        </LineContainer>
-                        <MultiColumnLayout
-                            Card={WishCard}
-                            data={options}
-                            value={value}
-                            onChange={onChange}
-                        />
-                    </div>
+                    <CardSelectView {...{ options, value, onChange }}/>
                 )}
             />
         :   <Plug position='newListNoWishes'/>

@@ -6,12 +6,66 @@ import './styles.scss'
 import { Button } from 'atoms/Button'
 
 import type { ReactNode,
+              RefObject,
               WheelEvent } from 'react'
 
 
 interface ScrollBoxProps {
     children: ReactNode | ReactNode[]
 }
+
+interface ScrollBoxViewProps extends ScrollBoxProps {
+    contentRef: RefObject<HTMLDivElement>;
+    scrollPosition: number;
+    leftOverflow: boolean;
+    rightOverflow: boolean;
+    scrollLeft(): void;
+    scrollRight(): void;
+    scrollByWheel(e: WheelEvent<HTMLDivElement>): void
+}
+
+
+const ScrollBoxView = ({
+    children,
+    contentRef,
+    scrollPosition,
+    leftOverflow,
+    rightOverflow,
+    scrollLeft,
+    scrollRight,
+    scrollByWheel
+} : ScrollBoxViewProps
+) => (
+    <div className='scroll-box'>
+        <div  className={ leftOverflow ? 'left field masked' : 'left field' }>
+
+            { (leftOverflow || rightOverflow) && (
+                <Button
+                    icon='arrowLeft'
+                    onClick={ scrollLeft }
+                    disabled={ scrollPosition === 0 }
+                />
+            )}
+        </div>
+        <div
+            ref={ contentRef }
+            className='content'
+            children={ children }
+            onWheel={ scrollByWheel }
+        />
+        <div
+            className={ rightOverflow ? 'right field masked' : 'right field' }
+        >
+            { (leftOverflow || rightOverflow) &&
+                <Button
+                    icon='arrowRight'
+                    onClick={ scrollRight }
+                    disabled={ scrollPosition >= (contentRef.current?.scrollWidth || Infinity) - (contentRef.current?.clientWidth || 0) }
+                />
+            }
+        </div>
+    </div>
+);
 
 
 export const ScrollBox = ({ children }: ScrollBoxProps) => {
@@ -73,39 +127,19 @@ export const ScrollBox = ({ children }: ScrollBoxProps) => {
             behavior: 'smooth'
         });
         detectOverflow();
-    },[scrollPosition]);
+    },[ scrollPosition ]);
 
 
     return (
-        <div className='scroll-box'>
-            <div
-                className={ leftOverflow ? 'left field masked' : 'left field' }
-            >
-                { (leftOverflow || rightOverflow) && (
-                    <Button
-                        icon='arrowLeft'
-                        onClick={ scrollLeft }
-                        disabled={ scrollPosition === 0 }
-                    />
-                )}
-            </div>
-            <div
-                ref={ contentRef }
-                className='content'
-                children={ children }
-                onWheel={ scrollByWheel }
-            />
-            <div
-                className={ rightOverflow ? 'right field masked' : 'right field' }
-            >
-                { (leftOverflow || rightOverflow) && (
-                    <Button
-                        icon='arrowRight'
-                        onClick={ scrollRight }
-                        disabled={ scrollPosition >= (contentRef.current?.scrollWidth || Infinity) - (contentRef.current?.clientWidth || 0) }
-                    />
-                )}
-            </div>
-        </div>
-    );
+        <ScrollBoxView {...{
+            children,
+            contentRef,
+            scrollPosition,
+            leftOverflow,
+            rightOverflow,
+            scrollLeft,
+            scrollRight,
+            scrollByWheel
+        }}/>
+    )
 }
