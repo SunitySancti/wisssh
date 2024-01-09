@@ -140,9 +140,7 @@ const BreadCrumbsView = ({
                 text: 'Исполненные'
             }, {
                 to: '/my-wishes/items/all',
-                text: userWishes.length
-                    ? `Все (${userWishes.length})`
-                    : 'Все'
+                text: 'Все'
             });
 
             if(isNewWish) {
@@ -160,9 +158,7 @@ const BreadCrumbsView = ({
                 text: 'Подарено'
             }, {
                 to: '/my-invites/items/all',
-                text: friendWishes.length
-                    ? `Все (${friendWishes.length})`
-                    : 'Все'
+                text: 'Все'
             });
         }
         return  <>
@@ -203,9 +199,7 @@ const BreadCrumbsView = ({
                     }
                 </>
     },[ location,
-        wish?.title,
-        userWishes.length,
-        friendWishes.length
+        wish?.title
     ]);
 
     const listsModeOptions = useMemo(() => {        
@@ -296,7 +290,7 @@ const BreadCrumbsView = ({
 
     return (
         <div className='bread-crumbs'>
-            <Slider {...{userWishes, friendWishes, location}}/>
+            <Slider {...{ userWishes, friendWishes, location }}/>
             {   isItemsMode
                     ?   itemsModeOptions
               : isListsMode

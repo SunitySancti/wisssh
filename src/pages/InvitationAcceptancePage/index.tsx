@@ -34,8 +34,6 @@ export const InvitationAcceptancePage = () => {
         }
     },[ invitationCode, awaitingAcceptance, invitationAccepted ]);
 
-
-
     useEffect(() => {
         if(!acceptanceTimeStamp || !friendWishesTimeStamp || !invitesTimeStamp || !userTimeStamp || !friendsTimeStamp) return
         if(invitationAccepted && acceptanceResponse) {

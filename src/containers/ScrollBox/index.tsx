@@ -12,6 +12,7 @@ import type { ReactNode,
 
 interface ScrollBoxProps {
     children: ReactNode | ReactNode[]
+    shouldDropShadow?: boolean;
 }
 
 interface ScrollBoxViewProps extends ScrollBoxProps {
@@ -27,6 +28,7 @@ interface ScrollBoxViewProps extends ScrollBoxProps {
 
 const ScrollBoxView = ({
     children,
+    shouldDropShadow,
     contentRef,
     scrollPosition,
     leftOverflow,
@@ -49,7 +51,7 @@ const ScrollBoxView = ({
         </div>
         <div
             ref={ contentRef }
-            className='content'
+            className={ 'content' + (shouldDropShadow ? ' with-shadow' : '') }
             children={ children }
             onWheel={ scrollByWheel }
         />
@@ -68,7 +70,10 @@ const ScrollBoxView = ({
 );
 
 
-export const ScrollBox = ({ children }: ScrollBoxProps) => {
+export const ScrollBox = ({
+    shouldDropShadow,
+    children
+}: ScrollBoxProps) => {
     const [scrollPosition, setScrollPosition] = useState(0);
     const [leftOverflow, setLeftOverflow] = useState(false);
     const [rightOverflow, setRightOverflow] = useState(false);
@@ -105,7 +110,6 @@ export const ScrollBox = ({ children }: ScrollBoxProps) => {
     // scrolling by wheel:
 
     const scrollByWheel = (e: WheelEvent<HTMLDivElement>) => {
-        e.preventDefault();
         const ref = contentRef.current;
         if(ref) {
             const rightLimit = ref.scrollWidth - ref.clientWidth;
@@ -133,6 +137,7 @@ export const ScrollBox = ({ children }: ScrollBoxProps) => {
     return (
         <ScrollBoxView {...{
             children,
+            shouldDropShadow,
             contentRef,
             scrollPosition,
             leftOverflow,

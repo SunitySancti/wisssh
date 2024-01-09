@@ -20,11 +20,30 @@ import { getLocationConfig,
          getWishlistById } from 'store/getters'
 import { promoteImages } from 'store/imageSlice'
 
-import type { SubmitHandler } from 'react-hook-form'
+import type { Control,
+              FormState,
+              SubmitHandler,
+              UseFormRegister } from 'react-hook-form'
 import type { BaseSyntheticEvent } from 'react'
 import type { WishlistDefaultValues,
               WishlistId,
+              Wish,
               InvitationCode } from 'typings'
+
+
+interface NewListPageViewProps {
+    handleFormSubmit: (e?: BaseSyntheticEvent | undefined) => Promise<void>;
+    resetForm: (e: MouseEvent) => void;
+    cancelForm: (e: MouseEvent) => void;
+    register: UseFormRegister<WishlistDefaultValues>;
+    control: Control<WishlistDefaultValues>;
+    formState: FormState<WishlistDefaultValues>;
+    actualWishes: Wish[];
+    isSubmitButtonDisabled: boolean;
+    isSubmitButtonLoading: boolean;
+    isLandscape: boolean;
+    maxLabelWidth: number | undefined
+}
 
 
 const defaultValues: WishlistDefaultValues = {
@@ -37,12 +56,106 @@ const defaultValues: WishlistDefaultValues = {
     date: formatDateToArray(new Date()),
 }
 
+const NewListPageView = ({
+    handleFormSubmit,
+    resetForm,
+    cancelForm,
+    register,
+    control,
+    formState,
+    actualWishes,
+    isSubmitButtonDisabled,
+    isSubmitButtonLoading,
+    isLandscape,
+    maxLabelWidth
+} : NewListPageViewProps
+) => {
+    return (
+        <div className='new-list-page'>
+            <form onSubmit={ handleFormSubmit } >
+                <div className='inputs'>
+
+                    <input
+                        className='invis'
+                        type='text'
+                        {...register('author',{ required: true })}
+                    />
+                    <input
+                        className='invis'
+                        type='text'
+                        {...register('id',{ required: true })}
+                    />
+
+                    <LineContainer
+                        style={ isLandscape ? null : { flexFlow: 'column'} }
+                    >
+                        <TextInput
+                            name='title'
+                            register={ register }
+                            placeholder='Придумайте запоминающееся название'
+                            label='Название'
+                            labelWidth={ maxLabelWidth }
+                            required
+                            formState={ formState }
+                        /> 
+                        <DateSelect
+                            name='date'
+                            control={ control }
+                            label='Дата события'
+                            labelWidth={ isLandscape ? undefined : maxLabelWidth }
+                            required
+                        />
+                    </LineContainer> 
+
+                    <TextInput
+                        name='description'
+                        register={ register }
+                        placeholder='Что писать? Начните с приветствия. Опишите, каким вы хотели бы видеть мероприятие, что планируется — поход в бар, домашние посиделки или, может быть, что-то экзотичное. Если есть пожелания для гостей — что надеть или взять с собой — укажите их'
+                        label='Описание'
+                        labelWidth={ maxLabelWidth }
+                        multiline 
+                    />
+                </div>
+
+                <div className='divider'/>
+
+                <LineContainer className='align-right'>
+                    <Button
+                        icon='clear'
+                        onClick={ resetForm }
+                    />
+                    <Button
+                        icon='cancel'
+                        onClick={ cancelForm }
+                    />
+                    <Button
+                        type='submit'
+                        kind='primary'
+                        text='Сохранить вишлист'
+                        icon='save'
+                        round
+                        disabled={ isSubmitButtonDisabled }
+                        isLoading={ isSubmitButtonLoading }
+                    />
+                </LineContainer>
+
+                <div className='divider'/>
+
+                <CardSelect
+                    name='wishes'
+                    control={ control }
+                    options={ actualWishes }
+                />
+            </form>
+        </div>
+    )
+}
+
 export const NewListPage = () => {
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
     
-    const { location,
-            wishlistId,
+    const { wishlistId,
             isNewWishlist,
             isEditWishlist } = getLocationConfig();
 
@@ -74,7 +187,7 @@ export const NewListPage = () => {
                 setValue(key, value)
             }
         }
-    },[ editingWishlist?.id, location ]);
+    },[ editingWishlist?.id, isEditWishlist ]);
 
     async function setIdAndInvitationCode() {
         const id = await generateUniqueId<WishlistId>();
@@ -143,83 +256,18 @@ export const NewListPage = () => {
 
 
     return (
-        <div className='new-list-page'>
-            <form onSubmit={ handleSubmit(onSubmit) } >
-                <div className='inputs'>
-
-                    <input
-                        className='invis'
-                        type='text'
-                        {...register('author',{ required: true })}
-                    />
-                    <input
-                        className='invis'
-                        type='text'
-                        {...register('id',{ required: true })}
-                    />
-
-                    <LineContainer
-                        style={ isLandscape ? null : { flexFlow: 'column'} }
-                    >
-                        <TextInput
-                            name='title'
-                            register={ register }
-                            placeholder='Придумайте запоминающееся название'
-                            label='Название'
-                            labelWidth={ maxLabelWidth }
-                            required
-                            formState={ formState }
-                        /> 
-                        <DateSelect
-                            name='date'
-                            control={ control }
-                            label='Дата события'
-                            labelWidth={ isLandscape ? undefined : maxLabelWidth }
-                            required
-                        />
-                    </LineContainer> 
-
-                    <TextInput
-                        name='description'
-                        register={ register }
-                        placeholder='Что писать? Начните с приветствия. Опишите, каким вы хотели бы видеть мероприятие, что планируется — поход в бар, домашние посиделки или, может быть, что-то экзотичное. Если есть пожелания для гостей — что надеть или взять с собой — укажите их'
-                        label='Описание'
-                        labelWidth={ maxLabelWidth }
-                        multiline 
-                    />
-                </div>
-
-                <div className='divider'/>
-
-                <LineContainer className='align-right'>
-                    <Button
-                        icon='clear'
-                        onClick={ resetForm }
-                    />
-                    <Button
-                        icon='cancel'
-                        onClick={ cancelForm }
-                    />
-                    <Button
-                        type='submit'
-                        kind='primary'
-                        text='Сохранить вишлист'
-                        icon='save'
-                        round
-                        onClick={ handleSubmit(onSubmit) }
-                        disabled={ formState.isDirty && !formState.isValid }
-                        isLoading={ formState.isSubmitting || awaitPostWishlist }
-                    />
-                </LineContainer>
-
-                <div className='divider'/>
-
-                <CardSelect
-                    name='wishes'
-                    control={ control }
-                    options={ actualWishes }
-                />
-            </form>
-        </div> 
+        <NewListPageView {...{
+            handleFormSubmit: handleSubmit(onSubmit),
+            resetForm,
+            cancelForm,
+            register,
+            control,
+            formState,
+            actualWishes,
+            isSubmitButtonDisabled: formState.isDirty && !formState.isValid,
+            isSubmitButtonLoading: formState.isSubmitting || awaitPostWishlist,
+            isLandscape,
+            maxLabelWidth
+        }}/>
     );
 }

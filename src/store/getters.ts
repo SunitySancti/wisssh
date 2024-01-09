@@ -101,9 +101,9 @@ const getInvites = () => {
 }
 
 const getAllRelevantWishlists = () => {
-    const { userWishlists } = getUserWishlists();
-    const { invites } = getInvites();
-    return userWishlists.concat(invites)
+    const { data: userWishlists } = useGetUserWishlistsQuery();
+    const { data: invites } = useGetInvitesQuery();
+    return (userWishlists || []).concat(invites || [])
 }
 
 const getWishlistById = (id?: WishlistId) => {
@@ -146,9 +146,9 @@ const getFriendWishes = () => {
 }
 
 const getAllRelevantWishes = () => {
-    const { userWishes } = getUserWishes();
-    const { friendWishes } = getFriendWishes();
-    return userWishes.concat(friendWishes)
+    const { data: userWishes } = useGetUserWishesQuery();
+    const { data: friendWishes } = useGetFriendWishesQuery();
+    return (userWishes || []).concat(friendWishes || [])
 }
 
 const getWishById = (id?: WishId) => {
@@ -173,12 +173,12 @@ const getWishesByWishlistId = (id?: WishlistId) => {
 // LOADING STATUS
 
 const getLoadingStatus = () => {
-    const { awaitingUser } = getCurrentUser();
-    const { awaitingFriends } = getFriends();
-    const { awaitingUserWishes } = getUserWishes();
-    const { awaitingFriendWishes } = getFriendWishes();
-    const { awaitingUserWishlists } = getUserWishlists();
-    const { awaitingInvites } = getInvites();
+    const { isLoading: awaitingUser } = useGetCurrentUserQuery();
+    const { isLoading: awaitingFriends } = useGetFriendsQuery();
+    const { isLoading: awaitingUserWishes } = useGetUserWishesQuery();
+    const { isLoading: awaitingFriendWishes } = useGetFriendWishesQuery();
+    const { isLoading: awaitingUserWishlists } = useGetUserWishlistsQuery();
+    const { isLoading: awaitingInvites } = useGetInvitesQuery();
     return {
         awaitingUser,
         awaitingFriends,

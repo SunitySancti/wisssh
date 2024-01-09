@@ -23,7 +23,8 @@ import { getLocationConfig,
          getLoadingStatus } from 'store/getters'
 import { promoteImages } from 'store/imageSlice'
 
-import type { Wishlist } from 'typings'
+import type { Wish,
+              Wishlist } from 'typings'
 import type { Section } from 'store/getters'
 
 
@@ -139,32 +140,100 @@ const OuterLink = ({
     );
 }
 
-export const SingleWishPage = () => {
-    const dispatch = useAppDispatch();
+interface SingleWishPageViewProps {
+    isLoading: boolean;
+    wish: Wish | undefined;
+    wishlists: Wishlist[];
+    firstColumnMinWidth: number;
+    firstColumnMaxWidth: number;
+    pointerOffset: number
+}
+
+
+const SingleWishPageView = ({
+    isLoading,
+    wish,
+    wishlists,
+    firstColumnMinWidth,
+    firstColumnMaxWidth,
+    pointerOffset
+} : SingleWishPageViewProps
+) => {
     const { section,
             mode,
-            tab,
-            wishId } = getLocationConfig();
+            tab } = getLocationConfig();
+
+    return ( isLoading
+        ?   <div className='wish-page'>
+                <WishPreloader isLoading/>
+            </div>
+        :   wish
+            ?   <div className='wish-page'>
+                    <DoubleColumnAdaptiveLayout
+                        firstColumn={ <WishCover wish={ wish }/> }
+                        firstColumnLimits={{
+                            min: firstColumnMinWidth,
+                            max: firstColumnMaxWidth
+                        }}
+
+                        secondColumn={
+                            <>
+                                <div className='header'>
+                                    <WishMenu wish={ wish }/>
+                                    <span className='title'>{ wish.title }</span>
+                                    <OuterLink urlString={ wish.external }/>
+                                    
+                                </div>
+
+                                <StatusBar wish={ wish }/>
+
+                                <div className='info'>
+                                    <WishlistEntries {...{ wishlists, section }}/>
+                                    { !!wish.author &&
+                                        <div className='info-field'>
+                                            <span className='label'>Автор</span>
+                                            <User id={ wish.author }/>
+                                        </div>
+                                    }
+                                    { !!wish.description &&
+                                        <Description description={ wish.description } pointerOffset={ pointerOffset }/>
+                                    }
+                                </div>
+                                
+                                <div className='actions'>
+                                    { !!wish.price &&
+                                        <PriceLine price={ wish.price } currency={ wish.currency } />
+                                    }
+                                    <WishButton wish={ wish }/>
+                                </div>
+                            </>
+                        }
+                    />
+                </div>
+            :   <Navigate
+                    to={ ['', section, mode, tab].join('/') }
+                    replace
+                />
+    )
+}
+
+export const SingleWishPage = () => {
+    const dispatch = useAppDispatch();
+    const { wishId } = getLocationConfig();
     
     const { awaitingWishes,
             awaitingWishlists } = getLoadingStatus();
-    const isLoading = awaitingWishes || awaitingWishlists;
     const wish = getWishById(wishId);
     const wishlists = getWishlistsByIdList(wish?.inWishlists);
 
     // PROMOTE IMAGES
-
     useEffect(() => {
         if(wishId) {
             dispatch(promoteImages(wishId))
         }
-        // if(author) {
-        //     dispatch(promoteImages(author.id))
-        // }
     },[ wishId ]);
 
     // ALIGN SVG POINTER
-    
     const [ pointerOffset, setPointerOffset ] = useState(69);
     useEffect(() => {
         const authorRef = document.querySelector<HTMLDivElement>('.info-field .user')
@@ -173,8 +242,16 @@ export const SingleWishPage = () => {
     },[])
 
     // ALIGN FIRST COLUMN
-
     const imageURL = useAppSelector(state => state.images.imageURLs[wishId || 'undefined']);
+
+    const firstColumnMinWidth = useMemo(() => {
+        const minHeight = 330
+        if(!imageURL || !wish) {
+            return minHeight
+        } else {
+            return minHeight * wish.imageAR
+        }
+    },[ imageURL, wish?.imageAR ]);
     
     const firstColumnMaxWidth = useMemo(() => {
         if(!imageURL || !wish) return 440
@@ -189,66 +266,14 @@ export const SingleWishPage = () => {
         }
     },[ imageURL, wish?.imageAR ]);
 
-    const firstColumnMinWidth = useMemo(() => {
-        const minHeight = 330
-        if(!imageURL || !wish) {
-            return minHeight
-        } else {
-            return minHeight * wish.imageAR
-        }
-    },[ imageURL, wish?.imageAR ]);
-
-
-    return ( isLoading
-        ?   <div className='wish-page'>
-                <WishPreloader isLoading/>
-            </div>
-        :   wish
-        ?   <div className='wish-page'>
-                <DoubleColumnAdaptiveLayout
-                    firstColumn={ <WishCover wish={ wish }/> }
-                    firstColumnLimits={{
-                        min: firstColumnMinWidth,
-                        max: firstColumnMaxWidth
-                    }}
-
-                    secondColumn={
-                        <>
-                            <div className='header'>
-                                <WishMenu wish={ wish }/>
-                                <span className='title'>{ wish.title }</span>
-                                <OuterLink urlString={ wish.external }/>
-                                
-                            </div>
-
-                            <StatusBar wish={ wish }/>
-
-                            <div className='info'>
-                                <WishlistEntries {...{ wishlists, section }}/>
-                                { !!wish.author &&
-                                    <div className='info-field'>
-                                        <span className='label'>Автор</span>
-                                        <User id={ wish.author }/>
-                                    </div>
-                                }
-                                { !!wish.description &&
-                                    <Description description={ wish.description } pointerOffset={ pointerOffset }/>
-                                }
-                            </div>
-                            
-                            <div className='actions'>
-                                { !!wish.price &&
-                                    <PriceLine price={ wish.price } currency={ wish.currency } />
-                                }
-                                <WishButton wish={ wish }/>
-                            </div>
-                        </>
-                    }
-                />
-            </div>
-        :   <Navigate
-                to={ ['', section, mode, tab].join('/') }
-                replace
-            />
+    return (
+        <SingleWishPageView {...{
+            isLoading: awaitingWishes || awaitingWishlists,
+            wish,
+            wishlists,
+            firstColumnMinWidth,
+            firstColumnMaxWidth,
+            pointerOffset
+        }}/>
     );
 }

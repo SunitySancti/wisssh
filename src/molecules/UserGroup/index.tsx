@@ -1,4 +1,6 @@
-import { useRef } from 'react'
+import { useRef,
+         forwardRef,
+         useImperativeHandle } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import './styles.scss'
@@ -12,10 +14,12 @@ import { getCurrentUser } from 'store/getters'
 import { useAppDispatch } from 'store'
 
 import type { ChangeEvent,
-              RefObject } from 'react'
+              RefObject,
+              ForwardedRef } from 'react'
 import type { DropdownOption,
               WithDropDownRef } from 'atoms/WithDropDown'
-import type { UserId } from 'typings'
+import type { UserId,
+              WidthAwared } from 'typings'
 
 
 interface UserGroupViewProps {
@@ -50,7 +54,10 @@ const UserGroupView = ({
     />
 )
 
-export const UserGroup = () => {
+export const UserGroup = forwardRef((
+    _props,
+    ref: ForwardedRef<WidthAwared>
+) => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const dropdownRef = useRef<WithDropDownRef>(null);
@@ -73,6 +80,10 @@ export const UserGroup = () => {
             onClick: () => navigate('/logout')
         }
     ];
+
+    useImperativeHandle(ref, () => ({
+        getWidth() { return dropdownRef.current?.getWidth() }
+    }));
 
     function handleImagePick(e: ChangeEvent<HTMLInputElement>)  {
         dropdownRef.current?.closeDropDown();
@@ -104,4 +115,4 @@ export const UserGroup = () => {
             userId: user?.id
         }}/>
     )
-}
+})

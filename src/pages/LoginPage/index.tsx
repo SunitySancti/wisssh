@@ -21,7 +21,8 @@ import { getUserNameByEmail,
          useLoginMutation,
          useSignupMutation } from 'store/apiSlice'
 import { setRemember } from 'store/authSlice'
-import { getAllUserNames, getLocationConfig } from 'store/getters'
+import { getAllUserNames,
+         getLocationConfig } from 'store/getters'
 import { decodeEmail } from 'utils'
 
 import type { ChangeEvent,
@@ -30,7 +31,8 @@ import type { ChangeEvent,
 import type { Control,
               Path,
               FieldValues,
-              SubmitHandler } from 'react-hook-form'
+              SubmitHandler,
+              UseFormRegister } from 'react-hook-form'
 import type { ButtonProps } from 'atoms/Button'
 
 const __DEV_MODE__ = import.meta.env.DEV
@@ -44,6 +46,24 @@ interface ButtonGroupProps<FV extends FieldValues> {
     isAnyError: boolean,
     isLoading: boolean,
     goToResetRequest: () => void
+}
+
+interface LoginPageViewProps<FV extends FieldValues> {
+    token: string;
+    flowStep: FlowStep;
+    control: Control<FV>;
+    register: UseFormRegister<LoginFormValues>;
+    handleFormChange: (e: ChangeEvent<HTMLFormElement>) => void;
+    handleFormSubmit: (e?: BaseSyntheticEvent | undefined) => Promise<void>;
+    handleEmailEvents: (e: SyntheticEvent) => void;
+    handleRememberCheckbox: (val: boolean) => void;
+    shouldRemember: boolean;
+    goToResetRequest: () => void;
+    backToStart: () => void;
+    maxLabelWidth: number;
+    isLoading: boolean;
+    isAnyError: boolean;
+    message: string
 }
 
 interface LoginFormValues {
@@ -170,7 +190,7 @@ export const LoginPage = () => {
     const [ emailErrorMessage, setEmailErrorMessage ] = useState('');
     const [ nicknameErrorMessage, setNicknameErrorMessage ] = useState('');
     const [ passwordErrorMessage, setPasswordErrorMessage ] = useState('');
-    const isAnyError = Boolean(connectionErrorMessage || emailErrorMessage || nicknameErrorMessage);
+    const isAnyError = Boolean(connectionErrorMessage || emailErrorMessage || nicknameErrorMessage || passwordErrorMessage);
     
     const [ autofilledEmail, setAutofilledEmail ] = useState('');
     const maxLabelWidth = 121;
@@ -255,11 +275,7 @@ export const LoginPage = () => {
                 break
             case 'login':
             case 'signup':
-                if(shouldRemember) {
-                    setFocus('password')
-                } else {
-                    setFocus('maskedPassword')
-                }
+                setFocus(shouldRemember ? 'password' : 'maskedPassword')
                 break
             case 'reset-request':
             case 'reset-verification':
@@ -276,6 +292,7 @@ export const LoginPage = () => {
     const onSubmit: SubmitHandler<LoginFormValues> = async (data, e?: BaseSyntheticEvent) => {
         e?.preventDefault();
         const { email, password, maskedPassword, nickname: name, newPassword } = data;
+        const truePassword = shouldRemember ? password : maskedPassword;
 
         switch(flowStep) {
             case 'start':
@@ -285,17 +302,13 @@ export const LoginPage = () => {
                 break
             case 'login':
                 if(email) {
-                    login({ email, password: password || maskedPassword })
+                    login({ email, password: truePassword })
                 }
                 break
             case 'signup':
                 if(email && password && name) {
-                    if(shouldRemember) {
-                        if(password) {
-                            signup({ email, password, name })
-                        }
-                    } else if(maskedPassword) {
-                        signup({ email, password: maskedPassword, name })
+                    if(truePassword) {
+                        signup({ email, name, password: truePassword })
                     }
                 }
                 break
@@ -367,8 +380,6 @@ export const LoginPage = () => {
     }
 
     // REDIRECT IF LOGGED IN
-    
-    const { redirectedFrom } = getLocationConfig();
     const token = useAppSelector(state => state.auth.token);
 
     // CLEANUP
@@ -383,95 +394,137 @@ export const LoginPage = () => {
         }
     },[]);
 
+    return (
+        <LoginPageView {...{
+            token,
+            flowStep,
+            control,
+            register,
+            handleFormChange,
+            handleFormSubmit: handleSubmit(onSubmit),
+            handleEmailEvents,
+            handleRememberCheckbox: (value: boolean) => dispatch(setRemember(!value)),
+            shouldRemember,
+            goToResetRequest,
+            backToStart,
+            maxLabelWidth,
+            isLoading: isSubmitting || loginAwait || signupAwait,
+            isAnyError,
+            message: isAnyError
+                ? connectionErrorMessage || emailErrorMessage || nicknameErrorMessage || passwordErrorMessage
+                : message
+        }}/>
+    )
+}
+
+const LoginPageView = <FV extends FieldValues>({
+    token,
+    flowStep,
+    control,
+    register,
+    handleFormChange,
+    handleFormSubmit,
+    handleEmailEvents,
+    handleRememberCheckbox,
+    shouldRemember,
+    goToResetRequest,
+    backToStart,
+    maxLabelWidth,
+    isLoading,
+    isAnyError,
+    message
+} : LoginPageViewProps<FV>
+) => {
+    const { redirectedFrom } = getLocationConfig();
+
     return ( token
         ?   <Navigate 
                 to={ redirectedFrom || '/my-wishes/items/actual' }
                 state={{ redirectedFrom: '/login' }}
                 replace
             />
-        :   <div className='login-page'>
-                <div className='logo-icon'>
-                    <LogoIcon/>
-                    <div className='beta'>Beta</div>
-                </div>
-                <form
-                    onChange={ handleFormChange }
-                    onSubmit={ handleSubmit(onSubmit) }
-                >
-                    <span 
-                        className={ isAnyError || passwordErrorMessage ? 'message-line error' : 'message-line'}
-                        children={ isAnyError || passwordErrorMessage
-                            ? connectionErrorMessage || emailErrorMessage || nicknameErrorMessage || passwordErrorMessage
-                            : message }
-                    />
-                    <div className='inputs'>
-                        <TextInput
-                            register={ register }
-                            name='email'
-                            patternType='email'
-                            label='Почта'
-                            labelWidth={ maxLabelWidth }
-                            disabled= { flowStep !== 'start' }
-                            onBlur={ handleEmailEvents }
-                            onKeyDown={ handleEmailEvents }
-                            rightAlignedComponent={ flowStep !== 'start' &&
-                                <Button
-                                    icon='change'
-                                    onClick={ backToStart }
-                                    className='back-btn'
-                                />
-                            }
-                            autoComplete={ shouldRemember ? 'username' : 'off' }
-                        />
-                        <PasswordInput
-                            register={ register }
-                            name={ shouldRemember ? 'password' : 'maskedPassword' }
-                            label='Пароль'
-                            labelWidth={ maxLabelWidth }
-                            autoComplete={ shouldRemember ? 'current-password' : 'off' }
-                            className={(flowStep === 'login' || flowStep === 'signup') ? 'visible' : 'collapsed'}
-                        />
-                        <TextInput
-                            register={ register }
-                            name='nickname'
-                            label='Никнейм'
-                            labelWidth={ maxLabelWidth }
-                            className={flowStep === 'signup' ? 'visible' : 'collapsed'}
-                            disabled={flowStep !== 'signup'}
-                        />
-                        <CheckBox
-                            callback={(value) => dispatch(setRemember(!value))}
-                            name='shouldNotRemember'
-                            label='не запоминать меня на этом устройстве'
-                            className={(flowStep === 'login' || flowStep === 'signup') ? 'visible' : 'collapsed'}
-                        />
-                        <TextInput
-                            register={ register }
-                            name='verificationCode'
-                            label='Код из письма'
-                            type='password'
-                            labelWidth={ maxLabelWidth }
-                            className={flowStep === 'reset-verification' || flowStep === 'reset-new-password' ? 'visible' : 'collapsed'}
-                            disabled={flowStep !== 'reset-verification' && flowStep !== 'reset-request'}
-                        />
-                        <PasswordInput
-                            register={ register }
-                            name='newPassword'
-                            label='Новый пароль'
-                            autoComplete='new-password'
-                            labelWidth={ maxLabelWidth }
-                            className={flowStep === 'reset-new-password' ? 'visible' : 'collapsed'}
-                            disabled={flowStep !== 'reset-new-password'}
-                        />
-                    </div>
-                    <ButtonGroup {...{
-                        control,
-                        flowStep,
-                        isAnyError,
-                        isLoading: isSubmitting || loginAwait || signupAwait,
-                        goToResetRequest
-                    }}/>
-                </form>
+        :   
+        <div className='login-page'>
+            <div className='logo-icon'>
+                <LogoIcon/>
+                <div className='beta'>Beta</div>
             </div>
-    );
+            <form
+                onChange={ handleFormChange }
+                onSubmit={ handleFormSubmit }
+            >
+                <span 
+                    className={ 'message-line' + (isAnyError ? ' error' : '') }
+                    children={ message }
+                />
+                <div className='inputs'>
+                    <TextInput
+                        register={ register }
+                        name='email'
+                        patternType='email'
+                        label='Почта'
+                        labelWidth={ maxLabelWidth }
+                        disabled= { flowStep !== 'start' }
+                        onBlur={ handleEmailEvents }
+                        onKeyDown={ handleEmailEvents }
+                        rightAlignedComponent={ flowStep !== 'start' &&
+                            <Button
+                                icon='change'
+                                onClick={ backToStart }
+                                className='back-btn'
+                            />
+                        }
+                        autoComplete={ shouldRemember ? 'username' : 'off' }
+                    />
+                    <PasswordInput
+                        register={ register }
+                        name={ shouldRemember ? 'password' : 'maskedPassword' }
+                        label='Пароль'
+                        labelWidth={ maxLabelWidth }
+                        autoComplete={ shouldRemember ? 'current-password' : 'off' }
+                        className={ (flowStep === 'login' || flowStep === 'signup') ? 'visible' : 'collapsed' }
+                    />
+                    <TextInput
+                        register={ register }
+                        name='nickname'
+                        label='Никнейм'
+                        labelWidth={ maxLabelWidth }
+                        className={ flowStep === 'signup' ? 'visible' : 'collapsed' }
+                        disabled={ flowStep !== 'signup' }
+                    />
+                    <CheckBox
+                        callback={ handleRememberCheckbox }
+                        name='shouldNotRemember'
+                        label='не запоминать меня на этом устройстве'
+                        className={ (flowStep === 'login' || flowStep === 'signup') ? 'visible' : 'collapsed' }
+                    />
+                    <TextInput
+                        register={ register }
+                        name='verificationCode'
+                        label='Код из письма'
+                        type='password'
+                        labelWidth={ maxLabelWidth }
+                        className={ flowStep === 'reset-verification' || flowStep === 'reset-new-password' ? 'visible' : 'collapsed' }
+                        disabled={ flowStep !== 'reset-verification' && flowStep !== 'reset-request' }
+                    />
+                    <PasswordInput
+                        register={ register }
+                        name='newPassword'
+                        label='Новый пароль'
+                        autoComplete='new-password'
+                        labelWidth={ maxLabelWidth }
+                        className={ flowStep === 'reset-new-password' ? 'visible' : 'collapsed' }
+                        disabled={ flowStep !== 'reset-new-password' }
+                    />
+                </div>
+                <ButtonGroup {...{
+                    control,
+                    flowStep,
+                    isAnyError,
+                    isLoading,
+                    goToResetRequest
+                }}/>
+            </form>
+        </div>
+    )
 }

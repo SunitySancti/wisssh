@@ -1,3 +1,5 @@
+import { memo } from 'react'
+    
 import './styles.scss'
 
 import type { ReactNode } from 'react'
@@ -61,10 +63,10 @@ export const WithSpinner = ({
     </div>
 );
 
-export const WishPreloader = ({
+export const WishPreloader = memo(({
     isLoading
 }:  WishPreloaderProps
-) => (
+) => { console.log('render preloader'); return(
     <div className={ 'wish-preloader' + ( isLoading ? ' loading' : '' )}>
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 66 66">
             <g className='box'>
@@ -75,7 +77,7 @@ export const WishPreloader = ({
             </g>
         </svg>
     </div>
-);
+);})
 
 export const NavbarEllipsis = () => (
     <div className='navbar-ellipsis'>

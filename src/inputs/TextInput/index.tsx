@@ -3,7 +3,8 @@ import { generateId } from 'utils'
 import { Icon } from 'atoms/Icon'
 import { TextLabel } from 'atoms/TextLabel'
 
-import type { ReactNode, SyntheticEvent } from 'react'
+import type { ReactNode,
+              SyntheticEvent } from 'react'
 import type { FieldValues,
               UseFormRegister,
               FormState,

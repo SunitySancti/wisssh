@@ -1,5 +1,6 @@
 import { useCallback,
-         useMemo } from 'react'
+         useRef,
+         useState } from 'react'
 import { useNavigate } from 'react-router'
 
 import './styles.scss'
@@ -9,24 +10,139 @@ import { Plug } from 'atoms/Plug'
 
 import { getDaysToEvent,
          sortByDateAscend,
-         sortByDateDescend } from 'utils'
+         sortByDateDescend,
+         delay } from 'utils'
 import { getLocationConfig,
          getUserWishlists,
          getInvites,
          getLoadingStatus } from 'store/getters'
 
+import type { SetStateAction,
+              RefObject } from 'react'
 import type { Wishlist,
               WishlistId } from 'typings'
 
 
-export const ListOfListsPage = () => {
+interface MappedEventsProps {
+    wishlists: Wishlist[];
+    animationStep: 0 | 1 | 2 | 3;
+    setAnimationStep(step: 0 | 1 | 2 | 3): void;
+    pageRef: RefObject<HTMLDivElement>
+}
+
+interface ListOfListsPageViewProps {
+    pageRef: RefObject<HTMLDivElement>;
+    wishlists: Wishlist[];
+    isLoading: boolean;
+    isEmptyList: boolean;
+    isInvitesSection: boolean;
+    animationStep: 0 | 1 | 2 | 3;
+    setAnimationStep(step: 0 | 1 | 2 | 3): void;
+}
+
+
+const MappedEvents = ({
+    wishlists,
+    animationStep,
+    setAnimationStep,
+    pageRef
+} : MappedEventsProps
+) => {
     const navigate = useNavigate();
-    const { location,
-            section,
-            isWishesSection,
+    const { location } = getLocationConfig();
+    const [ topOffset, setTopOffset ] = useState<number | undefined>(undefined);
+
+
+    const actualEvents = wishlists
+        .filter(list => (list.date && getDaysToEvent(list) >= 0))
+        .sort(sortByDateAscend);
+
+    const actualEventsOrPlug = actualEvents.length
+        ? actualEvents
+        : [ 'no-actual-events' ] as const
+        
+    const pastEvents = wishlists
+        .filter(list => (list.date && getDaysToEvent(list) < 0))
+        .sort(sortByDateDescend);
+
+
+    const handleClick = useCallback((
+        setIsSelected: (value: SetStateAction<boolean>) => void,
+        wishlistId?: WishlistId
+    ) => {
+        const top = pageRef.current ? pageRef.current.offsetTop - pageRef.current.getBoundingClientRect().top : undefined;
+        Promise.resolve()
+            .then(() => { setAnimationStep(1); setIsSelected(true) })
+            .then(() => delay(200))
+            .then(() => { setAnimationStep(2); setTopOffset(top) })
+            .then(() => delay(200))
+            .then(() => { setAnimationStep(3) })
+            .then(() => delay(400))
+            .then(() => navigate(location + '/' +  wishlistId))
+    },[ location ]);
+
+    
+    return [ ...actualEventsOrPlug, 'past-events-header' as const, ...pastEvents ].map((item, index) => {
+        const headerRef = useRef(null);
+        const [ isSelected, setIsSelected ] = useState(false);
+
+        return (
+            <WishlistHeader
+                key={ index }
+                wishlist={ item }
+                onClick={() => handleClick(setIsSelected, (typeof item === 'string' ? undefined : item?.id))}
+                {...{
+                    headerRef,
+                    animationStep,
+                    isSelected,
+                    topOffset
+                }}
+            />
+        )
+    })
+}
+
+
+const ListOfListsPageView = ({
+    pageRef,
+    isLoading,
+    isEmptyList,
+    wishlists,
+    animationStep,
+    setAnimationStep,
+    isInvitesSection
+} : ListOfListsPageViewProps
+) => (
+    <div className='list-of-lists-page' ref={ pageRef } >
+        {   isLoading
+            ?   <WishPreloader isLoading/>
+            : ( isEmptyList
+                ? ( isInvitesSection
+                        ?   <Plug message='Вас пока не пригласили в вишлисты'/>
+                        :   <Plug
+                                message='У вас пока нет вишлистов'
+                                btnText='Создать первый вишлист'
+                                navPath='/my-wishes/lists/new'
+                            />
+                    )
+                :   <MappedEvents {...{
+                        wishlists,
+                        animationStep,
+                        setAnimationStep,
+                        pageRef
+                    }}/>
+                )
+        }
+    </div>
+);
+
+
+export const ListOfListsPage = () => {
+    const pageRef = useRef<HTMLDivElement>(null);
+    const { isWishesSection,
             isInvitesSection } = getLocationConfig();
 
-    const { awaitingWishlists: isLoading } = getLoadingStatus();
+    const { awaitingWishlists } = getLoadingStatus();
     const { userWishlists,
             userWishlistsHaveLoaded } = getUserWishlists();
     const { invites,
@@ -38,104 +154,17 @@ export const ListOfListsPage = () => {
     const isSuccess = isWishesSection  ? userWishlistsHaveLoaded
                     : isInvitesSection ? invitesHaveLoaded : false;
 
-    
-    const pastEvents = useMemo(() => {
-        if(wishlists instanceof Array) {
-            return wishlists.filter(list => (list.date && getDaysToEvent(list) < 0))
-                            .sort(sortByDateDescend)
-        } else return []
-    },[ section, wishlists.length ]);
+    const [ animationStep, setAnimationStep ] = useState<0 | 1 | 2 | 3>(0)
 
-    const actualEvents = useMemo(() => {
-        if(wishlists instanceof Array) {
-            return wishlists.filter(list => (list.date && getDaysToEvent(list) >= 0))
-                            .sort(sortByDateAscend)
-        } else return []
-    },[ section, wishlists.length ]);
-    
-
-    const handleClick = useCallback(( wishlistId: WishlistId ) => {
-        const delayParams = [200, 400, 1000];
-
-        const allNodes = document.querySelectorAll<HTMLDivElement>(`.list-of-lists-page > div`);
-        const thisNode = document.getElementById(wishlistId);
-        const workSpace = document.querySelector<HTMLDivElement>('.work-space');
-        const navbar = document.querySelector<HTMLDivElement>('.navbar > .scroll-box > .content');
-
-        if(!allNodes.length || !thisNode || !workSpace || !navbar) return
-
-        const currentCoords = thisNode.getBoundingClientRect();
-        const navbarCoords = navbar.getBoundingClientRect();
-        
-        const firstStep = () => {
-            thisNode.classList.add('selected');
-            allNodes.forEach(node => (node!==thisNode) && node.classList.add('hidden'));
-        }
-        const secondStep = () => {
-            thisNode.style.cssText = `
-                position: fixed;
-                width: ${currentCoords.width}px;
-                top: ${currentCoords.y}px;
-                transition: all ease-out 400ms;
-            `;
-        }
-        const thirdStep = () => {
-            thisNode.style.top = `${navbarCoords.y + navbarCoords.height}px`
-            thisNode.style.padding = `2rem`;
-            navbar.classList.remove('with-shadow');
-        }
-        const lastStep = () => {
-            navigate(location + '/' +  wishlistId)
-            workSpace.scrollTo(0, 0);
-        }
-
-        firstStep();
-        setTimeout(secondStep, delayParams[0]);
-        setTimeout(thirdStep, delayParams[1]);
-        setTimeout(lastStep, delayParams[2]);
-    },[ location ]);
-
-    const mapWishlists = (items: Wishlist[]) => {
-        return items.map((item, index) => (
-            <WishlistHeader
-                wishlist={ item }
-                onClick={() => handleClick(item?.id)}
-                key={ index }
-            />
-        ))
-    }
-
-
-    return ( isLoading
-        ?   <div className='wish-page'>
-                <WishPreloader isLoading/>
-            </div>
-        :   <div className='list-of-lists-page'>
-                { isSuccess && !wishlists.length &&
-                    <>
-                        { isInvitesSection
-                            ?   <Plug message='Вас пока не пригласили в вишлисты'/>
-                            :   <Plug
-                                    message='У вас пока нет вишлистов'
-                                    btnText='Создать первый вишлист'
-                                    navPath='/my-wishes/lists/new'
-                                />
-                        }
-                    </>
-                }
-                { actualEvents.length
-                    ?   mapWishlists(actualEvents)
-                    :   !!wishlists?.length &&
-                            <Plug message='Нет предстоящих событий'/>
-                }
-                { !!pastEvents.length &&
-                    <>
-                        <div className='group-header'>
-                            <span>Прошедшие события</span>
-                        </div>
-                        { mapWishlists(pastEvents) }
-                    </>
-                }
-            </div>
-    );
+    return (
+        <ListOfListsPageView {...{
+            pageRef,
+            isLoading: awaitingWishlists,
+            isEmptyList: isSuccess && !wishlists.length,
+            wishlists,
+            animationStep,
+            setAnimationStep,
+            isInvitesSection
+        }}/>
+    )
 }

@@ -13,6 +13,7 @@ import type { ReactNode,
               SyntheticEvent,
               RefObject } from 'react'
 import type { IconName } from 'atoms/Icon'
+import type { WidthAwared } from 'typings'
 
 
 interface OptionBaseProps {
@@ -56,7 +57,7 @@ interface WithDropDownViewProps extends WithDropDownProps {
     coords?: Coords;
 }
 
-export type WithDropDownRef = {
+export type WithDropDownRef = WidthAwared & {
     closeDropDown(): void
 }
 
@@ -170,7 +171,8 @@ export const WithDropDown = forwardRef((
     }
 
     useImperativeHandle(ref, () => ({
-        closeDropDown() { setIsDropped(false) }
+        closeDropDown() { setIsDropped(false) },
+        getWidth() { return triggerRef.current?.offsetWidth }
     }));
 
 

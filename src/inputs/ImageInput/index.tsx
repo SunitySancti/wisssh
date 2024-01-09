@@ -12,7 +12,6 @@ import { Icon,
 import { Button } from 'atoms/Button'
 
 import type { RefObject,
-              MutableRefObject,
               SyntheticEvent } from 'react'
 import type { FieldValues,
               Path,
@@ -21,14 +20,16 @@ import type { FieldValues,
 const __DEV_MODE__ = import.meta.env.DEV
 
 
+export type ImageInputRef = {
+    deleteImage(e?: SyntheticEvent | undefined): void
+}
+
 interface ImageInputProps<FV extends FieldValues> {
     register: UseFormRegister<FV>,
     setImage: (blob?: Blob) => void,
     setValue?: (fieldName: 'imageAR', newValue: number) => void,
     image?: Blob,
-    imageInputRef?: MutableRefObject<{
-        deleteImage(e: SyntheticEvent): void;
-    }>,
+    imageInputRef?: RefObject<ImageInputRef>,
     isUser?: boolean
 }
 

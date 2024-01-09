@@ -1,19 +1,26 @@
 import './styles.scss'
 import { User } from 'atoms/User'
 import { WishlistHeaderPointer } from 'atoms/Icon'
-import { WishlistMenu } from 'molecules/WishlistStuff/index.jsx'
+import { WishlistMenu } from 'molecules/WishlistStuff'
+import { Plug } from 'atoms/Plug'
 
+import type { RefObject,
+              SyntheticEvent } from 'react'
 import type { Wishlist } from 'typings'
-import { SyntheticEvent } from 'react'
 
 
 interface TimeInfoProps {
     wishlist: Wishlist
 }
 
-interface WishlistHeaderProps extends TimeInfoProps {
+interface WishlistHeaderProps {
+    wishlist: Wishlist | 'past-events-header' | 'no-actual-events';
     onWishlistPage?: boolean;
-    onClick?: (e: SyntheticEvent<HTMLDivElement>) => void
+    onClick?: (e: SyntheticEvent<HTMLDivElement>) => void;
+    headerRef?: RefObject<HTMLDivElement>;
+    animationStep?: 0 | 1 | 2 | 3;
+    isSelected?: boolean;
+    topOffset?: number
 }
 
 
@@ -54,38 +61,114 @@ const TimeInfo = ({
 export const WishlistHeader = ({
     wishlist,
     onWishlistPage,
-    onClick
+    onClick,
+    headerRef,
+    animationStep,
+    isSelected,
+    topOffset
 } : WishlistHeaderProps
 ) => {
+    let classes = '';
+    if(onWishlistPage) {
+        classes = 'selected on-wishlist-page'
+    } else {
+        if(animationStep === 1) {
+            classes = isSelected ? 'selected' : 'hidden'
+        }
+        if(animationStep === 2) {
+            classes = isSelected ? 'selected' : 'invisible'
+        }
+        if(animationStep === 3) {
+            classes = isSelected ? 'selected broad' : 'invisible'
+        }
+    }
 
-    return (
-        <div
-            className={ 'wishlist-header' + (onWishlistPage ? ' selected on-wishlist-page' : '') }
-            id={ wishlist.id }
-            onClick={ onClick }
-        >
-            <User
-                id={ wishlist.author }
-                picSize={ 6 }
-                picOnly
-                withTooltip
-            />
+    const styles = (headerRef?.current && animationStep === 2 && topOffset)
+        ? { top: headerRef?.current?.offsetTop - topOffset + 'px' }
+        : undefined
 
-            <div className='wishlist-body'>
-                <div className='preview-container'>
-                    <div className='title-container'>
-                        <WishlistHeaderPointer/>
-                        <div className='title'>{ wishlist.title }</div>
-                    </div>
-                    <span className='description line'>{ wishlist.description }</span>
-                    <TimeInfo {...{ wishlist }}/>
+    switch(wishlist) {
+        case 'no-actual-events':
+            return (
+                <Plug
+                    message='Нет предстоящих событий'
+                    className={ classes }
+                />
+            )
+        case 'past-events-header':
+            return (
+                <div className={ 'group-header ' + classes }>
+                    <span>Прошедшие события</span>
                 </div>
-                { wishlist &&
-                    <span className='description full'>{ wishlist.description }</span>
-                }
-            </div>
+            )
+        default:
+            return (
+                <div
+                    className={ 'wishlist-header ' + classes }
+                    style={ styles }
+                    id={ wishlist.id }
+                    onClick={ onClick }
+                    ref={ headerRef }
+                >
+                    <User
+                        id={ wishlist.author }
+                        picSize={ 6 }
+                        picOnly
+                        withTooltip
+                    />
 
-            <WishlistMenu {...{ wishlist }}/>
-        </div>
-    )
+                    <div className='wishlist-body'>
+                        <div className='preview-container'>
+                            <div className='title-container'>
+                                <WishlistHeaderPointer/>
+                                <div className='title'>{ wishlist.title }</div>
+                            </div>
+                            <span className='description line'>{ wishlist.description }</span>
+                            <TimeInfo {...{ wishlist }}/>
+                        </div>
+                        { wishlist &&
+                            <span className='description full'>{ wishlist.description }</span>
+                        }
+                    </div>
+
+                    <WishlistMenu {...{ wishlist }}/>
+                </div>
+            )
+
+    }
+
+    // return (wishlist === 'past-events-header')
+    //     ?   <div className={ 'group-header ' + classes }>
+    //             <span>Прошедшие события</span>
+    //         </div>
+    //     :   <div
+    //             className={ 'wishlist-header ' + classes }
+    //             style={ styles }
+    //             id={ wishlist.id }
+    //             onClick={ onClick }
+    //             ref={ headerRef }
+    //         >
+    //             <User
+    //                 id={ wishlist.author }
+    //                 picSize={ 6 }
+    //                 picOnly
+    //                 withTooltip
+    //             />
+
+    //             <div className='wishlist-body'>
+    //                 <div className='preview-container'>
+    //                     <div className='title-container'>
+    //                         <WishlistHeaderPointer/>
+    //                         <div className='title'>{ wishlist.title }</div>
+    //                     </div>
+    //                     <span className='description line'>{ wishlist.description }</span>
+    //                     <TimeInfo {...{ wishlist }}/>
+    //                 </div>
+    //                 { wishlist &&
+    //                     <span className='description full'>{ wishlist.description }</span>
+    //                 }
+    //             </div>
+
+    //             <WishlistMenu {...{ wishlist }}/>
+    //         </div>
 }

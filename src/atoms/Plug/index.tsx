@@ -12,6 +12,7 @@ interface PlugBaseProps {
     message?: string;
     btnIcon?: IconName;
     btnText?: string;
+    className?: string
 }
 
 interface PlugViewProps extends PlugBaseProps {
@@ -26,12 +27,13 @@ interface PlugProps extends PlugBaseProps {
 
 const PlugView = ({
     message,
+    className,
     btnIcon,
     btnText,
     btnHandleClick
 }:  PlugViewProps
 ) => (
-    <div className='plug'>
+    <div className={ 'plug ' + (className || '') }>
         { !!message && <span>{ message }</span> }
         { btnHandleClick && !!(btnIcon || btnText) &&
             <Button
@@ -50,7 +52,8 @@ export const Plug = ({
     message,
     btnIcon,
     btnText,
-    navPath = ''
+    navPath = '',
+    className
 }:  PlugProps
 ) => {
     const navigate = useNavigate();
@@ -70,5 +73,5 @@ export const Plug = ({
             navPath = '/my-wishes/items/new'
     }
 
-    return <PlugView {...{ message, btnIcon, btnText }} btnHandleClick={ (_e) => navigate(navPath) }/>
+    return <PlugView {...{ message, btnIcon, btnText, className }} btnHandleClick={ (_e) => navigate(navPath) }/>
 }

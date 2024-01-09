@@ -14,6 +14,33 @@ import { getLocationConfig,
          getLoadingStatus } from 'store/getters'
 import { promoteImages } from 'store/imageSlice'
 
+import type { Wish } from 'typings'
+
+
+interface WishesPageViewProps {
+    isLoading: boolean;
+    wishes: Wish[];
+    noWishesMessage: string
+}
+
+
+const WishesPageView = ({
+    isLoading,
+    wishes,
+    noWishesMessage
+} : WishesPageViewProps
+) => (
+    isLoading
+        ?   <div className='wish-page'>
+                <WishPreloader isLoading/>
+            </div>
+        :   wishes instanceof Array && wishes.length
+        ?   <MultiColumnLayout
+                Card={ WishCard }
+                data={ wishes }
+            />
+        :   <Plug message={ noWishesMessage }/>
+    )
 
 export const WishesPage = () => {
     const dispatch = useAppDispatch();
@@ -66,9 +93,7 @@ export const WishesPage = () => {
                     ? 'У вас пока нет желаний'
                     : 'Здесь будут желания из вишлистов, в которые вас пригласят';
         }
-    },[ section,
-        tab,
-    ]);
+    },[ section, tab ]);
     
     useDeepCompareEffect(() => {
         if(wishes instanceof Array && wishes.length) {
@@ -77,16 +102,11 @@ export const WishesPage = () => {
         }
     },[ wishes ]);
 
-
-    return ( isLoading
-        ?   <div className='wish-page'>
-                <WishPreloader isLoading/>
-            </div>
-        :   wishes instanceof Array && wishes.length
-        ?   <MultiColumnLayout
-                Card={ WishCard }
-                data={ wishes }
-            />
-        :   <Plug message={ noWishesMessage }/>
-    );
+    return (
+        <WishesPageView {...{
+            isLoading,
+            wishes,
+            noWishesMessage
+        }}/>
+    )
 }
