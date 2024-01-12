@@ -1,6 +1,9 @@
 import { useRef,
          forwardRef,
-         useImperativeHandle } from 'react'
+         useImperativeHandle,
+         useMemo,
+         memo, 
+         useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import './styles.scss'
@@ -23,26 +26,29 @@ import type { UserId,
 
 
 interface UserGroupViewProps {
+    handleImagePick(e: ChangeEvent<HTMLInputElement>): void;
+    imageInputRef: RefObject<HTMLInputElement>;
     dropdownRef: RefObject<WithDropDownRef>;
     dropdownOptions: DropdownOption[];
-    handleImagePick(e: ChangeEvent<HTMLInputElement>): void;
     userId?: UserId
 }
 
-const UserGroupView = ({
+const UserGroupView = memo(({
+    handleImagePick,
+    imageInputRef,
     dropdownRef,
     dropdownOptions,
-    handleImagePick,
     userId
 } : UserGroupViewProps
-) => (
+) => {
+    return(
     <WithDropDown
         ref={ dropdownRef }
         options={ dropdownOptions }
         trigger={
             <div className='user-group'>
                 <input
-                    id='uploadUserAvatar'
+                    ref={ imageInputRef }
                     type='file'
                     accept='image/png, image/jpeg'
                     onChange={ handleImagePick }
@@ -52,7 +58,7 @@ const UserGroupView = ({
             </div>
         }
     />
-)
+)})
 
 export const UserGroup = forwardRef((
     _props,
@@ -61,15 +67,16 @@ export const UserGroup = forwardRef((
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const dropdownRef = useRef<WithDropDownRef>(null);
+    const imageInputRef = useRef<HTMLInputElement>(null);
     const [ updateProfile ] = useUpdateProfileMutation();
 
     const { user } = getCurrentUser();
 
-    const dropdownOptions = [
+    const dropdownOptions = useMemo(() => [
         {
             text: user?.imageExtension ? 'Поменять аватарку' : 'Загрузить аватарку',
             icon: user?.imageExtension ? 'change' as const   : 'upload' as const,
-            onClick: () => document.getElementById('uploadUserAvatar')?.click()
+            onClick: () => imageInputRef.current?.click()
         },{
             text: 'Настройки профиля',
             icon: 'settings' as const,
@@ -79,13 +86,13 @@ export const UserGroup = forwardRef((
             icon: 'logout' as const,
             onClick: () => navigate('/logout')
         }
-    ];
+    ],[ user?.imageExtension ]);
 
     useImperativeHandle(ref, () => ({
         getWidth() { return dropdownRef.current?.getWidth() }
     }));
 
-    function handleImagePick(e: ChangeEvent<HTMLInputElement>)  {
+    const handleImagePick = useCallback((e: ChangeEvent<HTMLInputElement>) => {
         dropdownRef.current?.closeDropDown();
         const fileList = e.target?.files;
         const file = fileList && fileList[0];
@@ -104,14 +111,14 @@ export const UserGroup = forwardRef((
             softCompress: true
         }
         compressAndDoSomething(file, handlePostImage, compressOptions);
-    }
-    
+    },[]);
 
     return (
         <UserGroupView {...{
+            handleImagePick,
+            imageInputRef,
             dropdownRef,
             dropdownOptions,
-            handleImagePick,
             userId: user?.id
         }}/>
     )

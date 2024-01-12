@@ -42,9 +42,9 @@ const getFriends = () => {
 }
 
 const getAllRelevantUsers = () => {
-    const { user } = getCurrentUser();
-    const { friends } = getFriends();
-    return user ? friends.concat(user) : friends
+    const { data: user } = useGetCurrentUserQuery();
+    const { data: friends } = useGetFriendsQuery();
+    return user ? (friends || []).concat(user) : friends || []
 }
 
 const getUserById = (id?: UserId) => {

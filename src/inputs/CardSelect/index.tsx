@@ -7,6 +7,7 @@ import { WishCard } from 'molecules/WishCard'
 import { MultiColumnLayout } from 'containers/MultiColumnLayout'
 import { LineContainer } from 'containers/LineContainer'
 
+import type { MouseEvent } from 'react'
 import type { Control,
               FieldValues,
               Path } from 'react-hook-form'
@@ -68,10 +69,10 @@ const CardSelectView = ({
             />
         </LineContainer>
         <MultiColumnLayout
-            Card={WishCard}
-            data={options}
-            value={value}
-            onChange={onChange}
+            Card={ WishCard }
+            data={ options }
+            value={ value }
+            onChange={ onChange }
         />
     </div>
 );
@@ -84,8 +85,8 @@ export const CardSelect = <FV extends FieldValues>({
 ) => {
     return ( options && options?.length
         ?   <Controller
-                control={control}
-                name={name as Path<FV>}
+                control={ control }
+                name={ name as Path<FV> }
                 render={({ field: { value, onChange }}: CardSelectControllerRenderProps) => (
                     <CardSelectView {...{ options, value, onChange }}/>
                 )}

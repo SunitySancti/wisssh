@@ -1,6 +1,7 @@
 import { useState,
-         useEffect,
-         useRef } from 'react'
+         useRef,
+         memo,
+         useCallback } from 'react'
 
 import './styles.scss'
 import { Portal } from 'containers/Portal'
@@ -11,36 +12,32 @@ import type { ReactNode,
               RefObject } from 'react'
 
 
-interface Coords {
-    left?: number;
-    right?: number;
-    top: number;
-}
-
 interface WithTooltipProps {
-    trigger: ReactNode;
-    text: string
+    text: string;
+    trigger: ReactNode
 }
 
 interface WithTooltipViewProps extends WithTooltipProps {
     triggerRef: RefObject<HTMLDivElement>;
-    tooltipRef: RefObject<HTMLDivElement>;
     showTooltip(): void;
     hideTooltip(): void;
+    left?: number;
+    top?: number;
     isVisible: boolean;
-    coords?: Coords
+    isTransparent: boolean
 }
 
 
-const WithTooltipView = ({
-    trigger,
+const WithTooltipView = memo(({
     text,
+    trigger,
     triggerRef,
-    tooltipRef,
     showTooltip,
     hideTooltip,
+    left,
+    top,
     isVisible,
-    coords
+    isTransparent
 } : WithTooltipViewProps
 ) => (
     <>
@@ -54,64 +51,56 @@ const WithTooltipView = ({
         { isVisible &&
             <Portal layer='tooltip'>
                 <div
-                    ref={ tooltipRef }
-                    className='tooltip'
-                    style={ coords }
+                    className={ 'tooltip' + (isTransparent ? ' hidden' : '') }
+                    style={{ left, top }}
                     children={ text }
                 />
             </Portal>
         }
     </>
-)
+));
 
-export const WithTooltip = (props : WithTooltipProps) => {
+export const WithTooltip = memo((props : WithTooltipProps) => {
     const [ isVisible, setIsVisible ] = useState(false);
-    const [ coords, setCoords ] = useState<Coords | undefined>(undefined);
-    const tooltipRef = useRef<HTMLDivElement>(null);
+    const [ isTransparent, setIsTransparent ] = useState(true);
+    const [ left, setLeft ] = useState<number | undefined>(undefined);
+    const [ top, setTop ] = useState<number | undefined>(undefined);
     const triggerRef = useRef<HTMLDivElement>(null);
     const minPadding = 11;
 
-    const showTooltip = () => {
+    const showTooltip = useCallback(() => {
         alignTooltip();
-        tooltipRef.current?.classList.remove('hidden');
+        setIsTransparent(false);
         setIsVisible(true)
-    }
+    },[]);
 
-    const hideTooltip = async () => {
+    const hideTooltip = useCallback(async () => {
         Promise.resolve()
             .then(() => delay(300))
-            .then(() => tooltipRef.current?.classList?.add('hidden'))
+            .then(() => setIsTransparent(true))
             .then(() => delay(300))
             .then(() => setIsVisible(false));
-    };
+    },[]);
 
-    const alignTooltip = () => {
+    const alignTooltip = useCallback(() => {
         const rect = triggerRef.current?.getBoundingClientRect();
 
         if(rect) {
-            setCoords({
-                left: Math.max(rect.left, minPadding),
-                top: rect?.bottom
-            })
+            setLeft(Math.max(rect.left, minPadding));
+            setTop(rect?.bottom)
         }
-    }
-
-    useEffect(() => {
-        window.addEventListener('resize', alignTooltip);
-        return () => {
-            window.removeEventListener('resize', alignTooltip);
-        }
-    },[ tooltipRef.current ]);
+    },[]);
 
     return (
         <WithTooltipView {...{
             ...props,
             triggerRef,
-            tooltipRef,
             showTooltip,
             hideTooltip,
-            coords,
+            left,
+            top,
+            isTransparent,
             isVisible
         }}/>
     )
-}
+})

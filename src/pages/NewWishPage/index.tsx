@@ -28,7 +28,7 @@ import { usePostWishMutation } from 'store/apiSlice'
 import { postImage,
          deleteImage } from 'store/imageSlice'
 
-import type { SyntheticEvent,
+import type { MouseEvent,
               BaseSyntheticEvent, 
               RefObject } from 'react'
 import type { Control,
@@ -43,7 +43,7 @@ import type { ImageInputRef } from 'inputs/ImageInput'
 
 interface NewWishPageViewProps {
     handleFormSubmit: (e?: BaseSyntheticEvent | undefined) => Promise<void>;
-    resetForm: (e: SyntheticEvent) => void;
+    resetForm: (e: MouseEvent) => void;
     cancelForm: (e: MouseEvent) => void;
     register: UseFormRegister<WishDefaultValues>;
     control: Control<WishDefaultValues>;
@@ -387,12 +387,12 @@ export const NewWishPage = () => {
         navigate(`/my-wishes/items/${ isCompleted ? 'completed' : 'actual'  }/${ id }`)
     }
 
-    const cancelForm = useCallback((e: Event) => {
+    const cancelForm = useCallback((e: MouseEvent) => {
         e.preventDefault();
         navigate(-1);
     },[]);
 
-    const resetForm = useCallback((e: SyntheticEvent) => {
+    const resetForm = useCallback((e: MouseEvent) => {
         e.preventDefault();
         reset(defaultValues);
         imageInputRef.current?.deleteImage(e);

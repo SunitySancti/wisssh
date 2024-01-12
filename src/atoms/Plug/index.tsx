@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import { useNavigate,
          useLocation } from 'react-router-dom'
 
@@ -73,5 +74,15 @@ export const Plug = ({
             navPath = '/my-wishes/items/new'
     }
 
-    return <PlugView {...{ message, btnIcon, btnText, className }} btnHandleClick={ (_e) => navigate(navPath) }/>
+    const btnHandleClick = useCallback(() => navigate(navPath),[ navPath ]);
+
+    return (
+        <PlugView {...{
+            message,
+            btnIcon,
+            btnText,
+            className,
+            btnHandleClick
+        }}/>
+    )
 }

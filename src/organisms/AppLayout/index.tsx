@@ -1,5 +1,4 @@
-import { useState,
-         useEffect,
+import { useEffect,
          memo,
          useMemo, 
          useRef,
@@ -15,8 +14,7 @@ import { UserGroup } from 'molecules/UserGroup'
 import { updateHistory,
          clearHistory } from 'store/historySlice'
 import { getImage } from 'store/imageSlice'
-import { getLocationConfig,
-         getCurrentUser} from 'store/getters'
+import { getLocationConfig } from 'store/getters'
 import { useAppDispatch,
          useAppSelector } from 'store'
 
@@ -27,22 +25,20 @@ import type { WidthAwared } from 'typings'
 
 
 interface AppHeaderViewProps {
-    scrollContainerRef: RefObject<HTMLDivElement>;
     handleScroll(e: WheelEvent): void;
-    groupsMaxWidth: number;
+    scrollContainerRef: RefObject<HTMLDivElement>;
     creationGroupRef: RefObject<WidthAwared>;
     userGroupRef: RefObject<WidthAwared>;
-    isShort: boolean
+    groupsMaxWidth: number
 }
 
 
 const AppHeaderView = memo(({
-    scrollContainerRef,
     handleScroll,
-    groupsMaxWidth,
+    scrollContainerRef,
     creationGroupRef,
     userGroupRef,
-    isShort
+    groupsMaxWidth
 } : AppHeaderViewProps
 ) => (
     <div
@@ -59,7 +55,7 @@ const AppHeaderView = memo(({
                 <div className='space'/>
             </div>
 
-            <SectionSwitcher isShort={ isShort }/>
+            <SectionSwitcher/>
 
             <div
                 className='equalize-container'
@@ -79,7 +75,6 @@ export const AppHeader = () => {
 
     // REDIRECTING TO LOGIN OR LOGOUT //
     const token = useAppSelector(state => state.auth.token);
-    const { user } = getCurrentUser();
 
     useEffect(() => {
         if(!token) {
@@ -117,20 +112,6 @@ export const AppHeader = () => {
             left: scrollContainerRef.current.scrollLeft + scrollStep * e.deltaY / 100,
             behavior: 'smooth'
         });
-    },[ scrollContainerRef.current ])
-
-    // SETTING SHORT OR FULL LOGO //
-    const breakpoint = 1000;
-    const [ isShort, setIsShort ] = useState(false);
-    function checkWidth() {
-        setIsShort(window.innerWidth < breakpoint)
-    };
-    useEffect(() => {
-        checkWidth();
-        window.addEventListener('resize', checkWidth);
-        return () => {
-            window.removeEventListener('resize', checkWidth);
-        }
     },[]);
 
     // CENTERIZE LOGO //
@@ -145,18 +126,16 @@ export const AppHeader = () => {
         return Math.max(leftGroupWidth, rightGroupWidth)
     },[
         creationGroupRef.current?.getWidth(),
-        userGroupRef.current?.getWidth(),
-        user?.name
+        userGroupRef.current?.getWidth()
     ]);
 
     return (
         <AppHeaderView {...{
-            scrollContainerRef,
             handleScroll,
-            groupsMaxWidth,
+            scrollContainerRef,
             creationGroupRef,
             userGroupRef,
-            isShort
+            groupsMaxWidth
         }}/>
     );
 }

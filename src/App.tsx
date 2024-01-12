@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Navigate,
          Routes,
          Route } from 'react-router-dom'
@@ -17,50 +18,118 @@ import { RedirectPage } from 'pages/RedirectPage'
 import { ProfilePage } from 'pages/ProfilePage'
 import { InvitationAcceptancePage } from 'pages/InvitationAcceptancePage'
 
+import { getFriends,
+         getUserWishlists,
+         getUserWishes,
+         getInvites,
+         getFriendWishes,
+         getLocationConfig } from 'store/getters'
+import { usePrefetch } from 'store/apiSlice'
+
+
+const DataFetchController = () => {
+    const { section, mode } = getLocationConfig();
+
+    const   triggerFriends = usePrefetch('getFriends');
+    const { friendsHaveLoaded } = getFriends();
+
+    const   triggerUserWishes = usePrefetch('getUserWishes');
+    const { userWishesHaveLoaded } = getUserWishes();
+        
+    const   triggerUserWishlists = usePrefetch('getUserWishlists');
+    const { userWishlistsHaveLoaded } = getUserWishlists();
+            
+    const   triggerFriendWishes = usePrefetch('getFriendWishes');
+    const { friendWishesHaveLoaded } = getFriendWishes();
+                
+    const   triggerInvites = usePrefetch('getInvites');
+    const { invitesHaveLoaded } = getInvites();
+
+    const fetchRest = () => {
+        if(!userWishesHaveLoaded)       triggerUserWishes()
+        if(!userWishlistsHaveLoaded)    triggerUserWishlists()
+        if(!friendWishesHaveLoaded)     triggerFriendWishes()
+        if(!invitesHaveLoaded)          triggerInvites()
+        if(!friendsHaveLoaded)          triggerFriends()
+    }
+
+    useEffect(() => {
+        switch(section + '/' + mode) {
+            case 'my-wishes/items':
+                triggerUserWishes();
+                if(userWishesHaveLoaded) fetchRest()
+                break
+            case 'my-wishes/lists':
+                triggerUserWishlists();
+                if(userWishlistsHaveLoaded) fetchRest()
+                break
+            case 'my-invites/items':
+                triggerFriendWishes();
+                if(friendWishesHaveLoaded) fetchRest()
+                break
+            case 'my-invites/lists':
+                triggerInvites();
+                triggerFriends();
+                if(invitesHaveLoaded && friendsHaveLoaded) fetchRest()
+        }
+    },[ section,
+        mode,
+        userWishesHaveLoaded,
+        userWishlistsHaveLoaded,
+        friendWishesHaveLoaded,
+        invitesHaveLoaded,
+        friendsHaveLoaded
+    ]);
+
+    return null
+}
 
 const App = () => (
-    <Routes>
-        <Route path='/' element={ <AppLayout/> }>
-            <Route index element={ <Navigate to='/my-wishes/items/actual' replace/> }/>
-            
-            <Route path='my-wishes/items/' element={ <NavBarLayout/> }>
+    <>
+        <DataFetchController/>
+        <Routes>
+            <Route path='/' element={ <AppLayout/> }>
                 <Route index element={ <Navigate to='/my-wishes/items/actual' replace/> }/>
-                <Route path='new' element={ <NewWishPage/> }/>
-                <Route path=':tabName' element={ <WishesPage/> }/>
-                <Route path=':tabName/:wishId' element={ <SingleWishPage/> }/>
-                <Route path=':tabName/:wishId/editing' element={ <NewWishPage/> }/>
+                
+                <Route path='my-wishes/items/' element={ <NavBarLayout/> }>
+                    <Route index element={ <Navigate to='/my-wishes/items/actual' replace/> }/>
+                    <Route path='new' element={ <NewWishPage/> }/>
+                    <Route path=':tabName' element={ <WishesPage/> }/>
+                    <Route path=':tabName/:wishId' element={ <SingleWishPage/> }/>
+                    <Route path=':tabName/:wishId/editing' element={ <NewWishPage/> }/>
+                </Route>
+
+                <Route path='my-wishes/lists/' element={ <NavBarLayout/> }>
+                    <Route index element={ <ListOfListsPage/> }/>
+                    <Route path='new' element={ <NewListPage/> }/>
+                    <Route path=':wishlistId' element={ <WishlistPage/> }/>
+                    <Route path=':wishlistId/editing' element={ <NewListPage/> }/>
+                    <Route path=':wishlistId/:wishId' element={ <SingleWishPage/> }/>
+                    <Route path=':wishlistId/:wishId/editing' element={ <NewWishPage/> }/>
+                </Route>
+                
+                <Route path='my-invites/items/' element={ <NavBarLayout/> }>
+                    <Route index element={ <Navigate to='/my-invites/items/reserved' replace/> }/>
+                    <Route path=':tabName' element={ <WishesPage/> }/>
+                    <Route path=':tabName/:wishId' element={ <SingleWishPage/> }/>
+                </Route>
+
+                <Route path='my-invites/lists/' element={ <NavBarLayout/> }>
+                    <Route index element={ <ListOfListsPage/> }/>
+                    <Route path=':wishlistId' element={ <WishlistPage/> }/>
+                    <Route path=':wishlistId/:wishId' element={ <SingleWishPage/> }/>
+                </Route>
+
+                <Route path='profile' element={ <ProfilePage/> }/>
+                <Route path='share/:invitationCode' element={ <InvitationAcceptancePage/> }/>
             </Route>
 
-            <Route path='my-wishes/lists/' element={ <NavBarLayout/> }>
-                <Route index element={ <ListOfListsPage/> }/>
-                <Route path='new' element={ <NewListPage/> }/>
-                <Route path=':wishlistId' element={ <WishlistPage/> }/>
-                <Route path=':wishlistId/editing' element={ <NewListPage/> }/>
-                <Route path=':wishlistId/:wishId' element={ <SingleWishPage/> }/>
-                <Route path=':wishlistId/:wishId/editing' element={ <NewWishPage/> }/>
-            </Route>
-            
-            <Route path='my-invites/items/' element={ <NavBarLayout/> }>
-                <Route index element={ <Navigate to='/my-invites/items/reserved' replace/> }/>
-                <Route path=':tabName' element={ <WishesPage/> }/>
-                <Route path=':tabName/:wishId' element={ <SingleWishPage/> }/>
-            </Route>
-
-            <Route path='my-invites/lists/' element={ <NavBarLayout/> }>
-                <Route index element={ <ListOfListsPage/> }/>
-                <Route path=':wishlistId' element={ <WishlistPage/> }/>
-                <Route path=':wishlistId/:wishId' element={ <SingleWishPage/> }/>
-            </Route>
-
-            <Route path='profile' element={ <ProfilePage/> }/>
-            <Route path='share/:invitationCode' element={ <InvitationAcceptancePage/> }/>
-        </Route>
-
-        <Route path='/login/:encodedEmail?' element={ <LoginPage/> }/>
-        <Route path='/logout' element={ <LogoutPage/> }/>
-        <Route path='/redirect' element={ <RedirectPage/> }/>
-        <Route path='*' element={ <Navigate to='/my-wishes/items/actual' replace/> }/>
-    </Routes>
+            <Route path='/login/:encodedEmail?' element={ <LoginPage/> }/>
+            <Route path='/logout' element={ <LogoutPage/> }/>
+            <Route path='/redirect' element={ <RedirectPage/> }/>
+            <Route path='*' element={ <Navigate to='/my-wishes/items/actual' replace/> }/>
+        </Routes>
+    </>
 );
 
 export default App;

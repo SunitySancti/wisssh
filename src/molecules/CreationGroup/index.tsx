@@ -1,5 +1,6 @@
 import { forwardRef,
-         useImperativeHandle, 
+         useImperativeHandle,
+         memo,
          useRef } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -18,6 +19,25 @@ const Gratitude = () => (
     </svg>
 );
 
+const NewWishButton = memo(() => {
+    return (
+        <Link
+            to='/my-wishes/items/new'
+            className='icon-link'
+            children={ <Icon name='newWish'/> }
+        />
+    )
+});
+
+const NewWishlistButton = memo(() => (
+    <Link
+        to='/my-wishes/lists/new'
+        className='icon-link'
+        children={ <Icon name='newList'/> }
+    />
+));
+
+
 export const CreationGroup = forwardRef((
     _props,
     ref: ForwardedRef<WidthAwared>
@@ -25,7 +45,7 @@ export const CreationGroup = forwardRef((
     const creationGroupRef = useRef<HTMLDivElement>(null);
 
     useImperativeHandle(ref, () => ({
-        getWidth() { return creationGroupRef.current?.offsetWidth }
+        getWidth: () => creationGroupRef.current?.offsetWidth
     }));
 
     return (
@@ -39,23 +59,11 @@ export const CreationGroup = forwardRef((
             /> */}
             <Gratitude/>
             <WithTooltip
-                trigger={
-                    <Link
-                        to='/my-wishes/items/new'
-                        className='icon-link'
-                        children={ <Icon name='newWish'/> }
-                    />
-                }
+                trigger={ <NewWishButton/> }
                 text='Новое желание'
             />
             <WithTooltip
-                trigger={
-                    <Link
-                        to='/my-wishes/lists/new'
-                        className='icon-link'
-                        children={ <Icon name='newList'/> }
-                    />
-                }
+                trigger={ <NewWishlistButton/> }
                 text='Новый вишлист'
             />
         </div>

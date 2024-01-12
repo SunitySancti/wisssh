@@ -1,8 +1,10 @@
 import { useState,
          useEffect,
+         memo,
          useRef,
          forwardRef,
-         useImperativeHandle } from 'react'
+         useImperativeHandle, 
+         useCallback} from 'react'
 
 import './styles.scss'
 import { Icon } from 'atoms/Icon'
@@ -36,12 +38,6 @@ interface OptionViewProps extends OptionBaseProps {
     clicked: boolean
 }
 
-interface Coords {
-    left?: number;
-    right?: number;
-    top: number;
-}
-
 interface WithDropDownProps {
     trigger: ReactNode;
     options: DropdownOption[];
@@ -53,15 +49,17 @@ interface WithDropDownViewProps extends WithDropDownProps {
     dropdownRef: RefObject<HTMLDivElement>;
     openDropDown(e: SyntheticEvent): void;
     isDropped: boolean;
-    setIsDropped(value: boolean): void
-    coords?: Coords;
+    setIsDropped(value: boolean): void;
+    left: number | undefined;
+    right: number | undefined;
+    top: number | undefined
 }
 
 export type WithDropDownRef = WidthAwared & {
     closeDropDown(): void
 }
 
-const OptionView = ({
+const OptionView = memo(({
     icon,
     text,
     clickedIcon,
@@ -81,7 +79,7 @@ const OptionView = ({
             <span>{ clicked ? clickedText || text : text }</span>
         }
     </div>
-);
+));
 
 const Option = ({
     onClick,
@@ -90,15 +88,18 @@ const Option = ({
     ...baseProps
 } : OptionProps
 ) => {
-    const [clicked, setClicked] = useState(false);
-    const handleClick = (e: SyntheticEvent) => {
+    const [ clicked, setClicked ] = useState(false);
+    const handleClick = useCallback((e: SyntheticEvent) => {
         onClick(e);
         if(dontHideAfterClick) {
             setClicked(true)
         } else {
             setIsDropped(false)
         }
-    }
+    },[ dontHideAfterClick,
+        setIsDropped
+    ]);
+
     return (
         <OptionView {...{
             ...baseProps,
@@ -108,108 +109,117 @@ const Option = ({
     )
 }
 
-const WithDropDownView = ({
+const WithDropDownView = memo(({
     trigger,
     options,
     className,
+    openDropDown,
+    setIsDropped,
+    isDropped,
     triggerRef,
     dropdownRef,
-    openDropDown,
-    isDropped,
-    setIsDropped,
-    coords
+    left,
+    right,
+    top
 }:  WithDropDownViewProps
-) => (
-    <>
-        <div
-            className={ 'dropdown-trigger ' + (className || '')}
-            children={ trigger }
-            ref={ triggerRef }
-            onClick={ openDropDown }
-        />
-        { isDropped && 
-            <Portal layer='dropdown'>
-                <div
-                    ref={ dropdownRef }
-                    className='dropdown'
-                    style={ coords }
-                >
-                    { options.map( (option, index) => (
-                        <Option
-                            key={ index }
-                            { ...option }
-                            setIsDropped={ setIsDropped }
-                        />
-                    ))}
-                </div>
-            </Portal>
-        }
-    </>
-);
-
+) => {
+    return (
+        <>
+            <div
+                className={ 'dropdown-trigger ' + (className || '')}
+                children={ trigger }
+                ref={ triggerRef }
+                onClick={ openDropDown }
+            />
+            { isDropped && 
+                <Portal layer='dropdown'>
+                    <div
+                        ref={ dropdownRef }
+                        className='dropdown'
+                        style={{ left, right, top }}
+                    >
+                        { options.map( (option) => (
+                            <Option {...{
+                                ...option,
+                                setIsDropped,
+                                key: option.text
+                            }}/>
+                        ))}
+                    </div>
+                </Portal>
+            }
+        </>
+    )
+});
 
 export const WithDropDown = forwardRef((
     props : WithDropDownProps,
     ref: ForwardedRef<WithDropDownRef>
 ) => {
     const [ isDropped, setIsDropped ] = useState(false);
-    const [ coords, setCoords ] = useState<Coords | undefined>(undefined);
+    const [ top, setTop ] = useState<number | undefined>(undefined);
+    const [ left, setLeft ] = useState<number | undefined>(undefined);
+    const [ right, setRight ] = useState<number | undefined>(undefined);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const triggerRef = useRef<HTMLDivElement>(null);
     const minPadding = 11;
 
-    const openDropDown = (e: SyntheticEvent) => {
+    const openDropDown = useCallback((e: SyntheticEvent) => {
         e.stopPropagation();
         alignDropdown();
         setIsDropped(true)
-    }
+    },[]);
 
-    const closeDropDown = (e: MouseEvent) => {
+    const closeDropDownOnClickOutside = useCallback((e: MouseEvent) => {
         if(dropdownRef.current && !dropdownRef.current.contains(e.target as HTMLElement | null)) {
             setIsDropped(false)
         }
-    }
+    },[]);
+
+    const closeDropDown = useCallback(() => setIsDropped(false),[])
 
     useImperativeHandle(ref, () => ({
-        closeDropDown() { setIsDropped(false) },
-        getWidth() { return triggerRef.current?.offsetWidth }
+        closeDropDown,
+        getWidth: () => triggerRef.current?.offsetWidth
     }));
 
 
-    const alignDropdown = () => {
+    const alignDropdown = useCallback(() => {
         const rect = triggerRef.current?.getBoundingClientRect();
         if(!rect) return
         
         const dropToRight = (rect.left + rect.width / 2) < (window.innerWidth * 2 / 3);
-        let left = undefined, right = undefined;
 
         if(dropToRight) {
-            left = Math.max(rect.left, minPadding);
+            setLeft(Math.max(rect.left, minPadding));
+            setRight(undefined);
         } else {
-            right = Math.max(window.innerWidth - rect.right, minPadding)
+            setRight(Math.max(window.innerWidth - rect.right, minPadding));
+            setLeft(undefined)
         }
-
-        setCoords({ left, right, top: rect.bottom })
-    }
+        setTop(rect.bottom)
+    },[]);
 
     useEffect(() => {
-        window.addEventListener('resize', alignDropdown);
-        document.addEventListener('mousedown', closeDropDown);
+        window.addEventListener('resize', closeDropDown);
+        document.addEventListener('mousedown', closeDropDownOnClickOutside);
         return () => {
-            window.removeEventListener('resize', alignDropdown);
-            document.removeEventListener('mousedown', closeDropDown)
+            window.removeEventListener('resize', closeDropDown);
+            document.removeEventListener('mousedown', closeDropDownOnClickOutside)
         }
-    },[ dropdownRef.current ]);
+    },[]);
 
     return (
         <WithDropDownView {...{
             ...props,
+            openDropDown,
+            setIsDropped,
+            isDropped,
             triggerRef,
             dropdownRef,
-            openDropDown,
-            coords,
-            isDropped,
-            setIsDropped
+            left,
+            right,
+            top
         }}/>
     )
 })

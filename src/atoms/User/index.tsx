@@ -1,4 +1,5 @@
-import { useEffect } from 'react'
+import { useEffect,
+         memo } from 'react'
     
 import './styles.scss'
 import { UserPlaceholder } from 'atoms/Icon'
@@ -21,10 +22,10 @@ interface UserPicProps {
 }
 
 interface optionalUserParameters {
+    onClick?: (e: SyntheticEvent) => void;
     picSize?: number;   // in rem
     picOnly?: boolean;
     withTooltip?: boolean;
-    onClick?: (e: SyntheticEvent) => void;
     reverse?: boolean
 }
 
@@ -69,30 +70,33 @@ export const UserPic = ({
     )
 }
 
-const UserView = ({
+const UserView = memo(({
+    onClick,
     picSize,
     picOnly,
     withTooltip,
-    onClick,
     name,
     imageURL,
     isLoading,
     reverse
-} : UserViewProps) => (
-    <div
-        className={ 'user ' + (reverse ? 'text-left' : 'text-right') }
-        onClick={ onClick }
-    >
-        { (withTooltip && name)
-            ?   <WithTooltip
-                    trigger={<UserPic {...{ imageURL, isLoading, size: picSize }}/>}
-                    text={ '@ ' + name }
-                />
-            :   <UserPic {...{ imageURL, isLoading, size: picSize }}/>
-        }
-        { (name && !picOnly) && <span className='name'>@ { name }</span> }
-    </div>
-);
+} : UserViewProps
+) => {
+    return (
+        <div
+            className={ 'user ' + (reverse ? 'text-left' : 'text-right') }
+            onClick={ onClick }
+        >
+            { (withTooltip && name)
+                ?   <WithTooltip
+                        trigger={<UserPic {...{ imageURL, isLoading, size: picSize }}/>}
+                        text={ '@ ' + name }
+                    />
+                :   <UserPic {...{ imageURL, isLoading, size: picSize }}/>
+            }
+            { (name && !picOnly) && <span className='name'>@ { name }</span> }
+        </div>
+    )
+});
 
 export const User = ({
     id,

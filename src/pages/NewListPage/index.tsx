@@ -24,7 +24,8 @@ import type { Control,
               FormState,
               SubmitHandler,
               UseFormRegister } from 'react-hook-form'
-import type { BaseSyntheticEvent } from 'react'
+import type { BaseSyntheticEvent,
+              MouseEvent } from 'react'
 import type { WishlistDefaultValues,
               WishlistId,
               Wish,

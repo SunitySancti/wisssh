@@ -1,5 +1,6 @@
 import { useState,
          useEffect,
+         memo,
          useMemo,
          useRef } from 'react'
 import { Link,
@@ -27,11 +28,7 @@ interface SliderStyles {
     right?: string
 }
 
-interface SectionSwitcherProps {
-    isShort: boolean
-}
-
-interface LogoGroupProps extends SectionSwitcherProps {
+interface LogoGroupProps {
     firstSectionRef: RefObject<HTMLAnchorElement>;
     secondSectionRef: RefObject<HTMLAnchorElement>;
     isWishesSection: boolean;
@@ -40,32 +37,36 @@ interface LogoGroupProps extends SectionSwitcherProps {
 
 interface SectionSwitcherViewProps extends LogoGroupProps {
     firstSectionPath: string;
-    firstSectionTitle: string;
     secondSectionPath: string;
+    firstSectionTitle: string;
     secondSectionTitle: string;
     sectionMaxWidth: number
 }
 
 
-const LogoGroup = ({
-    firstSectionRef,
-    secondSectionRef,
-    isWishesSection,
-    isInvitesSection,
-    isShort
-} : LogoGroupProps
-) => {
-    // handle click on logo
-    const state = useAppSelector(state => state);
+const useHandleLogoClick = (isDevMode: boolean) => {
     const navigate = useNavigate();
-    const handleLogoClick = __DEV_MODE__
+    const state = isDevMode && useAppSelector(state => state);
+
+    return isDevMode
         ? async () => {
             // await fetch(__API_URL__ + '/consistency/update')
             console.log(state)
         }
         : () => navigate('/my-wishes/items/actual')
+}
 
-    // slider default styles
+const LogoGroup = ({
+    firstSectionRef,
+    secondSectionRef,
+    isWishesSection,
+    isInvitesSection
+} : LogoGroupProps
+) => {
+    // HANDLE LOGO CLICK //
+    const handleLogoClick = useHandleLogoClick(__DEV_MODE__);
+
+    // SLIDER DEFAULT STYLES //
     const slidersDefaultStyles = (side: 'left' | 'right') => {
         let styles: SliderStyles = {
             width: '4rem',
@@ -77,7 +78,7 @@ const LogoGroup = ({
     };
     const sidePadding = 6;
 
-    // calculate slider active styles depends on text content:
+    // SLIDER ACTIVE STYLES //
     const firstElem = firstSectionRef.current;
     const secondElem = secondSectionRef.current;
 
@@ -104,7 +105,7 @@ const LogoGroup = ({
         }
     },[ firstElem?.innerHTML, secondElem?.innerHTML ]);
 
-    // assigning styles to sliders according to current section:
+    // SLIDER DYNAMIC STYLING //
     const [leftSliderStyles, setLeftSliderStyles] = useState<SliderStyles | undefined>(slidersDefaultStyles('left'));
     const [rightSliderStyles, setRightSliderStyles] = useState<SliderStyles | undefined>(slidersDefaultStyles('right'));
 
@@ -120,7 +121,25 @@ const LogoGroup = ({
             setLeftSliderStyles(slidersDefaultStyles('left'));
             setRightSliderStyles(slidersDefaultStyles('right'));
         }
-    },[ isWishesSection, isInvitesSection, firstElem?.innerHTML, secondElem?.innerHTML]);
+    },[ isWishesSection,
+        isInvitesSection,
+        firstElem?.innerHTML,
+        secondElem?.innerHTML
+    ]);
+
+    // SETTING SHORT OR FULL LOGO //
+    const breakpoint = 1000;
+    const [ isShort, setIsShort ] = useState(false);
+    function checkWidth() {
+        setIsShort(window.innerWidth < breakpoint)
+    };
+    useEffect(() => {
+        checkWidth();
+        window.addEventListener('resize', checkWidth);
+        return () => {
+            window.removeEventListener('resize', checkWidth);
+        }
+    },[]);
 
     return (
         <button
@@ -136,10 +155,10 @@ const LogoGroup = ({
                     className='ss-slider'
                     style={ rightSliderStyles }
                 />
-                <LogoBack isShort={ isShort }/>
+                <LogoBack {...{ isShort }}/>
                 <Goo/>
             </div>
-            <LogoIcon isShort={ isShort }/>
+            <LogoIcon {...{ isShort }}/>
             <div className='beta'>Beta</div>
         </button>
     )
@@ -148,49 +167,50 @@ const LogoGroup = ({
 
 const SectionSwitcherView = ({
     firstSectionRef,
-    firstSectionPath,
-    firstSectionTitle,
     secondSectionRef,
+    firstSectionPath,
     secondSectionPath,
+    firstSectionTitle,
     secondSectionTitle,
     sectionMaxWidth,
     isWishesSection,
-    isInvitesSection,
-    isShort
+    isInvitesSection
 } : SectionSwitcherViewProps
-) => (
-    <div className='section-switcher'>
-        <div
-            className='section-container'
-            style={{ width: sectionMaxWidth }}
-        >
-            <div className='space'/>
-            <Link
-                ref={ firstSectionRef }
-                to={ firstSectionPath }
-                className={ 'section my-wishes' + (isWishesSection ? ' active' : '') }
-                children={ firstSectionTitle }
-            />
-        </div>
+) => {
+    return (
+        <div className='section-switcher'>
+            <div
+                className='section-container'
+                style={{ width: sectionMaxWidth }}
+            >
+                <div className='space'/>
+                <Link
+                    ref={ firstSectionRef }
+                    to={ firstSectionPath }
+                    className={ 'section my-wishes' + (isWishesSection ? ' active' : '') }
+                    children={ firstSectionTitle }
+                />
+            </div>
 
-        <LogoGroup {...{ firstSectionRef, secondSectionRef, isWishesSection, isInvitesSection, isShort }}/>
-        
-        <div
-            className='section-container'
-            style={{ width: sectionMaxWidth }}
-        >
-            <Link
-                ref={ secondSectionRef }
-                to={ secondSectionPath }
-                className={ 'section my-invites' + (isInvitesSection ? ' active' : '') }
-                children={ secondSectionTitle }
-            />
-            <div className='space'/>
+            <LogoGroup {...{ firstSectionRef, secondSectionRef, isWishesSection, isInvitesSection }}/>
+            
+            <div
+                className='section-container'
+                style={{ width: sectionMaxWidth }}
+            >
+                <Link
+                    ref={ secondSectionRef }
+                    to={ secondSectionPath }
+                    className={ 'section my-invites' + (isInvitesSection ? ' active' : '') }
+                    children={ secondSectionTitle }
+                />
+                <div className='space'/>
+            </div>
         </div>
-    </div>
-);
+    )
+}
 
-export const SectionSwitcher = ({ isShort }: SectionSwitcherProps) => {
+export const SectionSwitcher = memo(() => {
     const { section,
             mode,
             isWishesSection,
@@ -212,7 +232,9 @@ export const SectionSwitcher = ({ isShort }: SectionSwitcherProps) => {
 
         return firstSectionWidth > secondSectionWidth
              ? firstSectionWidth : secondSectionWidth
-    },[ firstElem?.innerHTML, secondElem?.innerHTML ]);
+    },[ firstElem?.innerHTML,
+        secondElem?.innerHTML
+    ]);
 
     // define link paths and titles of sections:
     const lastMode = useAppSelector(state => state.history.anySectionLast.split('/')[2]);
@@ -235,19 +257,18 @@ export const SectionSwitcher = ({ isShort }: SectionSwitcherProps) => {
                              : (lastMode === 'lists') ? 'Мои вишлисты' : '';
     const secondSectionTitle = (lastMode === 'items') ? 'Желания друзей'
                              : (lastMode === 'lists') ? 'Приглашения' : '';
-
+              
     return (
         <SectionSwitcherView {...{
             firstSectionRef,
-            firstSectionPath,
-            firstSectionTitle,
             secondSectionRef,
+            firstSectionPath,
             secondSectionPath,
+            firstSectionTitle,
             secondSectionTitle,
             sectionMaxWidth,
             isWishesSection,
-            isInvitesSection,
-            isShort
+            isInvitesSection
         }}/>
     )
-}
+})

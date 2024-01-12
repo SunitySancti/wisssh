@@ -1,4 +1,5 @@
 import { useMemo,
+         memo,
          useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -28,8 +29,9 @@ interface WishlistMenuViewProps {
     modalProps: ModalProps
 }
 
+const MemoizedMenuButton = memo(() => <Button icon='kebap' size={ 4 }/>)
 
-const WishlistMenuView = ({
+const WishlistMenuView = memo(({
     dropdownOptions,
     modalRef,
     modalProps
@@ -37,7 +39,7 @@ const WishlistMenuView = ({
 ) => (
     <>
         <WithDropDown
-            trigger={ <Button icon='kebap' size={ 4 }/> }
+            trigger={ <MemoizedMenuButton/> }
             options={ dropdownOptions }
         />
         <Modal
@@ -45,9 +47,9 @@ const WishlistMenuView = ({
             {...modalProps }
         />
     </>
-);
+));
 
-export const WishlistMenu = ({
+export const WishlistMenu = memo(({
     wishlist
 } : WishlistMenuProps
 ) => {
@@ -114,7 +116,7 @@ export const WishlistMenu = ({
         copyInvitationLink
     ]);
 
-    const modalProps = {
+    const modalProps = useMemo(() => ({
         header: 'Пожалуйста, подтвердите действие',
         body: isInvitesSection
             ? `Вишлист "${ wishlist.title }" будет удален из списка приглашений. Чтобы добавить его обратно, вам понадобится пригласительная ссылка.`
@@ -131,8 +133,11 @@ export const WishlistMenu = ({
                 : 'Удалить вишлист',
             onClick: handleDelete
         }]
-    }
+    }),[
+        wishlist.title,
+        isInvitesSection
+    ]);
 
     return !!wishlist &&
         <WishlistMenuView {...{ dropdownOptions, modalRef, modalProps }}/>
-}
+});

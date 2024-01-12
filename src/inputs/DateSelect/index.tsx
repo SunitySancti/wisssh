@@ -63,18 +63,18 @@ export const DateSelect = <FV extends FieldValues>({
         ref: ForwardedRef<HTMLInputElement>
     ) => (
         <div className='text-input'>
-            <input
-                onClick={onClick}
-                ref={ref}
-                value={value}
-                readOnly
-            />
-            <Button
-                id={ buttonId }
-                icon='chevronDown'
-                onClick={onClick}
-                type='button'
-            />
+            <input {...{
+                onClick,
+                ref,
+                value,
+                readOnly: true
+            }}/>
+            <Button {...{
+                onClick,
+                id: buttonId,
+                icon: 'chevronDown',
+                type: 'button'
+            }}/>
         </div>
     ));
 

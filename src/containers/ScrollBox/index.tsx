@@ -1,6 +1,7 @@
 import { useState,
          useEffect,
-         useRef } from 'react'
+         useRef, 
+         useCallback} from 'react'
 
 import './styles.scss'
 import { Button } from 'atoms/Button'
@@ -91,32 +92,32 @@ export const ScrollBox = ({
 
     // scrolling by button:
     
-    const scrollLeft = () => {
+    const scrollLeft = useCallback(() => {
         const ref = contentRef.current;
         if(ref) {
             const newPosition = ref.scrollLeft - scrollStep;
             setScrollPosition( newPosition > 0 ? newPosition : 0 );
         }
-    }
-    const scrollRight = () => {
+    },[]);
+    const scrollRight = useCallback(() => {
         const ref = contentRef.current;
         if(ref) {
             const rightLimit = ref.scrollWidth - ref.clientWidth;
             const newPosition = ref.scrollLeft + scrollStep;
             setScrollPosition( newPosition < rightLimit ? newPosition : rightLimit );
         }
-    }
+    },[]);
 
     // scrolling by wheel:
 
-    const scrollByWheel = (e: WheelEvent<HTMLDivElement>) => {
+    const scrollByWheel = useCallback((e: WheelEvent<HTMLDivElement>) => {
         const ref = contentRef.current;
         if(ref) {
             const rightLimit = ref.scrollWidth - ref.clientWidth;
             const newPosition = ref.scrollLeft + scrollStep * e.deltaY / 100;
             setScrollPosition( newPosition > 0 ? (newPosition < rightLimit ? newPosition : rightLimit) : 0 );
         }
-    }
+    },[]);
 
     
     useEffect(() => {

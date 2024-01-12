@@ -1,5 +1,6 @@
 import { useEffect,
          useMemo,
+         memo,
          useState } from 'react'
 import { NavLink,
          Link } from 'react-router-dom'
@@ -9,15 +10,10 @@ import { Icon } from 'atoms/Icon'
 import { NavbarEllipsis } from 'atoms/Preloaders'
 import { WithTooltip } from 'atoms/WithTooltip'
 
-import { getUserWishes,
-         getFriendWishes,
-         getWishlistById,
+import { getWishlistById,
          getWishById,
          getLoadingStatus,
          getLocationConfig } from 'store/getters'
-
-import type { Wish,
-              Wishlist } from 'typings'
 
 
 interface SliderProps {
@@ -40,10 +36,8 @@ interface LinkOption {
 }
 
 interface BreadCrumbsViewProps {
-    wish: Wish | undefined;
-    wishlist: Wishlist | undefined;
-    userWishes: Wish[];
-    friendWishes: Wish[];
+    wishTitle: string | undefined;
+    wishlistTitle: string | undefined;
     awaitingWishes: boolean;
     awaitingUserWishes: boolean;
     awaitingWishlists: boolean
@@ -105,11 +99,9 @@ const Slider = ({ location }: SliderProps) => {
     return <div className='bc-slider' style={ sliderStyles }/>
 }
 
-const BreadCrumbsView = ({
-    wish,
-    wishlist,
-    userWishes,
-    friendWishes,
+const BreadCrumbsView = memo(({
+    wishTitle,
+    wishlistTitle,
     awaitingWishes,
     awaitingUserWishes,
     awaitingWishlists
@@ -179,7 +171,7 @@ const BreadCrumbsView = ({
                                 :   <NavLink
                                         className='nav-elem option'
                                         to={ location }
-                                        children={ wish ? wish.title + ': редактирование' : null }
+                                        children={ wishTitle ? wishTitle + ': редактирование' : null }
                                         end
                                     />
                             }
@@ -199,7 +191,7 @@ const BreadCrumbsView = ({
                     }
                 </>
     },[ location,
-        wish?.title
+        wishTitle
     ]);
 
     const listsModeOptions = useMemo(() => {        
@@ -217,42 +209,42 @@ const BreadCrumbsView = ({
                     { awaitingWishlists
                         ?   <NavbarEllipsis/>
                         : isEditWishlist
-                        ? !!wishlist &&
+                        ? wishlistTitle &&
                             <NavLink
                                 className='nav-elem option'
                                 to={ location }
-                                children={ wishlist.title + ': редактирование' }
+                                children={ wishlistTitle + ': редактирование' }
                                 end
                             />
-                        : !!wishlist &&
+                        : wishlistTitle &&
                             <NavLink
                                 className='nav-elem option'
                                 to={ `/${ section }/lists/${ wishlistId }` }
-                                children={ wishlist.title || 'Безымянный вишлист' }
+                                children={ wishlistTitle }
                                 end
                             />
                     }
                 </>
             }
             
-            { wishlist?.title && wishId &&
+            { wishlistTitle && wishId &&
                 <>
                     <div className='nav-elem'>/</div>
                     { awaitingWishes
                     ?   <NavbarEllipsis/>
                     : isEditWish
-                    ? !!wish &&
+                    ? wishTitle &&
                         <NavLink
                             className='nav-elem option'
                             to={ location }
-                            children={ wish.title + ': редактирование' }
+                            children={ wishTitle + ': редактирование' }
                             end
                         />
-                    : !!wish &&
+                    : wishTitle &&
                         <NavLink
                             className='nav-elem option'
                             to={ `/${ section }/lists/${ wishlistId }/${ wishId }` }
-                            children={ wish.title || 'Безымянное желание' }
+                            children={ wishTitle }
                             end
                         />
                     }
@@ -282,15 +274,15 @@ const BreadCrumbsView = ({
     },[ location,
         wishlistId,
         wishId,
-        wishlist?.title,
-        wish?.title,
+        wishlistTitle,
+        wishTitle,
         awaitingWishlists,
         awaitingWishes
     ]);
 
     return (
         <div className='bread-crumbs'>
-            <Slider {...{ userWishes, friendWishes, location }}/>
+            <Slider {...{ location }}/>
             {   isItemsMode
                     ?   itemsModeOptions
               : isListsMode
@@ -299,29 +291,25 @@ const BreadCrumbsView = ({
             }
         </div>
     )
-}
+});
 
-export const BreadCrumbs = () => {
+export const BreadCrumbs = memo(() => {
     const { wishId,
             wishlistId } = getLocationConfig()
 
     const   wish = getWishById(wishId);
     const   wishlist = getWishlistById(wishlistId);
-    const { userWishes } = getUserWishes();
-    const { friendWishes } = getFriendWishes();
     const { awaitingUserWishes,
             awaitingWishes,
             awaitingWishlists } = getLoadingStatus();
 
     return (
         <BreadCrumbsView {...{
-            wish,
-            wishlist,
-            userWishes,
-            friendWishes,
+            wishTitle: wish?.title,
+            wishlistTitle: wishlist?.title,
             awaitingWishes,
             awaitingUserWishes,
             awaitingWishlists
         }}/>
     )
-}
+});

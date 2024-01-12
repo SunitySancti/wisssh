@@ -1,3 +1,5 @@
+import { memo } from 'react'
+
 import './styles.scss'
 import { User } from 'atoms/User'
 import { WishlistHeaderPointer } from 'atoms/Icon'
@@ -24,7 +26,7 @@ interface WishlistHeaderProps {
 }
 
 
-const TimeInfo = ({
+const TimeInfo = memo(({
     wishlist
 } : TimeInfoProps
 ) => {
@@ -56,7 +58,7 @@ const TimeInfo = ({
             }
         </div>
     )
-}
+});
 
 export const WishlistHeader = ({
     wishlist,
@@ -134,41 +136,5 @@ export const WishlistHeader = ({
                     <WishlistMenu {...{ wishlist }}/>
                 </div>
             )
-
     }
-
-    // return (wishlist === 'past-events-header')
-    //     ?   <div className={ 'group-header ' + classes }>
-    //             <span>Прошедшие события</span>
-    //         </div>
-    //     :   <div
-    //             className={ 'wishlist-header ' + classes }
-    //             style={ styles }
-    //             id={ wishlist.id }
-    //             onClick={ onClick }
-    //             ref={ headerRef }
-    //         >
-    //             <User
-    //                 id={ wishlist.author }
-    //                 picSize={ 6 }
-    //                 picOnly
-    //                 withTooltip
-    //             />
-
-    //             <div className='wishlist-body'>
-    //                 <div className='preview-container'>
-    //                     <div className='title-container'>
-    //                         <WishlistHeaderPointer/>
-    //                         <div className='title'>{ wishlist.title }</div>
-    //                     </div>
-    //                     <span className='description line'>{ wishlist.description }</span>
-    //                     <TimeInfo {...{ wishlist }}/>
-    //                 </div>
-    //                 { wishlist &&
-    //                     <span className='description full'>{ wishlist.description }</span>
-    //                 }
-    //             </div>
-
-    //             <WishlistMenu {...{ wishlist }}/>
-    //         </div>
 }

@@ -1,9 +1,9 @@
-import { useEffect,
-         useCallback,
-         useRef,
+import { useRef,
          useState,
          forwardRef,
-         useImperativeHandle } from 'react'
+         useImperativeHandle,
+         memo, 
+         useCallback } from 'react'
 import { Outlet } from 'react-router'
 
 import './styles.scss'
@@ -18,9 +18,7 @@ import { getCurrentUser,
          getUserWishlists,
          getUserWishes,
          getInvites,
-         getFriendWishes,
-         getLocationConfig } from 'store/getters'
-import { usePrefetch } from 'store/apiSlice'
+         getFriendWishes } from 'store/getters'
 
 import type { RefObject,
               ForwardedRef } from 'react'
@@ -39,78 +37,7 @@ interface NavBarRef {
 }
 
 
-const controlDataFetch = () => {
-    const { section, mode } = getLocationConfig();
-
-    const   triggerFriends = usePrefetch('getFriends');
-    const { friendsHaveLoaded } = getFriends();
-
-    const   triggerUserWishes = usePrefetch('getUserWishes');
-    const { userWishesHaveLoaded } = getUserWishes();
-        
-    const   triggerUserWishlists = usePrefetch('getUserWishlists');
-    const { userWishlistsHaveLoaded } = getUserWishlists();
-            
-    const   triggerFriendWishes = usePrefetch('getFriendWishes');
-    const { friendWishesHaveLoaded } = getFriendWishes();
-                
-    const   triggerInvites = usePrefetch('getInvites');
-    const { invitesHaveLoaded } = getInvites();
-
-    const fetchRest = useCallback(() => {
-        if(!userWishesHaveLoaded) {
-            triggerUserWishes()
-        }
-        if(!userWishlistsHaveLoaded) {
-            triggerUserWishlists()
-        }
-        if(!friendWishesHaveLoaded) {
-            triggerFriendWishes()
-        }
-        if(!invitesHaveLoaded) {
-            triggerInvites()
-        }
-        if(!friendsHaveLoaded) {
-            triggerFriends()
-        }
-    },[ userWishesHaveLoaded,
-        userWishlistsHaveLoaded,
-        friendWishesHaveLoaded,
-        invitesHaveLoaded,
-        friendsHaveLoaded
-    ]);
-
-    useEffect(() => {
-        switch(section + '/' + mode) {
-            case 'my-wishes/items':
-                triggerUserWishes();
-                if(userWishesHaveLoaded) fetchRest()
-                break
-            case 'my-wishes/lists':
-                triggerUserWishlists();
-                if(userWishlistsHaveLoaded) fetchRest()
-                break
-            case 'my-invites/items':
-                triggerFriendWishes();
-                if(friendWishesHaveLoaded) fetchRest()
-                break
-            case 'my-invites/lists':
-                triggerInvites();
-                triggerFriends();
-                if(invitesHaveLoaded && friendsHaveLoaded) fetchRest()
-        }
-    },[ section,
-        mode,
-        userWishesHaveLoaded,
-        userWishlistsHaveLoaded,
-        friendWishesHaveLoaded,
-        invitesHaveLoaded,
-        friendsHaveLoaded
-    ])
-}
-
-
-const RefreshButton = () => {
+const RefreshButton = memo(() => {
     const { refreshUser,
             fetchingUser } = getCurrentUser();
     const { refreshFriends,
@@ -124,14 +51,14 @@ const RefreshButton = () => {
     const { refreshInvites,
             fetchingInvites } = getInvites();
      
-    const refreshData = () => {
+    const refreshData = useCallback(() => {
         refreshUser();
         refreshFriends();
         refreshUserWishes();
         refreshUserWishlists();
         refreshFriendWishes();
         refreshInvites();
-    }
+    },[]);
     const isLoading = fetchingUser || fetchingFriends || fetchingUserWishes || fetchingUserWishlists || fetchingFriendWishes || fetchingInvites;
 
     return (
@@ -148,7 +75,7 @@ const RefreshButton = () => {
             text='Обновить данные'
         />
     )
-}
+});
 
 
 const NavBarView = ({ shouldDropShadow } : NavBarViewProps) => (
@@ -168,7 +95,6 @@ const NavBar = forwardRef(({
     ref: ForwardedRef<NavBarRef>
 ) => {
     const [ shouldDropShadow, setShouldDropShadow ] = useState(false);
-    controlDataFetch();
 
     useImperativeHandle(ref, () => ({
         toggleNavBarShadow() { setShouldDropShadow(!!workSpaceRef.current?.scrollTop) }
@@ -176,6 +102,7 @@ const NavBar = forwardRef(({
     
     return <NavBarView {...{ shouldDropShadow }}/>
 });
+
 
 export const NavBarLayout = () => {
     const workSpaceRef = useRef<HTMLDivElement>(null);

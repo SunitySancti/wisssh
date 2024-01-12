@@ -1,6 +1,8 @@
 import { useState,
+         memo,
          useMemo,
-         useRef } from 'react'
+         useRef, 
+         useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import './styles.scss'
@@ -29,11 +31,12 @@ import { generateUniqueId } from 'utils'
 import type { SyntheticEvent,
               RefObject } from 'react'
 import type { Wish,
-              ImageId } from 'typings'
+              WishId } from 'typings'
 import type { IconName } from 'atoms/Icon'
 import type { ModalRef,
               ModalProps } from 'atoms/Modal'
 import type { DropdownOption } from 'atoms/WithDropDown'
+import type { ButtonProps } from 'atoms/Button'
 
 
 interface StatusBarProps {
@@ -42,10 +45,10 @@ interface StatusBarProps {
 }
 
 interface StatusBarViewProps {
-    onCard: boolean;
-    width: number;
     showText(): void;
     hideText(): void;
+    onCard: boolean;
+    width: number;
     innerRef: RefObject<HTMLDivElement>;
     isCompleted: boolean;
     ofCurrentUser: boolean;
@@ -86,11 +89,11 @@ interface DropDownOption {
 }
 
 
-const StatusBarView = ({
-    onCard,
-    width,
+const StatusBarView = memo(({
     showText,
     hideText,
+    onCard,
+    width,
     innerRef,
     isCompleted,
     ofCurrentUser,
@@ -123,7 +126,7 @@ const StatusBarView = ({
             </div>
         </div>
     )
-}
+});
 
 export const StatusBar = ({
     wish,
@@ -135,23 +138,23 @@ export const StatusBar = ({
     const [ width, setWidth ] = useState(defaultWidth);
     const { user } = getCurrentUser();
 
-    const showText = () => {
+    const showText = useCallback(() => {
         if(onCard) {
             setWidth(innerRef.current ? innerRef.current.offsetWidth + 22 : defaultWidth)
         }
-    }
-    const hideText = () => {
+    },[ defaultWidth ]);
+    const hideText = useCallback(() => {
         if(onCard) {
             setWidth(defaultWidth)
         }
-    }
+    },[ defaultWidth ]);
 
     return (wish.isCompleted || wish.reservedBy) &&
         <StatusBarView {...{
-            onCard: onCard || false,
-            width,
             showText,
             hideText,
+            onCard: !!onCard,
+            width,
             innerRef,
             isCompleted: wish.isCompleted,
             ofCurrentUser: wish.author === user?.id,
@@ -160,7 +163,7 @@ export const StatusBar = ({
 }
 
 
-const WishCoverView = ({
+const WishCoverView = memo(({
     wish,
     withUserPic,
     onCard,
@@ -183,14 +186,14 @@ const WishCoverView = ({
             />
         }
         { onCard &&
-            <StatusBar wish={ wish } onCard={ onCard }/>
+            <StatusBar {...{ wish, onCard }}/>
         }
         { imageURL
             ? <img src={ imageURL }/>
-            : <WishPreloader isLoading={ isLoading }/>
+            : <WishPreloader {...{ isLoading }}/>
         }
     </div>
-);
+));
 
 export const WishCover = (props : WishCoverProps) => {
     const imageURL = useAppSelector(state => state.images?.imageURLs[props.wish?.id]);
@@ -199,6 +202,8 @@ export const WishCover = (props : WishCoverProps) => {
     return <WishCoverView {...{...props, imageURL, isLoading }}/>
 }
 
+
+const WishButtonView = memo((props: ButtonProps) => <Button {...props }/>);
 
 export const WishButton = ({
     wish
@@ -237,38 +242,44 @@ export const WishButton = ({
         wish.reservedBy
     ]);
 
-    return buttonProps &&
-        <Button { ...buttonProps }/>
+    return !!buttonProps &&
+        <WishButtonView {...buttonProps }/>
 }
 
 
-const WishMenuView = ({
+const MemoizedMenuButton = memo(() => (
+    <>
+        <KebapBackground/>
+        <Button icon='kebap' size={ 4 }/>
+    </>
+));
+
+const WishMenuView = memo(({
     dropdownOptions,
     deleteModalRef,
     deleteModalProps,
     uncompleteModalRef,
     uncompleteModalProps
 } : WishMenuViewProps
-) => (
-    <>
-        <WithDropDown
-            trigger={<>
-                <KebapBackground/>
-                <Button icon='kebap' size={ 4 }/>
-            </>}
-            options={ dropdownOptions }
-            className='wish-menu'
-        />
-        <Modal
-            ref={ deleteModalRef }
-            {...deleteModalProps }
-        />
-        <Modal
-            ref={ uncompleteModalRef }
-            {...uncompleteModalProps }
-        />
-    </>
-);
+) => {
+    return (
+        <>
+            <WithDropDown
+                trigger={ <MemoizedMenuButton/> }
+                options={ dropdownOptions }
+                className='wish-menu'
+            />
+            <Modal
+                ref={ deleteModalRef }
+                {...deleteModalProps }
+            />
+            <Modal
+                ref={ uncompleteModalRef }
+                {...uncompleteModalProps }
+            />
+        </>
+    )
+});
 
 export const WishMenu = ({
     wish
@@ -296,14 +307,19 @@ export const WishMenu = ({
     const [ reserveWish ] = useReserveWishMutation();
     const [ unreserveWish ] = useUnreserveWishMutation();
 
-    const handleEdit = (e: SyntheticEvent) => {
-        e.stopPropagation();
+    const handleEdit = useCallback((e: SyntheticEvent) => {
+        e?.stopPropagation && e.stopPropagation();
         navigate([, section, mode, (tab || wishlistId), wish.id, 'editing'].join('/'));
-    }
+    },[ section,
+        mode,
+        tab,
+        wishlistId,
+        wish.id
+    ]);
 
-    const handleCopy = async (e: SyntheticEvent) => {
-        e.stopPropagation();
-        const newId = await generateUniqueId<ImageId>();
+    const handleCopy = useCallback(async (e: SyntheticEvent) => {
+        e?.stopPropagation && e.stopPropagation();
+        const newId = await generateUniqueId<WishId>();
         if(!user || typeof newId !== 'string' || newId.length !== 6) return;
 
         const newWish = {
@@ -324,19 +340,25 @@ export const WishMenu = ({
             }))
         }
         navigate('/my-wishes/items/actual/' + newWish.id)
-    }
+    },[ wish,
+        user?.id,
+    ]);
 
-    const handleDelete = (e: SyntheticEvent) => {
-        e.stopPropagation();
+    const handleDelete = useCallback((e: SyntheticEvent) => {
+        e?.stopPropagation && e.stopPropagation();
 
         deleteWish(wish.id);
         deleteModalRef.current?.hideModal(e);
         const path = ['/my-wishes', mode, (tab || wishlistId)].join('/');
         navigate('/redirect',{ state:{ redirectTo: path }})
-    }
+    },[ wish.id,
+        mode,
+        tab,
+        wishlistId
+    ]);
 
-    const handleComplete = (e: SyntheticEvent) => {
-        e.stopPropagation();
+    const handleComplete = useCallback((e: SyntheticEvent) => {
+        e?.stopPropagation && e.stopPropagation();
 
         completeWish(wish.id);
 
@@ -345,10 +367,13 @@ export const WishMenu = ({
         } else {
             navigate('/redirect',{ state:{ redirectTo: location }})
         }
-    }
+    },[ isItemsMode,
+        wishId,
+        section
+    ]);
 
-    const handleActualize = (e: SyntheticEvent) => {
-        e.stopPropagation();
+    const handleUncomplete = useCallback((e: SyntheticEvent) => {
+        e?.stopPropagation && e.stopPropagation();
 
         uncompleteWish(wish.id);
         uncompleteModalRef.current?.hideModal(e);
@@ -358,7 +383,10 @@ export const WishMenu = ({
         } else {
             navigate('/redirect',{ state:{ redirectTo: location }})
         }
-    }
+    },[ isItemsMode,
+        wishId,
+        wish.id
+    ]);
 
     const dropdownOptions = useMemo(() => {
         if(!user) {
@@ -436,35 +464,48 @@ export const WishMenu = ({
         unreserveWish
     ]);
 
-    const deleteModalProps = {
+    const hideDeleteModal = useCallback((e: SyntheticEvent) => {
+        deleteModalRef.current?.hideModal(e)
+    },[]);
+
+    const hideUncompleteModal = useCallback((e: SyntheticEvent) => {
+        uncompleteModalRef.current?.hideModal(e)
+    },[]);
+
+    const deleteModalProps = useMemo(() => ({
         header: 'Пожалуйста, подтвердите действие',
         body: `Желание "${ wish.title }" будет удалено без возможности восстановления.`,
         actions: [{
             icon: 'cancel' as const,
             text: 'Отмена',
-            onClick: (e: SyntheticEvent) => deleteModalRef.current?.hideModal(e)
+            onClick: hideDeleteModal
         }, {
             kind: 'negative primary' as const,
             icon: 'delete' as const,
             text: 'Удалить желание',
             onClick: handleDelete
         }]
-    }
+    }),[ wish.title,
+         hideDeleteModal,
+         handleDelete
+    ]);
 
-    const uncompleteModalProps = {
+    const uncompleteModalProps = useMemo(() => ({
         header: 'Пожалуйста, подтвердите действие',
         body: `Желание будет отмечено как неисполненное. Рассматривайте актуализацию желания как отмену ошибочной отметки об исполнении. Не рекомендуется использовать актуализацию для создания нового желания по шаблону исполненного — для этого лучше подойдет действие "Создать копию"`,
         actions: [{
             icon: 'actualize' as const,
             text: 'Актуализировать',
-            onClick: handleActualize
+            onClick: handleUncomplete
         }, {
             kind: 'primary' as const,
             icon: 'cancel' as const,
             text: 'Отмена',
-            onClick: (e: SyntheticEvent) => uncompleteModalRef.current?.hideModal(e)
+            onClick: hideUncompleteModal
         }]
-    }
+    }),[ hideUncompleteModal,
+         handleUncomplete
+    ]);
 
     return (
         <WishMenuView {...{
