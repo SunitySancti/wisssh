@@ -3,6 +3,8 @@ import { generateId } from 'utils'
 import { Icon } from 'atoms/Icon'
 import { TextLabel } from 'atoms/TextLabel'
 
+import { useAppSelector } from 'store'
+
 import type { ReactNode,
               SyntheticEvent } from 'react'
 import type { FieldValues,
@@ -34,8 +36,12 @@ interface TextInputProps<FV extends FieldValues> {
     disabled?: boolean
 }
 
+interface TextInputViewProps<FV extends FieldValues> extends TextInputProps<FV> {
+    isNarrow?: boolean
+}
 
-export const TextInput = <FV extends FieldValues>({
+
+const TextInputView = <FV extends FieldValues>({
     name,
     label,
     register,
@@ -54,8 +60,9 @@ export const TextInput = <FV extends FieldValues>({
     rightAlignedComponent,
     autoComplete,
     placeholder,
-    disabled
-} : TextInputProps<FV>
+    disabled,
+    isNarrow
+} : TextInputViewProps<FV>
 ) => {
     const id = generateId<BasicId>();
     const errorTypes = ({
@@ -82,8 +89,14 @@ export const TextInput = <FV extends FieldValues>({
         ? /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
         : undefined
 
+    const getRootClasses = () => {
+        let result = (className || '') + ' text-input';
+        if(isNarrow) result += ' narrow'
+        return result
+    }
+
     return (
-        <div className={className ? 'text-input ' + className : 'text-input'}>
+        <div className={ getRootClasses() }>
             { label && (
                 <TextLabel
                     htmlFor={id}
@@ -132,4 +145,13 @@ export const TextInput = <FV extends FieldValues>({
             }
         </div>
     );
+}
+
+export const TextInput = <FV extends FieldValues>(
+    props: TextInputProps<FV>
+) => {
+    // GETTING RESPONSIVE 
+    const { isNarrow } = useAppSelector(state => state.responsiveness);
+
+    return <TextInputView {...{ ...props, isNarrow }}/>
 }

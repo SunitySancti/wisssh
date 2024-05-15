@@ -3,6 +3,8 @@ import { Controller } from 'react-hook-form'
 
 import './styles.scss'
 
+import { useAppSelector } from 'store'
+
 import type { Control } from 'react-hook-form'
 import type { KeyboardEvent } from 'react'
 
@@ -26,7 +28,8 @@ interface CheckboxControllerRenderProps {
 
 interface CheckBoxViewProps extends CheckboxControllerFieldProps {
     label: string;
-    className?: string
+    className?: string;
+    isNarrow?: boolean
 }
 
 
@@ -34,11 +37,12 @@ const CheckBoxView = ({
     value,
     onChange,
     label,
-    className
+    className,
+    isNarrow
 } : CheckBoxViewProps
 ) => (
     <div
-        className={ 'checkbox ' + (className || '') }
+        className={ 'checkbox ' + (className || '') + (isNarrow ? ' narrow' : '') }
         onClick={ () => onChange(!value) }
         tabIndex={ 0 }
         onKeyDown={ (e: KeyboardEvent) => {
@@ -63,13 +67,15 @@ export const CheckBox = ({
         setChecked(value);
         callback && callback(value)
     }
+    // GETTING RESPONSIVE 
+    const { isNarrow } = useAppSelector(state => state.responsiveness);
 
     return ((control && name)
         ?   <Controller
                 name={name}
                 control={control}
                 render={({ field: { value, onChange }}: CheckboxControllerRenderProps) => (
-                    <CheckBoxView {...{ value, onChange, label, className }}/>
+                    <CheckBoxView {...{ value, onChange, label, className, isNarrow }}/>
                 )}
             />
         :   callback
@@ -77,7 +83,8 @@ export const CheckBox = ({
                 value: checked,
                 onChange: onChangeWithCallback,
                 label,
-                className
+                className,
+                isNarrow
             }}/>
         :   null
     )

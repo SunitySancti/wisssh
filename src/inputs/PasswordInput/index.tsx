@@ -37,7 +37,7 @@ const PasswordInputView = <FV extends FieldValues>({
     labelWidth,
     warningMessage,
     required,
-    disabled,
+    disabled
 } : PasswordInputViewProps<FV>
 ) => (
     <div className={ 'password-input ' + (className || '') }>

@@ -63,7 +63,8 @@ interface LoginPageViewProps<FV extends FieldValues> {
     maxLabelWidth: number;
     isLoading: boolean;
     isAnyError: boolean;
-    message: string
+    message: string,
+    isNarrow?: boolean 
 }
 
 interface LoginFormValues {
@@ -75,6 +76,7 @@ interface LoginFormValues {
     verificationCode?: string;
     shouldNotRemember: boolean
 }
+
 
 const defaultValues: LoginFormValues = {
     email: undefined,
@@ -191,7 +193,6 @@ export const LoginPage = () => {
     const [ nicknameErrorMessage, setNicknameErrorMessage ] = useState('');
     const [ passwordErrorMessage, setPasswordErrorMessage ] = useState('');
     const isAnyError = Boolean(connectionErrorMessage || emailErrorMessage || nicknameErrorMessage || passwordErrorMessage);
-    
     const [ autofilledEmail, setAutofilledEmail ] = useState('');
     const maxLabelWidth = 121;
     
@@ -394,6 +395,9 @@ export const LoginPage = () => {
         }
     },[]);
 
+    // GETTING RESPONSIVE 
+    const { isNarrow } = useAppSelector(state => state.responsiveness);
+
     return (
         <LoginPageView {...{
             token,
@@ -412,7 +416,8 @@ export const LoginPage = () => {
             isAnyError,
             message: isAnyError
                 ? connectionErrorMessage || emailErrorMessage || nicknameErrorMessage || passwordErrorMessage
-                : message
+                : message,
+            isNarrow
         }}/>
     )
 }
@@ -432,7 +437,8 @@ const LoginPageView = <FV extends FieldValues>({
     maxLabelWidth,
     isLoading,
     isAnyError,
-    message
+    message,
+    isNarrow
 } : LoginPageViewProps<FV>
 ) => {
     const { redirectedFrom } = getLocationConfig();
@@ -444,7 +450,7 @@ const LoginPageView = <FV extends FieldValues>({
                 replace
             />
         :   
-        <div className='login-page'>
+        <div className={ 'login-page' + (isNarrow ? ' narrow' : '') }>
             <div className='logo-icon'>
                 <LogoIcon/>
                 <div className='beta'>Beta</div>
@@ -454,7 +460,7 @@ const LoginPageView = <FV extends FieldValues>({
                 onSubmit={ handleFormSubmit }
             >
                 <span 
-                    className={ 'message-line' + (isAnyError ? ' error' : '') }
+                    className={ 'message-line' + (isAnyError ? ' error' : '') + (isNarrow ? ' narrow' : '') }
                     children={ message }
                 />
                 <div className='inputs'>

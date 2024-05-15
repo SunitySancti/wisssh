@@ -18,13 +18,16 @@ import { RedirectPage } from 'pages/RedirectPage'
 import { ProfilePage } from 'pages/ProfilePage'
 import { InvitationAcceptancePage } from 'pages/InvitationAcceptancePage'
 
+import { useMediaQuery } from 'hooks/useMediaQuery'
 import { getFriends,
          getUserWishlists,
          getUserWishes,
          getInvites,
          getFriendWishes,
          getLocationConfig } from 'store/getters'
+import { useAppDispatch } from 'store'
 import { usePrefetch } from 'store/apiSlice'
+import { setNarrow } from 'store/responsivenessSlice'
 
 
 const DataFetchController = () => {
@@ -84,9 +87,20 @@ const DataFetchController = () => {
     return null
 }
 
+const ResponsivenessController = () => {
+    const dispatch = useAppDispatch();
+    const isNarrow = useMediaQuery('(max-width: 500px)');
+    useEffect(() => {
+        dispatch(setNarrow(isNarrow))
+    },[ isNarrow ])
+
+    return null
+}
+
 const App = () => (
     <>
         <DataFetchController/>
+        <ResponsivenessController/>
         <Routes>
             <Route path='/' element={ <AppLayout/> }>
                 <Route index element={ <Navigate to='/my-wishes/items/actual' replace/> }/>

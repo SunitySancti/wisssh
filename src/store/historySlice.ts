@@ -70,4 +70,4 @@ export const {
     updateHistory,
 } = historySlice.actions;
 
-export default historySlice.reducer;
+export default historySlice.reducer
