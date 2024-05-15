@@ -6,7 +6,7 @@
     flex-flow: row nowrap;
     align-items: flex-start;
     gap: 1rem;
-    transition: all ease-in-out .15s;
+    transition: all ease .4s;
 
     .dropdown-trigger .icon-button {
         height: 5.5rem !important;
@@ -101,7 +101,7 @@
 
     .user {
         transform-origin: center;
-        transition: transform ease-in-out 0.2s;
+        transition: transform ease-in-out 0.4s;
     }
 
     &.on-wishlist-page {
@@ -164,10 +164,10 @@
             background-color: $lightGray1;
 
             .user {
-                animation: user-scale 0.8s ease-out forwards;
+                transform: scale(1.3333);
             }
             .description.line {
-                animation: preview-disappear 0.8s ease-out forwards;
+                opacity: 0;
             }
     
             .title-container {
@@ -177,30 +177,18 @@
             }
         }
 
+        &.broad {
+            top: -2rem;
+            padding: 2rem;
+        }
+
         .description.line {
+            transition: all ease .4s;
             opacity: 1;
         }
         .description.full {
             opacity: 0;
             display: none;
         }
-    }
-}
-
-@keyframes user-scale {
-    0% {
-        transform: scale(1.06);
-    }
-    100% {
-        transform: scale(1.3333);
-    }
-}
-
-@keyframes preview-disappear {
-    0% {
-        opacity: 1;
-    }
-    100% {
-        opacity: 0;
     }
 }

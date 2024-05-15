@@ -1,7 +1,8 @@
 import { Controller } from 'react-hook-form'
 
 import './styles.scss'
-import { EmptyStar, FilledStar } from 'atoms/Icon'
+import { EmptyStar,
+         FilledStar } from 'atoms/Icon'
 
 import type { Control,
               FieldValues,
@@ -18,11 +19,42 @@ interface StarRatingProps<FV extends FieldValues> {
 }
 
 interface StarProps {
-    orderIndex: number,
-    value: number,
-    onChange?: (newValue: number) => void
+    orderIndex: number;
+    value: number;
+    onChange?: (newValue: number) => void;
+    starBoxSize?: number    // in rem
 }
 
+
+const Star = ({
+    orderIndex,
+    value,
+    onChange,
+    starBoxSize
+} : StarProps
+) => {
+    const size = starBoxSize ? starBoxSize + 'rem' : '2rem';
+    const isFilled = orderIndex <= value;
+
+    const handleClick = () => {
+        if(!onChange) return;
+        if(orderIndex === value) {
+            onChange(0)
+        } else {
+            onChange(orderIndex)
+        }
+    }
+
+    return (
+        <div
+            className='star'
+            onClick={ handleClick }
+            style={{ width: size, height: size }}
+        >
+            { isFilled ? <FilledStar/> : <EmptyStar/> }
+        </div>
+    );
+}
 
 export const StarRating = <FV extends FieldValues>({
     control,
@@ -33,43 +65,14 @@ export const StarRating = <FV extends FieldValues>({
     rating
 } : StarRatingProps<FV>
 ) => {
-    
-    const Star = ({
-        orderIndex,
-        value,
-        onChange
-    } : StarProps
-    ) => {
-        const size = starBoxSize ? starBoxSize + 'rem' : '2rem';
-        const isFilled = orderIndex <= value;
-
-        const handleClick = () => {
-            if(readOnly || !onChange) return;
-            if(orderIndex === value) {
-                onChange(0)
-            } else {
-                onChange(orderIndex)
-            }
-        }
-    
-        return (
-            <div
-                className='star'
-                onClick={ handleClick }
-                style={{ width: size, height: size }}
-            >
-                { isFilled ? <FilledStar/> : <EmptyStar/> }
-            </div>
-        );
-    }
-
     return (readOnly || !name)
         ?   <div className='star-rating read-only'>
                 {[...Array(rating) as never[]].map((_item, index) => (
                         <Star
-                            key={index}
-                            orderIndex={index + 1}
-                            value={rating}
+                            key={ index }
+                            orderIndex={ index + 1 }
+                            value={ rating }
+                            starBoxSize={ starBoxSize }
                         />
                     )
                 )}
@@ -83,10 +86,11 @@ export const StarRating = <FV extends FieldValues>({
                         {[...Array(maxStars)].map((_item, index) => {
                             return (
                                 <Star
-                                    key={index}
-                                    orderIndex={index + 1}
-                                    value={value}
-                                    onChange={onChange}
+                                    key={ index }
+                                    orderIndex={ index + 1 }
+                                    value={ value }
+                                    onChange={ onChange }
+                                    starBoxSize={ starBoxSize }
                                 />
                             );
                         })}

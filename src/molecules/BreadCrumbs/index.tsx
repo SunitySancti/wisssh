@@ -1,5 +1,6 @@
 import { useEffect,
          useMemo,
+         memo,
          useState } from 'react'
 import { NavLink,
          Link } from 'react-router-dom'
@@ -9,17 +10,14 @@ import { Icon } from 'atoms/Icon'
 import { NavbarEllipsis } from 'atoms/Preloaders'
 import { WithTooltip } from 'atoms/WithTooltip'
 
-import { getUserWishes,
-         getFriendWishes,
-         getWishlistById,
+import { getWishlistById,
          getWishById,
          getLoadingStatus,
          getLocationConfig } from 'store/getters'
 
 
-interface LinkOption {
-    to: string;
-    text: string
+interface SliderProps {
+    location: string
 }
 
 interface TabCoords {
@@ -32,10 +30,83 @@ interface SliderStyles {
     width?: number
 }
 
+interface LinkOption {
+    to: string;
+    text: string
+}
 
-export const BreadCrumbs = () => {
-    // LINKS DEFINITION //
+interface BreadCrumbsViewProps {
+    wishTitle: string | undefined;
+    wishlistTitle: string | undefined;
+    awaitingWishes: boolean;
+    awaitingUserWishes: boolean;
+    awaitingWishlists: boolean
+}
+
+const Slider = ({ location }: SliderProps) => {
+    const sliderPadding = 19;
+    const [sliderStyles, setSliderStyles] = useState<SliderStyles | undefined>(undefined);
+    const [lastActiveTab, setLastActiveTab] = useState<TabCoords | undefined>(undefined);
+    const currentTab = document.querySelector<HTMLAnchorElement>('.nav-elem.option.active');
+
+    const startSliderMove = () => {
+        const slider = document.querySelector<HTMLDivElement>('.bc-slider');
+        const activeTab = document.querySelector<HTMLAnchorElement>('.nav-elem.option.active');
+        if(!slider || !activeTab || !lastActiveTab) return;
+
+        slider.classList.add('animated');
+        const lastLeft = lastActiveTab.offsetLeft;
+        const lastWidth = lastActiveTab.offsetWidth;
+        const nextLeft = activeTab.offsetLeft;
+        const nextWidth = activeTab.offsetWidth;
+        if(nextLeft === lastLeft && nextWidth === lastWidth) return;
+
+        if(nextLeft > lastLeft) {
+            setSliderStyles({
+                ...sliderStyles,
+                width: (nextLeft - lastLeft) + nextWidth - 2 * sliderPadding
+            })
+        } else if(nextLeft < lastLeft) {
+            setSliderStyles({
+                left: nextLeft + sliderPadding,
+                width: lastWidth + (lastLeft - nextLeft) - 2 * sliderPadding
+            })
+        } else return
+    }
     
+    const finishSliderMove = () => {
+        const activeTab = document.querySelector<HTMLAnchorElement>('.nav-elem.option.active');
+        if(!activeTab) return;
+
+        setSliderStyles({
+            left: activeTab.offsetLeft + sliderPadding,
+            width: activeTab.offsetWidth - 2 * sliderPadding
+        });
+        setLastActiveTab({
+            offsetLeft: activeTab.offsetLeft,
+            offsetWidth: activeTab.offsetWidth
+        });
+        setTimeout(() => {
+            document.querySelector<HTMLDivElement>('.bc-slider')?.classList.remove('animated')
+        }, 300);
+    }
+
+    useEffect(() => {
+        startSliderMove();
+        setTimeout(finishSliderMove, 300);
+    },[ location, currentTab?.innerHTML ]);
+
+    return <div className='bc-slider' style={ sliderStyles }/>
+}
+
+const BreadCrumbsView = memo(({
+    wishTitle,
+    wishlistTitle,
+    awaitingWishes,
+    awaitingUserWishes,
+    awaitingWishlists
+} : BreadCrumbsViewProps
+) => {
     const { location,
             section,
             wishId,
@@ -47,15 +118,7 @@ export const BreadCrumbs = () => {
             isNewWish,
             isNewWishlist,
             isEditWish,
-            isEditWishlist } = getLocationConfig()
-
-    const wish = getWishById(wishId);
-    const wishlist = getWishlistById(wishlistId);
-    const { userWishes } = getUserWishes();
-    const { friendWishes } = getFriendWishes();
-    const { awaitingUserWishes,
-            awaitingWishes,
-            awaitingWishlists } = getLoadingStatus();
+            isEditWishlist } = getLocationConfig();
 
     const itemsModeOptions = useMemo(() => {
         const options: LinkOption[] = [];
@@ -69,9 +132,7 @@ export const BreadCrumbs = () => {
                 text: 'Исполненные'
             }, {
                 to: '/my-wishes/items/all',
-                text: userWishes.length
-                    ? `Все (${userWishes.length})`
-                    : 'Все'
+                text: 'Все'
             });
 
             if(isNewWish) {
@@ -89,9 +150,7 @@ export const BreadCrumbs = () => {
                 text: 'Подарено'
             }, {
                 to: '/my-invites/items/all',
-                text: friendWishes.length
-                    ? `Все (${friendWishes.length})`
-                    : 'Все'
+                text: 'Все'
             });
         }
         return  <>
@@ -112,7 +171,7 @@ export const BreadCrumbs = () => {
                                 :   <NavLink
                                         className='nav-elem option'
                                         to={ location }
-                                        children={ wish ? wish.title + ': редактирование' : null }
+                                        children={ wishTitle ? wishTitle + ': редактирование' : null }
                                         end
                                     />
                             }
@@ -132,9 +191,7 @@ export const BreadCrumbs = () => {
                     }
                 </>
     },[ location,
-        wish?.title,
-        userWishes.length,
-        friendWishes.length
+        wishTitle
     ]);
 
     const listsModeOptions = useMemo(() => {        
@@ -152,42 +209,42 @@ export const BreadCrumbs = () => {
                     { awaitingWishlists
                         ?   <NavbarEllipsis/>
                         : isEditWishlist
-                        ? !!wishlist &&
+                        ? wishlistTitle &&
                             <NavLink
                                 className='nav-elem option'
                                 to={ location }
-                                children={ wishlist.title + ': редактирование' }
+                                children={ wishlistTitle + ': редактирование' }
                                 end
                             />
-                        : !!wishlist &&
+                        : wishlistTitle &&
                             <NavLink
                                 className='nav-elem option'
                                 to={ `/${ section }/lists/${ wishlistId }` }
-                                children={ wishlist.title || 'Безымянный вишлист' }
+                                children={ wishlistTitle }
                                 end
                             />
                     }
                 </>
             }
             
-            { wishlist?.title && wishId &&
+            { wishlistTitle && wishId &&
                 <>
                     <div className='nav-elem'>/</div>
                     { awaitingWishes
                     ?   <NavbarEllipsis/>
                     : isEditWish
-                    ? !!wish &&
+                    ? wishTitle &&
                         <NavLink
                             className='nav-elem option'
                             to={ location }
-                            children={ wish.title + ': редактирование' }
+                            children={ wishTitle + ': редактирование' }
                             end
                         />
-                    : !!wish &&
+                    : wishTitle &&
                         <NavLink
                             className='nav-elem option'
                             to={ `/${ section }/lists/${ wishlistId }/${ wishId }` }
-                            children={ wish.title || 'Безымянное желание' }
+                            children={ wishTitle }
                             end
                         />
                     }
@@ -217,73 +274,15 @@ export const BreadCrumbs = () => {
     },[ location,
         wishlistId,
         wishId,
-        wishlist?.title,
-        wish?.title,
+        wishlistTitle,
+        wishTitle,
         awaitingWishlists,
         awaitingWishes
     ]);
-    
-
-    // SLIDER ANIMATION //
-
-    const sliderPadding = 19;
-
-    const [sliderStyles, setSliderStyles] = useState<SliderStyles | undefined>(undefined);
-    const [lastActiveTab, setLastActiveTab] = useState<TabCoords | undefined>(undefined);
-    const currentTab = document.querySelector<HTMLAnchorElement>('.nav-elem.option.active');
-
-    const startSliderMove = () => {
-        const slider = document.querySelector<HTMLDivElement>('.bc-slider');
-        const activeTab = document.querySelector<HTMLAnchorElement>('.nav-elem.option.active');
-        if(!slider || !activeTab || !lastActiveTab) return;
-
-        slider.classList.add('animated');
-        const lastLeft = lastActiveTab.offsetLeft;
-        const lastWidth = lastActiveTab.offsetWidth;
-        const nextLeft = activeTab.offsetLeft;
-        const nextWidth = activeTab.offsetWidth;
-        if(nextLeft === lastLeft && nextWidth === lastWidth) return;
-
-        if(nextLeft > lastLeft) {
-            setSliderStyles({
-                ...sliderStyles,
-                width: (nextLeft - lastLeft) + nextWidth - 2 * sliderPadding
-            })
-        } else if(nextLeft < lastLeft) {
-            setSliderStyles({
-                left: nextLeft + sliderPadding,
-                width: lastWidth + (lastLeft - nextLeft) - 2 * sliderPadding
-            })
-        } else return
-    }
-    const finishSliderMove = () => {
-        const activeTab = document.querySelector<HTMLAnchorElement>('.nav-elem.option.active');
-        if(!activeTab) return;
-
-        setSliderStyles({
-            left: activeTab.offsetLeft + sliderPadding,
-            width: activeTab.offsetWidth - 2 * sliderPadding
-        });
-        setLastActiveTab({
-            offsetLeft: activeTab.offsetLeft,
-            offsetWidth: activeTab.offsetWidth
-        });
-        setTimeout(() => {
-            document.querySelector('.bc-slider')?.classList.remove('animated')
-        }, 300);
-    }
-
-    useEffect(() => {
-        startSliderMove();
-        setTimeout(finishSliderMove, 300);
-    },[ location, currentTab?.innerHTML, userWishes?.length, friendWishes?.length ]);
 
     return (
         <div className='bread-crumbs'>
-            <div
-                className='bc-slider'
-                style={ sliderStyles }
-            />
+            <Slider {...{ location }}/>
             {   isItemsMode
                     ?   itemsModeOptions
               : isListsMode
@@ -291,5 +290,26 @@ export const BreadCrumbs = () => {
                     :   null
             }
         </div>
-    );
-}
+    )
+});
+
+export const BreadCrumbs = memo(() => {
+    const { wishId,
+            wishlistId } = getLocationConfig()
+
+    const   wish = getWishById(wishId);
+    const   wishlist = getWishlistById(wishlistId);
+    const { awaitingUserWishes,
+            awaitingWishes,
+            awaitingWishlists } = getLoadingStatus();
+
+    return (
+        <BreadCrumbsView {...{
+            wishTitle: wish?.title,
+            wishlistTitle: wishlist?.title,
+            awaitingWishes,
+            awaitingUserWishes,
+            awaitingWishlists
+        }}/>
+    )
+});

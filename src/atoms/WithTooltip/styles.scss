@@ -17,7 +17,6 @@
     border-radius: 1rem;
     box-shadow: $flyingAbove;
     opacity: 1;
-    transition: opacity 0.3s ease-in-out;
     animation: appearance 1.2s ease-in-out;
 
     &.hidden {

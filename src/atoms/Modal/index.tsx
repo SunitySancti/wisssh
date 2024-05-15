@@ -9,14 +9,20 @@ import { Portal } from 'containers/Portal'
 
 import type { ReactNode,
               ForwardedRef,
-              SyntheticEvent } from 'react'
+              SyntheticEvent,
+              RefObject } from 'react'
 import type { ButtonProps } from 'atoms/Button'
 
 
-interface ModalProps {
+export interface ModalProps {
     header: ReactNode;
     body: ReactNode;
     actions: ButtonProps[]
+}
+
+interface ModalViewProps extends ModalProps {
+    backRef: RefObject<HTMLDivElement>;
+    handleBackClick(e: SyntheticEvent): void;
 }
 
 export interface ModalRef {
@@ -25,29 +31,58 @@ export interface ModalRef {
 }
 
 
-export const Modal = forwardRef(({
+const ModalView = ({
     header,
     body,
-    actions
-}:  ModalProps,
+    actions,
+    handleBackClick,
+    backRef
+}:  ModalViewProps
+) => (
+    <Portal layer='modal'>
+        <div
+            className={ 'background' }
+            onClick={ handleBackClick }
+            ref={ backRef }
+        >
+            <div className='modal-window' >
+                <div
+                    className='header'
+                    children={ header }
+                />
+                <div
+                    className='body'
+                    children={ body }
+                />
+                <div className='actions' >
+                    { actions?.map((action, index: number) => (
+                        <Button key={ index } { ...action } />
+                    ))}
+                </div>
+                <Button icon='close'/>
+            </div>
+        </div>
+    </Portal>
+);
+
+
+export const Modal = forwardRef((
+    props: ModalProps,
     ref: ForwardedRef<ModalRef>
 ) => {
-    const [classes, setClasses] = useState('hidden');
-    const [isShown, setIsShown] = useState(false);
-    const backRef = useRef(null);
+    const [isVisible, setIsVisible] = useState(false);
+    const backRef = useRef<HTMLDivElement>(null);
 
     useImperativeHandle(ref, () => ({
         showModal(e: SyntheticEvent) {
             e.stopPropagation();
             e.preventDefault();
-            setIsShown(true);
-            setClasses('visible')
+            setIsVisible(true)
         },
         hideModal(e: SyntheticEvent) {
             e.stopPropagation();
             e.preventDefault();
-            setIsShown(false);
-            setClasses('hidden')
+            setIsVisible(false)
         }
     }));
 
@@ -55,37 +90,10 @@ export const Modal = forwardRef(({
         e.stopPropagation();
         e.preventDefault();
         if(e.target === backRef.current) {
-            setIsShown(false)
-            setClasses('hidden')
+            setIsVisible(false)
         }
     }
 
-
-    return ( isShown 
-        ?   <Portal layer='modal'>
-                <div
-                    className={ 'background ' + classes }
-                    onClick={ handleBackClick }
-                    ref={ backRef }
-                >
-                    <div className='modal-window' >
-                        <div
-                            className='header'
-                            children={ header }
-                        />
-                        <div
-                            className='body'
-                            children={ body }
-                        />
-                        <div className='actions' >
-                            { actions?.map((action, index: number) => (
-                                <Button key={ index } { ...action } />
-                            ))}
-                        </div>
-                        <Button icon='close'/>
-                    </div>
-                </div>
-            </Portal>
-        : null
-    )
+    return isVisible &&
+        <ModalView {...{...props, backRef, handleBackClick }}/>
 })

@@ -5,6 +5,11 @@
     display: flex;
     flex-flow: row nowrap;
     cursor: pointer;
+    margin-top: 2rem;
+
+    &.narrow {
+        margin-left: 1rem;
+    }
 
     > .box {
         margin: 0;

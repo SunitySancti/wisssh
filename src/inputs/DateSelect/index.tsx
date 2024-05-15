@@ -61,24 +61,22 @@ export const DateSelect = <FV extends FieldValues>({
     const CustomInput = forwardRef((
         { value, onClick }: CustomInputProps,
         ref: ForwardedRef<HTMLInputElement>
-    ) => {
-        return (
-            <div className='text-input'>
-                <input
-                    onClick={onClick}
-                    ref={ref}
-                    value={value}
-                    readOnly
-                />
-                <Button
-                    id={ buttonId }
-                    icon='chevronDown'
-                    onClick={onClick}
-                    type='button'
-                />
-            </div>
-        )
-    });
+    ) => (
+        <div className='text-input'>
+            <input {...{
+                onClick,
+                ref,
+                value,
+                readOnly: true
+            }}/>
+            <Button {...{
+                onClick,
+                id: buttonId,
+                icon: 'chevronDown',
+                type: 'button'
+            }}/>
+        </div>
+    ));
 
     const CustomHeader = ({
         date,
@@ -87,57 +85,52 @@ export const DateSelect = <FV extends FieldValues>({
         prevMonthButtonDisabled,
         nextMonthButtonDisabled,
     } : CustomHeaderProps
-    ) => {
-        return (
-            <div className='custom-header'>
-                <Button
-                    icon='arrowLeft'
-                    onClick={ decreaseMonth }
-                    disabled={ prevMonthButtonDisabled }
-                />
-                <span>
-                    { months.at(date.getMonth ()) }
-                </span>
-                <Button
-                    icon='arrowRight'
-                    onClick={ increaseMonth }
-                    disabled={ nextMonthButtonDisabled }
-                />
-            </div>
-        );
-    }
+    ) => (
+        <div className='custom-header'>
+            <Button
+                icon='arrowLeft'
+                onClick={ decreaseMonth }
+                disabled={ prevMonthButtonDisabled }
+            />
+            <span>
+                { months.at(date.getMonth ()) }
+            </span>
+            <Button
+                icon='arrowRight'
+                onClick={ increaseMonth }
+                disabled={ nextMonthButtonDisabled }
+            />
+        </div>
+    );
     
     return (
         <div className='date-select'>
             <TextLabel
                 htmlFor={ buttonId }
-                text={label}
-                required={required}
-                style={labelWidth ? { width: labelWidth } : null}
+                text={ label }
+                required={ required }
+                style={ labelWidth ? { width: labelWidth } : null }
             />
             <Controller
                 control={ control }
                 name={ name as Path<FV> }
-                render={({ field: { value, onChange } }: DateSelectControllerRenderProps ) => {
-                    return (
-                        <DatePicker
-                            selected={new Date(value[2], value[1] - 1, value[0])}
-                            onChange={(date: Date) => onChange(formatDateToArray(date))}
+                render={({ field: { value, onChange }}: DateSelectControllerRenderProps ) => (
+                    <DatePicker
+                        selected={ new Date(value[2], value[1] - 1, value[0]) }
+                        onChange={ (date: Date) => onChange(formatDateToArray(date)) }
 
-                            closeOnScroll={(e: Event) => e.target === document.querySelector('.work-space')}
-                            customInput={<CustomInput/>}
-                            renderCustomHeader={(props: CustomHeaderProps) => <CustomHeader {...props}/>}
-                            calendarClassName='custom-calendar'
-                            dateFormat="d MMMM yyyy"
-                            fixedHeight
-                            showPopperArrow={false}
-                            minDate={new Date()}
-                            locale={ru}
-                        />
-                    );
-                }}
+                        closeOnScroll={ (e: Event) => e.target === document.querySelector('.work-space') }
+                        customInput={ <CustomInput/> }
+                        renderCustomHeader={ (props: CustomHeaderProps) => <CustomHeader {...props}/> }
+                        calendarClassName='custom-calendar'
+                        dateFormat="d MMMM yyyy"
+                        fixedHeight
+                        showPopperArrow={ false }
+                        minDate={ new Date() }
+                        locale={ ru }
+                    />
+                )}
             />
-            
         </div>
     );
 }

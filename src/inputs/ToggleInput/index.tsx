@@ -33,46 +33,36 @@ interface ToggleInputControllerRenderProps {
 }
 
 
+const Option = ({ option, value, onChange }: OptionComponentProps) => (
+    <div
+        className='toggle-button'
+        onClick={() => onChange(option.value)}
+    >
+        <label>{ option.label }</label>
+        { (option.value === value) && <SelectionMark/> }
+    </div>
+);
+
 export const ToggleInput = <FV extends FieldValues>({
     control,
     name,
     options
 } : ToggleInputProps<FV>
-) => {
-    const Option = ({ option, onChange, value }: OptionComponentProps) => {
-        const isChecked = option.value === value;
+) => (
+    <Controller
+        name={ name as Path<FV> }
+        control={ control }
+        render={({ field:{ value, onChange }}: ToggleInputControllerRenderProps) => (
+            <div className='toggle-input'>
 
-        return (
-            <div
-                className='toggle-button'
-                onClick={() => onChange(option.value)}
-            >
-                <label>{ option.label }</label>
-                { isChecked && <SelectionMark/> }
+                { options.map((option, index) => (
+                        <Option
+                            key={ index }
+                            {...{ option, value, onChange }}
+                        />
+                ))}
+
             </div>
-        );
-    }
-
-    return (
-        <Controller
-            name={ name as Path<FV> }
-            control={ control }
-            render={({ field:{ value, onChange }}: ToggleInputControllerRenderProps) => (
-                <div className='toggle-input'>
-
-                    { options.map((option, index) => {
-                        return (
-                            <Option
-                                key={index}
-                                option={option}
-                                value={value}
-                                onChange={onChange}
-                            />
-                        );
-                    })}
-
-                </div>
-            )}
-        />
-    );
-}
+        )}
+    />
+)

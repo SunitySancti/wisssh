@@ -3,8 +3,14 @@
 .text-input {
     position: relative;
     display: flex;
-    flex-flow: row nowrap;
     width: 100%;
+
+    &:not(.narrow) {
+        flex-flow: row nowrap;
+    }
+    &.narrow {
+        flex-flow: column;
+    }
   
     > input {
         height: 4rem;
@@ -95,5 +101,6 @@
     .right-aligned-component {
         position: absolute;
         right: 0;
+        bottom: 0;
     }
 }

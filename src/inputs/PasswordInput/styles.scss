@@ -7,7 +7,7 @@
     > .icon {
         position: absolute;
         right: 0;
-        top: 0;
+        bottom: 0;
 
         &:not(:hover) {
             fill: $gray2;

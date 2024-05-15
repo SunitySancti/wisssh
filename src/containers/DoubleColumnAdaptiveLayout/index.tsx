@@ -1,11 +1,11 @@
 import { useState,
          useEffect,
-         useMemo,
          useRef } from 'react'
 
 import './styles.scss'
 
-import type { ReactNode } from 'react'
+import type { ReactNode,
+              RefObject } from 'react'
 
 
 interface WidthLimits {
@@ -13,22 +13,76 @@ interface WidthLimits {
     max?: number
 }
 
+interface ColumnStyles {
+    minWidth: number;
+    maxWidth: number
+}
+
 interface InterColumnGaps {
     landscape?: number;
     portrait?: number
 }
 
-interface DoubleColumnAdaptiveLayoutProps {
-    firstColumn: ReactNode | ReactNode[],
-    secondColumn: ReactNode | ReactNode[],
-    firstColumnProps?: object,
-    secondColumnProps?: object,
-    firstColumnLimits?: WidthLimits,
-    secondColumnLimits?: WidthLimits,
-    widthBreakpoint?: number,
+interface DCALBaseProps {
+    firstColumn: ReactNode | ReactNode[];
+    secondColumn: ReactNode | ReactNode[];
+    firstColumnProps?: object;
+    secondColumnProps?: object
+}
+
+interface DCALViewProps extends DCALBaseProps {
+    firstColumnStyles: ColumnStyles;
+    secondColumnStyles: ColumnStyles;
+    gap: number;
+    isLandscape: boolean;
+    layoutRef: RefObject<HTMLDivElement>
+}
+
+interface DCALProps extends DCALBaseProps {
+    widthBreakpoint?: number;
+    firstColumnLimits?: WidthLimits;
+    secondColumnLimits?: WidthLimits;
     interColumnGaps?: InterColumnGaps
 }
 
+
+const DoubleColumnAdaptiveLayoutView = ({
+    firstColumn,
+    secondColumn,
+    firstColumnProps,
+    secondColumnProps,
+    firstColumnStyles,
+    secondColumnStyles,
+    gap,
+    isLandscape,
+    layoutRef
+} : DCALViewProps
+) => (
+    <div
+        ref={ layoutRef }
+        className={ 'double-column-layout' + (isLandscape ? ' landscape' : ' portrait') }
+        style={{ gap }}
+    >
+        <div
+            {...firstColumnProps}
+            className='first column'
+            children={ firstColumn }
+            style={ firstColumnStyles }
+        />
+        { !isLandscape && (
+            <div
+                className='divider'
+                style={ secondColumnStyles }
+            />
+        )}
+        <div
+            {...secondColumnProps}
+            className='second column'
+            children={ secondColumn }
+            style={ secondColumnStyles }
+        />
+    </div>
+)
 
 export const DoubleColumnAdaptiveLayout = ({
     firstColumn,
@@ -39,32 +93,28 @@ export const DoubleColumnAdaptiveLayout = ({
     firstColumnLimits,
     secondColumnLimits,
     interColumnGaps
-} : DoubleColumnAdaptiveLayoutProps
+} : DCALProps
 ) => {
     const [ isLandscape, setIsLandscape ] = useState(true);
     const layoutRef = useRef<HTMLDivElement>(null);
+    
+    const gap = isLandscape
+        ? interColumnGaps?.landscape || 66
+        : interColumnGaps?.portrait  || 22
 
-    const Gaps = useMemo(() => ({
-        landscape: interColumnGaps?.landscape || 66,
-        portrait: interColumnGaps?.portrait || 22
-    }),[ interColumnGaps?.landscape, interColumnGaps?.portrait ]);
-
-    const firstColumnStyles = useMemo(() => ({
+    const firstColumnStyles = ({
         minWidth: firstColumnLimits?.min || 330,
         maxWidth: firstColumnLimits?.max || 440
-    }),[ firstColumnLimits?.min, firstColumnLimits?.max ]);
+    });
 
-    const secondColumnStyles = useMemo(() => ({
+    const secondColumnStyles = ({
         minWidth: secondColumnLimits?.min || 330,
         maxWidth: secondColumnLimits?.max || 660
-    }),[ secondColumnLimits?.min, secondColumnLimits?.max ]);
+    });
 
-    const breakpoint = useMemo(() => {
-        if(firstColumnStyles?.minWidth && secondColumnStyles?.minWidth && Gaps?.landscape) {
-            return firstColumnStyles.minWidth + secondColumnStyles.minWidth + Gaps.landscape
-        } else return widthBreakpoint || 1040
-    },[ firstColumnStyles?.minWidth, secondColumnStyles?.minWidth, Gaps?.landscape ]);
-    
+    const breakpoint = (firstColumnStyles?.minWidth && secondColumnStyles?.minWidth)
+        ? firstColumnStyles.minWidth + secondColumnStyles.minWidth + (interColumnGaps?.landscape || 66)
+        : widthBreakpoint || 1040
 
     useEffect(() => {
         const setPageOrientation = () => {
@@ -76,29 +126,16 @@ export const DoubleColumnAdaptiveLayout = ({
     },[ breakpoint ]);
 
     return (
-        <div
-            ref={ layoutRef }
-            className={ 'double-column-layout' + (isLandscape ? ' landscape' : ' portrait') }
-            style={{ gap: isLandscape ? Gaps.landscape : Gaps.portrait }}
-        >
-            <div
-                className='first column'
-                children={ firstColumn }
-                style={ firstColumnStyles }
-                {...firstColumnProps}
-            />
-            { !isLandscape && (
-                <div
-                    className='divider'
-                    style={ secondColumnStyles }
-                />
-            )}
-            <div
-                className='second column'
-                children={ secondColumn }
-                style={ secondColumnStyles }
-                {...secondColumnProps}
-            />
-        </div>
+        <DoubleColumnAdaptiveLayoutView {...{
+            firstColumn,
+            secondColumn,
+            firstColumnProps,
+            secondColumnProps,
+            firstColumnStyles,
+            secondColumnStyles,
+            gap,
+            layoutRef,
+            isLandscape
+        }}/>
     )
 }

@@ -3,16 +3,18 @@ import { Controller } from 'react-hook-form'
 
 import './styles.scss'
 
+import { useAppSelector } from 'store'
+
 import type { Control } from 'react-hook-form'
 import type { KeyboardEvent } from 'react'
 
 
 interface CheckBoxProps {
-    name: string,
-    label: string,
+    control?: Control;
+    name?: string;
+    callback?: (value: boolean) => void;
+    label: string;
     className?: string
-    control?: Control,
-    callback?: (value: boolean) => void,
 }
 
 interface CheckboxControllerFieldProps {
@@ -24,11 +26,38 @@ interface CheckboxControllerRenderProps {
     field: CheckboxControllerFieldProps
 }
 
+interface CheckBoxViewProps extends CheckboxControllerFieldProps {
+    label: string;
+    className?: string;
+    isNarrow?: boolean
+}
+
+
+const CheckBoxView = ({
+    value,
+    onChange,
+    label,
+    className,
+    isNarrow
+} : CheckBoxViewProps
+) => (
+    <div
+        className={ 'checkbox ' + (className || '') + (isNarrow ? ' narrow' : '') }
+        onClick={ () => onChange(!value) }
+        tabIndex={ 0 }
+        onKeyDown={ (e: KeyboardEvent) => {
+            if(e.key === 'Enter') onChange(!value)
+        }}
+    >
+        <div className={ value ? 'box checked' : 'box' }/>
+        <span className='label'>{ label }</span>
+    </div>
+);
 
 export const CheckBox = ({
     control,
-    callback,
     name,
+    callback,
     label,
     className
 } : CheckBoxProps
@@ -38,34 +67,25 @@ export const CheckBox = ({
         setChecked(value);
         callback && callback(value)
     }
+    // GETTING RESPONSIVE 
+    const { isNarrow } = useAppSelector(state => state.responsiveness);
 
-    const Component = ({ value, onChange }: CheckboxControllerFieldProps) => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if(e.key === 'Enter') onChange(!value)
-        }
-        return (
-            <div
-                className={ 'checkbox ' + (className || '') }
-                onClick={() => onChange(!value)}
-                tabIndex={0}
-                onKeyDown={handleKeyDown}
-            >
-                <div className={ value ? 'box checked' : 'box' }/>
-                <span className='label'>{ label }</span>
-            </div>
-        )
-    }
-
-    return ( control
+    return ((control && name)
         ?   <Controller
                 name={name}
                 control={control}
                 render={({ field: { value, onChange }}: CheckboxControllerRenderProps) => (
-                    <Component value={value} onChange={onChange}/>
+                    <CheckBoxView {...{ value, onChange, label, className, isNarrow }}/>
                 )}
             />
         :   callback
-        ?   <Component value={checked} onChange={onChangeWithCallback}/>
+        ?   <CheckBoxView {...{
+                value: checked,
+                onChange: onChangeWithCallback,
+                label,
+                className,
+                isNarrow
+            }}/>
         :   null
     )
 }

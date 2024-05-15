@@ -8,6 +8,7 @@ import { getLocationConfig } from 'store/getters'
 
 import type { Wish,
               WishId } from 'typings'
+import { useCallback } from 'react'
 
 
 interface WishCardProps {
@@ -40,18 +41,18 @@ export const WishCard = ({
     const isInput = !!value && !!onChange;
     const selected = isInput && value.includes(wish.id);
     
-    const classes = isInput
-        ? 'wishcard fade-in input' + (selected ? ' selected' : '')
-        : 'wishcard fade-in view'
+    const classes = 'wishcard fade-in' + (isInput ? ' input' : ' view') + (selected ? ' selected' : '');
 
-    const handleCardClick = () => {
+    const handleCardClick = useCallback(() => {
         if(isInput) {
             const result = selected
                 ? value.filter(id => id != wish.id)
                 : value.concat([wish.id]);
             onChange(result);
-        } else navigate(location + '/' + wish.id);
-    };
+        } else {
+            navigate(location + '/' + wish.id)
+        }
+    },[ isInput, selected ]);
 
     return (
         <div

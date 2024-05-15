@@ -1,70 +1,46 @@
 import { useState,
-         useEffect,
-         useRef } from 'react'
+         useRef,
+         memo,
+         useCallback } from 'react'
 
 import './styles.scss'
 import { Portal } from 'containers/Portal'
 
-import type { ReactNode } from 'react'
+import { delay } from 'utils'
+
+import type { ReactNode,
+              RefObject } from 'react'
 
 
 interface WithTooltipProps {
-    trigger: ReactNode;
-    text: string
-}
-    
-
-function delay(duration: number) {
-    return new Promise((resolve) => setTimeout(resolve, duration));
+    text: string;
+    trigger: ReactNode
 }
 
-export const WithTooltip = ({
+interface WithTooltipViewProps extends WithTooltipProps {
+    triggerRef: RefObject<HTMLDivElement>;
+    showTooltip(): void;
+    hideTooltip(): void;
+    left?: number;
+    top?: number;
+    isVisible: boolean;
+    isTransparent: boolean
+}
+
+
+const WithTooltipView = memo(({
+    text,
     trigger,
-    text
-} : WithTooltipProps
-) => {
-    const [ isPlaced, setIsPlaced ] = useState(false);
-    const [ coords, setCoords ] = useState({});
-    const tooltipRef = useRef<HTMLDivElement>(null);
-    const triggerRef = useRef<HTMLDivElement>(null);
-    const minPadding = 11;
-
-    const showTooltip = () => {
-        alignTooltip();
-        tooltipRef.current?.classList?.remove('hidden');
-        setIsPlaced(true)
-    }
-
-    const hideTooltip = async () => {
-        Promise.resolve()
-            .then(() => delay(300))
-            .then(() => tooltipRef.current?.classList?.add('hidden'))
-            .then(() => delay(300))
-            .then(() => setIsPlaced(false));
-    };
-
-    const alignTooltip = () => {
-        const rect = triggerRef.current?.getBoundingClientRect();
-
-        let left = rect?.left
-            ? Math.max(rect.left, minPadding)
-            : null;
-
-        if(left && left < minPadding) {
-            left = minPadding
-        }
-
-        setCoords({ left, top: rect?.bottom })
-    }
-
-    useEffect(() => {
-        window.addEventListener('resize', alignTooltip);
-        return () => {
-            window.removeEventListener('resize', alignTooltip);
-        }
-    },[ tooltipRef.current ]);
-
-    return <>
+    triggerRef,
+    showTooltip,
+    hideTooltip,
+    left,
+    top,
+    isVisible,
+    isTransparent
+} : WithTooltipViewProps
+) => (
+    <>
         <div
             ref={ triggerRef }
             className='tooltip-trigger'
@@ -72,15 +48,59 @@ export const WithTooltip = ({
             onMouseEnter={ showTooltip }
             onMouseLeave={ hideTooltip }
         />
-        { isPlaced &&
+        { isVisible &&
             <Portal layer='tooltip'>
                 <div
-                    ref={ tooltipRef }
-                    className='tooltip'
-                    style={ coords }
+                    className={ 'tooltip' + (isTransparent ? ' hidden' : '') }
+                    style={{ left, top }}
                     children={ text }
                 />
             </Portal>
         }
     </>
-}
+));
+
+export const WithTooltip = memo((props : WithTooltipProps) => {
+    const [ isVisible, setIsVisible ] = useState(false);
+    const [ isTransparent, setIsTransparent ] = useState(true);
+    const [ left, setLeft ] = useState<number | undefined>(undefined);
+    const [ top, setTop ] = useState<number | undefined>(undefined);
+    const triggerRef = useRef<HTMLDivElement>(null);
+    const minPadding = 11;
+
+    const showTooltip = useCallback(() => {
+        alignTooltip();
+        setIsTransparent(false);
+        setIsVisible(true)
+    },[]);
+
+    const hideTooltip = useCallback(async () => {
+        Promise.resolve()
+            .then(() => delay(300))
+            .then(() => setIsTransparent(true))
+            .then(() => delay(300))
+            .then(() => setIsVisible(false));
+    },[]);
+
+    const alignTooltip = useCallback(() => {
+        const rect = triggerRef.current?.getBoundingClientRect();
+
+        if(rect) {
+            setLeft(Math.max(rect.left, minPadding));
+            setTop(rect?.bottom)
+        }
+    },[]);
+
+    return (
+        <WithTooltipView {...{
+            ...props,
+            triggerRef,
+            showTooltip,
+            hideTooltip,
+            left,
+            top,
+            isTransparent,
+            isVisible
+        }}/>
+    )
+})

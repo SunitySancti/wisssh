@@ -1,46 +1,53 @@
-import { useMemo } from 'react'
+import { memo,
+         useMemo } from 'react'
 
 import './styles.scss'
 import { Icon } from 'atoms/Icon'
 import { Spinner } from 'atoms/Preloaders'
 
+import type { MouseEvent } from 'react'
 import type { IconName } from 'atoms/Icon'
 
 
 export interface ButtonProps {
-    kind?: 'primary' | 'secondary' | 'accent' | 'clear' | 'negative primary';
     text?: string;
-    type?: 'submit' | 'button';
     icon?: IconName;
+    kind?: 'primary' | 'secondary' | 'accent' | 'clear' | 'negative primary';
+    type?: 'submit' | 'button';
     round?: boolean;
     disabled?: boolean;
     size?: number;
     className?: string;
-    style?: object;
     isLoading?: boolean;
     spinnerTheme?: 'primary' | 'light' | 'dark';
     spinnerSize?: number;
     spinnerWidth?: number;
-    [key: string]: any
+    id?: string;
+    onClick?: (e: MouseEvent<HTMLButtonElement>) => void;
+    onMouseEnter?: (e: MouseEvent<HTMLButtonElement>) => void;
+    onMouseLeave?: (e: MouseEvent<HTMLButtonElement>) => void
 }
 
 
-export const Button = ({
+export const Button = memo(({
     kind,
     text,
     type,
     icon,
     round,
     disabled,
-    size,           // this prop for icon button
+    size = 4,       // size in rem for icon button
     className,
-    style,
     isLoading,
     spinnerTheme,
     spinnerSize,    // in rem
     spinnerWidth,   // in px
-    ...rest
-} : ButtonProps) => {
+    id,
+    onClick,
+    onMouseEnter,
+    onMouseLeave
+} : ButtonProps
+) => {
     const classes = useMemo(() => {
         let result = text ? 'button' : 'icon-button';
         if(className) result += (' ' + className);
@@ -55,25 +62,24 @@ export const Button = ({
         colorTheme: spinnerTheme || 'dark',
         strokeWidth: spinnerWidth || 6,
     }
-    const styles = text
-        ? style
-        : {
-            width: `${size || 4}rem`,
-            height: `${size || 4}rem`,
-            ...style
-        }
 
     return (
-        <button
-            className={ classes }
-            style={ styles }
-            type={ type || 'button' }
-            disabled={ isLoading || disabled }
-            {...rest}
-        >
-            { icon && <Icon name={ icon } size={ size || 22 }/> }
-            { text && text }
-            { isLoading && <Spinner {...spinnerProps}/> }
+        <button {...{
+            className: classes,
+            type: type || 'button',
+            disabled: isLoading || disabled,
+            id,
+            onClick,
+            onMouseEnter,
+            onMouseLeave
+        }}>
+            { icon &&
+                <Icon name={ icon } size={ text ? 22 : size * 11 }/>
+            }
+            { !!text && text }
+            { isLoading &&
+                <Spinner {...spinnerProps}/>
+            }
         </button>
     )
-}
+})

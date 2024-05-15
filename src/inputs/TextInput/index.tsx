@@ -3,7 +3,10 @@ import { generateId } from 'utils'
 import { Icon } from 'atoms/Icon'
 import { TextLabel } from 'atoms/TextLabel'
 
-import type { ReactNode } from 'react'
+import { useAppSelector } from 'store'
+
+import type { ReactNode,
+              SyntheticEvent } from 'react'
 import type { FieldValues,
               UseFormRegister,
               FormState,
@@ -16,8 +19,8 @@ interface TextInputProps<FV extends FieldValues> {
     label: string;
     register: UseFormRegister<FV>;
     onChange?: () => void;
-    onBlur?: (e: KeyboardEvent & FocusEvent) => void;
-    onKeyDown?: (e: KeyboardEvent & FocusEvent) => void;
+    onBlur?: (e: SyntheticEvent) => void;
+    onKeyDown?: (e: SyntheticEvent) => void;
     labelWidth?: number;    // in px
     type?: string;          // input 'type' field
     multiline?: boolean;
@@ -29,11 +32,16 @@ interface TextInputProps<FV extends FieldValues> {
     className?: string;
     rightAlignedComponent?: ReactNode;
     autoComplete?: string;
-    [prop: string]: any
+    placeholder?: string;
+    disabled?: boolean
+}
+
+interface TextInputViewProps<FV extends FieldValues> extends TextInputProps<FV> {
+    isNarrow?: boolean
 }
 
 
-export const TextInput = <FV extends FieldValues>({
+const TextInputView = <FV extends FieldValues>({
     name,
     label,
     register,
@@ -51,8 +59,10 @@ export const TextInput = <FV extends FieldValues>({
     className,
     rightAlignedComponent,
     autoComplete,
-    ...rest
-} : TextInputProps<FV>
+    placeholder,
+    disabled,
+    isNarrow
+} : TextInputViewProps<FV>
 ) => {
     const id = generateId<BasicId>();
     const errorTypes = ({
@@ -79,8 +89,14 @@ export const TextInput = <FV extends FieldValues>({
         ? /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
         : undefined
 
+    const getRootClasses = () => {
+        let result = (className || '') + ' text-input';
+        if(isNarrow) result += ' narrow'
+        return result
+    }
+
     return (
-        <div className={className ? 'text-input ' + className : 'text-input'}>
+        <div className={ getRootClasses() }>
             { label && (
                 <TextLabel
                     htmlFor={id}
@@ -92,7 +108,6 @@ export const TextInput = <FV extends FieldValues>({
             { multiline
             ?   <>
                     <textarea
-                        id={id}
                         {...register(name as Path<FV>, {
                             required,
                             maxLength,
@@ -102,13 +117,11 @@ export const TextInput = <FV extends FieldValues>({
                         })}
                         className={ shouldShowError ? 'error' : undefined }
                         autoComplete={ autoComplete || name || 'off' }
-                        {...rest}
+                        {...{ id, placeholder, disabled, onKeyDown }}
                     />
                     <Icon name='resizer' size={ 22 }/>
                 </>
             :   <input
-                    id={id}
-                    type={type || 'text'}
                     {...register(name as Path<FV>, {
                         required,
                         maxLength,
@@ -117,8 +130,9 @@ export const TextInput = <FV extends FieldValues>({
                         onBlur
                     })}
                     className={ shouldShowError ? 'error' : undefined }
+                    type={ type || 'text' }
                     autoComplete={ autoComplete || name || 'off' }
-                    {...rest}
+                    {...{ id, placeholder, disabled, onKeyDown }}
                 />
             }
             { rightAlignedComponent &&
@@ -131,4 +145,13 @@ export const TextInput = <FV extends FieldValues>({
             }
         </div>
     );
+}
+
+export const TextInput = <FV extends FieldValues>(
+    props: TextInputProps<FV>
+) => {
+    // GETTING RESPONSIVE 
+    const { isNarrow } = useAppSelector(state => state.responsiveness);
+
+    return <TextInputView {...{ ...props, isNarrow }}/>
 }

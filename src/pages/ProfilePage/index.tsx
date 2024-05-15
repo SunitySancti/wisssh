@@ -1,5 +1,7 @@
 import { useState,
-         useEffect } from 'react'
+         useEffect, 
+         useCallback,
+         useRef } from 'react'
 import { useForm } from 'react-hook-form'
 
 import './styles.scss'
@@ -18,10 +20,35 @@ import { useUpdateProfileMutation } from 'store/apiSlice'
 import { postImage,
          deleteImage } from 'store/imageSlice'
 
-import type { BaseSyntheticEvent } from 'react'
-import type { SubmitHandler } from 'react-hook-form'
+import type { BaseSyntheticEvent,
+              RefObject } from 'react'
+import type { FormState,
+              SubmitHandler,
+              UseFormRegister } from 'react-hook-form'
 import type { UserId } from 'typings'
 
+
+interface LabelAlignment {
+    labelWidth: number
+}
+
+interface ProfilePageViewProps extends LabelAlignment {
+    toggleNavBarShadow(): void;
+    shouldDropShadow: boolean;
+    profileBodyRef: RefObject<HTMLDivElement>;
+    userName: string
+}
+
+interface ProfileFormViewProps extends LabelAlignment {
+    handleFormSubmit: (e?: BaseSyntheticEvent | undefined) => Promise<void>;
+    register: UseFormRegister<ProfileFormValues>;
+    formState: FormState<ProfileFormValues>;
+    passwordsNotSame: boolean;
+    isSubmitted: boolean;
+    image: Blob | undefined;
+    setImage: (blob?: Blob | undefined) => void;
+    watchNewPassword: string | undefined;
+}
 
 interface ProfileFormValues {
     id?: UserId;
@@ -40,20 +67,100 @@ const defaultValues: ProfileFormValues = {
     confirmPassword: undefined
 }
 
-export const ProfilePage = () => {
+const ProfileFormView = ({
+    handleFormSubmit,
+    register,
+    formState,
+    passwordsNotSame,
+    isSubmitted,
+    image,
+    setImage,
+    watchNewPassword,
+    labelWidth
+} : ProfileFormViewProps
+) => (
+    <form onSubmit={ handleFormSubmit }>
+        <DoubleColumnAdaptiveLayout
+            firstColumn={
+                <ImageInput {...{
+                    register,
+                    setImage,
+                    image,
+                    isUser: true
+                }}/>
+            }
+            secondColumn={
+                <>
+                    <TextInput {...{
+                        register,
+                        name: 'name',
+                        label: 'Никнейм',
+                        formState,
+                        labelWidth,
+                        required: true
+                    }}/>
+                    <TextInput {...{
+                        register,
+                        name: 'email',
+                        label: 'email',
+                        type: 'email',
+                        patternType: 'email',
+                        formState,
+                        labelWidth,
+                        required: true,
+                    }}/>
+                    <PasswordInput {...{
+                        register,
+                        name: 'newPassword',
+                        label: 'Изменить пароль',
+                        autoComplete: "new-password",
+                        labelWidth
+                    }}/>
+                    { watchNewPassword &&
+                        <PasswordInput {...{
+                            register,
+                            name: 'confirmPassword',
+                            label: 'Подтверждение',
+                            autoComplete: "off",
+                            required: true,
+                            warningMessage: passwordsNotSame ? 'Пароли не совпадают' : undefined,
+                            labelWidth
+                        }}/>
+                    }
+
+                    <div className='divider'/>
+
+                    <LineContainer className='align-right'>
+                        <Button
+                            type='submit'
+                            kind='primary'
+                            text={ isSubmitted ? 'Изменения сохранены' : 'Сохранить изменения'}
+                            icon={ isSubmitted ? 'ok' : 'save' }
+                            round
+                            disabled={ isSubmitted
+                                    || !formState.isValid
+                                    || formState.isSubmitting
+                                    || passwordsNotSame
+                            }
+                        />
+                    </LineContainer>
+                </>
+            }
+        />
+    </form>
+);
+
+const ProfileForm = ({ labelWidth }: LabelAlignment) => {
     const dispatch = useAppDispatch();
-    const { user,
-            userHasLoaded } = getCurrentUser();
+    const { user } = getCurrentUser();
     const [ updateProfile ] = useUpdateProfileMutation();
 
     // FORM SETTINGS //
-
     const { handleSubmit,
             register,
             setValue,
             watch,
-            formState,
-            trigger } = useForm({
+            formState } = useForm<ProfileFormValues>({
         mode: 'onBlur',
         defaultValues
     });
@@ -66,15 +173,14 @@ export const ProfilePage = () => {
     const passwordsNotSame = !!watchConfirmPassword && (watchNewPassword !== watchConfirmPassword);
 
     useEffect(() => {
-        if(userHasLoaded && user) {
+        if(user) {
             for (let [key, value] of Object.entries(user)) {
                 if(key in defaultValues) {
-                    setValue(key as keyof typeof defaultValues, value)
+                    setValue(key as keyof ProfileFormValues, value)
                 }
             }
-            trigger()
         }
-    },[ userHasLoaded ]);
+    },[ user ]);
 
     useEffect(() => {
         if(formState.isDirty) {
@@ -84,16 +190,15 @@ export const ProfilePage = () => {
 
 
     // IMAGE SETTINGS //
-    
     const [ image, setImage ] = useState<Blob | undefined>(undefined);
     const [ isNewImage, setIsNewImage ] = useState(false);
     const currentImageURL = useAppSelector(state => state.images.imageURLs[user?.id || 'undefined']);
     
-    function setNewImage(blob?: Blob) {
+    const setNewImage = useCallback((blob?: Blob) => {
         setImage(blob);
         setIsSubmitted(false)
         setIsNewImage(true)
-    }
+    },[])
 
     useEffect(() => {
         if(!currentImageURL) return
@@ -108,14 +213,12 @@ export const ProfilePage = () => {
     },[ currentImageURL ]);
     
     // FORM SUBMITTING //
-
     const onSubmit: SubmitHandler<ProfileFormValues> = async (data, e?: BaseSyntheticEvent) => {
         e?.preventDefault();
         e?.stopPropagation();
         
         const { id, name, email } = data
         if(!id || !name || !email) return
-
         
         updateProfile({ ...data, id, name, email });
         
@@ -144,115 +247,80 @@ export const ProfilePage = () => {
     useEffect(() => {
         if(!watchNewPassword) setValue('confirmPassword', '')
     },[ watchNewPassword ])
-    
-    // ALIGNMENTS //
 
-    const [ maxLabelWidth, setMaxLabelWidth ] = useState<number | undefined>(undefined);
+    return (
+        <ProfileFormView {...{
+            handleFormSubmit: handleSubmit(onSubmit),
+            register,
+            formState,
+            passwordsNotSame,
+            isSubmitted,
+            image,
+            setImage: setNewImage,
+            userName: user ? '@' + user.name : '',
+            watchNewPassword,
+            labelWidth
+        }}/>
+    )
+}
+
+
+const ProfilePageView = ({
+    toggleNavBarShadow,
+    shouldDropShadow,
+    profileBodyRef,
+    userName,
+    labelWidth
+} : ProfilePageViewProps
+) => (
+    <>
+        <div className='navbar'>
+            <ScrollBox {...{ shouldDropShadow }}>
+                <div className='profile-header'>
+                    Профиль пользователя <b>{ userName }</b>
+                </div>
+            </ScrollBox>
+        </div>
+        <div
+            className='profile-body'
+            onScroll={ toggleNavBarShadow }
+            ref={ profileBodyRef }
+        >
+            <ProfileForm {...{ labelWidth }}/>
+        </div>
+    </>
+);
+
+export const ProfilePage = () => {
+    const { user } = getCurrentUser();
+
+    // TOGGLE NAV SHADOW ON SCROLL //
+    const [ shouldDropShadow, setShouldDropShadow ] = useState(false);
+    const profileBodyRef = useRef<HTMLDivElement>(null);
+    
+    const toggleNavBarShadow = useCallback(() => {
+        setShouldDropShadow(!!profileBodyRef.current?.scrollTop)
+    },[ setShouldDropShadow, profileBodyRef.current ]);
+
+    // LABEL ALIGNMENT //
+    const defaultLabelWidth = 151;
+    const [ labelWidth, setLabelWidth ] = useState<number>(defaultLabelWidth);
 
     useEffect(() => {
         const labels = document.querySelectorAll<HTMLDivElement>('.text-label');
         const labelWidths = [...labels].map(label => label?.offsetWidth);
-        const maxWidth = labels.length ? Math.max(...labelWidths) : undefined;
+        const maxWidth = labels.length ? Math.max(...labelWidths) : defaultLabelWidth;
 
-        setMaxLabelWidth(maxWidth);
+        setLabelWidth(maxWidth);
     });
     
-    const putShadowOnContent = () => {
-        const content = document.querySelector<HTMLDivElement>('.profile-body');
-        const nav = document.querySelector<HTMLDivElement>('.navbar .content');
-        if(!content || !nav) return
-        
-        if(content.scrollTop) {
-            nav.classList.add('with-shadow')
-        } else {
-            nav.classList.remove('with-shadow')
-        }
-    }
-    
     return (
-        <>
-            <div className='navbar'>
-                <ScrollBox>
-                    <div className='profile-header'>
-                        Профиль пользователя <b>{ user ? '@' + user.name : '' }</b>
-                    </div>
-                </ScrollBox>
-            </div>
-            <div
-                className='profile-body'
-                onScroll={ putShadowOnContent }
-            >
-                <form onSubmit={ handleSubmit(onSubmit) }>
-                    <DoubleColumnAdaptiveLayout
-                        firstColumn={
-                            <ImageInput
-                                register={ register }
-                                setImage={ setNewImage }
-                                image={ image }
-                                isUser
-                            />
-                        }
-                        secondColumn={
-                            <>
-                                <TextInput
-                                    name='name'
-                                    register={ register }
-                                    label='Никнейм'
-                                    labelWidth={ maxLabelWidth }
-                                    required
-                                    formState={ formState }
-                                />
-                                <TextInput
-                                    name='email'
-                                    register={ register }
-                                    type='email'
-                                    patternType='email'
-                                    label='email'
-                                    labelWidth={ maxLabelWidth }
-                                    required
-                                    formState={ formState }
-                                />
-                                <PasswordInput
-                                    name='newPassword'
-                                    register={ register }
-                                    autoComplete="new-password"
-                                    label='Изменить пароль'
-                                    labelWidth={ maxLabelWidth }
-                                />
-                                { watchNewPassword &&
-                                    <PasswordInput
-                                        name='confirmPassword'
-                                        register={ register }
-                                        autoComplete="off"
-                                        label='Подтверждение'
-                                        labelWidth={ maxLabelWidth }
-                                        required
-                                        warningMessage={ passwordsNotSame && 'Пароли не совпадают' }
-                                    />
-                                }
-
-                                <div className='divider'/>
-
-                                <LineContainer className='align-right'>
-                                    <Button
-                                        type='submit'
-                                        kind='primary'
-                                        text={ isSubmitted ? 'Изменения сохранены' : 'Сохранить изменения'}
-                                        icon={ isSubmitted ? 'ok' : 'save' }
-                                        round
-                                        disabled={
-                                            isSubmitted ||
-                                            !formState.isValid ||
-                                            formState.isSubmitting ||
-                                            passwordsNotSame
-                                        }
-                                    />
-                                </LineContainer>
-                            </>
-                        }
-                    />
-                </form>
-            </div>
-        </>
-    );
+        <ProfilePageView {...{
+            toggleNavBarShadow,
+            shouldDropShadow,
+            profileBodyRef,
+            userName: user ? '@' + user.name : '',
+            labelWidth
+        }}/>
+    )
 }

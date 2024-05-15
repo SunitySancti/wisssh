@@ -57,7 +57,7 @@ body {
 
 *, *:before, *:after {
     box-sizing: border-box;
-    scrollbar-color: rgba(255,255,255, 0.01) $gray1;
+    // scrollbar-color: rgba(255,255,255, 0.01) $gray1;
     scrollbar-width: 2rem;
 
     &:hover {

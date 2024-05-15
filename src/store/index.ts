@@ -7,6 +7,7 @@ import { apiSlice } from 'store/apiSlice'
 import   authReducer from 'store/authSlice'
 import   historyReducer from 'store/historySlice'
 import   imageReducer from 'store/imageSlice'
+import   responsivenessReducer from 'store/responsivenessSlice'
 
 import type { TypedUseSelectorHook } from 'react-redux'
 
@@ -15,7 +16,8 @@ const rootReducer = combineReducers({
     [apiSlice.reducerPath]: apiSlice.reducer,
     auth: authReducer,
     history: historyReducer,
-    images: imageReducer
+    images: imageReducer,
+    responsiveness: responsivenessReducer
 });
 
 export const store = configureStore({

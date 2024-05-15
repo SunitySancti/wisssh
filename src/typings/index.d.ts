@@ -82,3 +82,7 @@ export interface Wishlist extends WishlistDefaultValues {
     invitationCode?: InvitationCode     // undefined для invites
     key?: WishlistId;                   // обрабатывается сервером
 }
+
+export interface WidthAwared {
+    getWidth(): number | undefined
+}

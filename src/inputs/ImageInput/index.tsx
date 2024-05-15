@@ -11,7 +11,8 @@ import { Icon,
          UserPlaceholder } from 'atoms/Icon'
 import { Button } from 'atoms/Button'
 
-import type { MutableRefObject } from 'react'
+import type { RefObject,
+              SyntheticEvent } from 'react'
 import type { FieldValues,
               Path,
               UseFormRegister } from 'react-hook-form'
@@ -19,15 +20,31 @@ import type { FieldValues,
 const __DEV_MODE__ = import.meta.env.DEV
 
 
+export type ImageInputRef = {
+    deleteImage(e?: SyntheticEvent | undefined): void
+}
+
 interface ImageInputProps<FV extends FieldValues> {
     register: UseFormRegister<FV>,
     setImage: (blob?: Blob) => void,
     setValue?: (fieldName: 'imageAR', newValue: number) => void,
     image?: Blob,
-    imageInputRef?: MutableRefObject<{
-        deleteImage(e: Event): void;
-    }>,
+    imageInputRef?: RefObject<ImageInputRef>,
     isUser?: boolean
+}
+
+interface ImageInputViewProps<FV extends FieldValues> {
+    register: UseFormRegister<FV>;
+    getRootProps(props?: any): any;
+    isDragAccept: boolean;
+    isDragReject: boolean;
+    imgRef: RefObject<HTMLImageElement>;
+    imageURL?: string;
+    isUser?: boolean;
+    ignoreHover: boolean;
+    setIgnoreHover(b: boolean): void;
+    setAspectRatio(e: SyntheticEvent): void;
+    deleteImage(e: SyntheticEvent): void
 }
 
 
@@ -106,6 +123,78 @@ export function compressAndDoSomething(
     };
 }
 
+const ImageInputView = <FV extends FieldValues>({
+    register,
+    getRootProps,
+    isDragAccept,
+    isDragReject,
+    imageURL,
+    imgRef,
+    isUser,
+    ignoreHover,
+    setIgnoreHover,
+    setAspectRatio,
+    deleteImage
+} : ImageInputViewProps<FV>
+) => {
+    const classes = useMemo(() => {
+        let result = isUser ? 'image-input user-avatar' : 'image-input wish-cover';
+        if(isDragAccept) result += ' droppable';
+        if(isDragReject) result += ' rejected';
+        if(ignoreHover) result += ' ignore-hover';
+        if(imageURL) result += ' preview'
+        else result += ' no-image'
+        return result
+    },[ isUser, isDragAccept, isDragReject, imageURL, ignoreHover ]);
+
+    return (
+        <div
+            className={ classes }
+            {...getRootProps()}
+        >
+            <input
+                className='invis'
+                type='text'
+                {...register('imageAR' as Path<FV>)}
+            />
+
+            { imageURL
+                ?   <>
+                        <div className='container'>
+                            <img
+                                src={ imageURL }
+                                ref={ imgRef }
+                                onLoad={ setAspectRatio }
+                            />
+                        </div>
+                        <Icon
+                            name='change'
+                            className={'transparent-icon change-btn'}
+                        />
+                        <Button
+                            icon='close'
+                            className='transparent-icon close-btn'
+                            onClick={ deleteImage }
+                            onMouseEnter={() => setIgnoreHover(true)}
+                            onMouseLeave={() => setIgnoreHover(false)}
+                        />
+                    </>
+                :   <>
+                        <div className='container'>
+                            { isUser ? <UserPlaceholder/> : <WishPlaceholder/> }
+                        </div>
+                        <Button
+                            text='Загрузить изображение'
+                            icon='upload'
+                            round
+                        />
+                    </>
+            }
+            
+        </div>
+    );
+}
+
 export const ImageInput = <FV extends FieldValues>({
     register,
     setValue,
@@ -150,18 +239,16 @@ export const ImageInput = <FV extends FieldValues>({
         accept: {'image/*': ['.jpeg', '.png']}
     });
     
-    const setSecondaryData = () => {
-        if(image && setValue) {
-            if(imgRef.current) {
-                const aspectRatio = Number((imgRef.current?.offsetWidth / imgRef.current?.offsetHeight).toFixed(3));
-                setValue('imageAR', aspectRatio ? aspectRatio : 1);
-            } else {
-                setValue('imageAR', 1);
-            }
+    const setAspectRatio = () => {
+        if(setValue) {
+            const aspectRatio = imgRef.current
+                ? Number((imgRef.current.offsetWidth / imgRef.current.offsetHeight).toFixed(3))
+                : 1
+            setValue('imageAR', aspectRatio)
         }
     }
 
-    const deleteImage = useCallback((e: Event) => {
+    const deleteImage = useCallback((e: SyntheticEvent) => {
         e.preventDefault();
         e.stopPropagation();
 
@@ -171,77 +258,23 @@ export const ImageInput = <FV extends FieldValues>({
         }
     },[ setImage, setValue ]);
 
-    if(imageInputRef) imageInputRef.current.deleteImage = deleteImage;
-
-    // DROPZONE STYLING //
-
-    const classes = useMemo(() => {
-        let result = isUser ? 'image-input user-avatar' : 'image-input wish-cover';
-        if(isDragAccept) result += ' droppable';
-        if(isDragReject) result += ' rejected';
-        if(ignoreHover) result += ' ignore-hover';
-        if(imageURL) result += ' preview'
-        else result += ' no-image'
-        return result
-    },[ isUser, isDragAccept, isDragReject, imageURL, ignoreHover ]);
-
-    const content = useMemo(() => {
-        if(imageURL) {
-            return (
-                <>
-                    <div className='container'>
-                        <img
-                            src={ imageURL }
-                            ref={ imgRef }
-                            onLoad={ setSecondaryData }
-                        />
-                    </div>
-                    <Icon
-                        name='change'
-                        className={'transparent-icon change-btn'}
-                    />
-                    <Button
-                        icon='close'
-                        className='transparent-icon close-btn'
-                        onClick={ deleteImage }
-                        onMouseEnter={() => setIgnoreHover(true)}
-                        onMouseLeave={() => setIgnoreHover(false)}
-                    />
-                </>
-            );
-        } else return (
-            <>
-                <div className='container'>
-                    { isUser ? <UserPlaceholder/> : <WishPlaceholder/> }
-                </div>
-                <Button
-                    text='Загрузить изображение'
-                    icon='upload'
-                    round
-                />
-            </>
-        )
-    }, [
-        image,
-        imageURL,
-        imgRef,
-        isDragAccept,
-        isDragReject
-    ])
+    if(imageInputRef?.current) {
+        imageInputRef.current.deleteImage = deleteImage
+    }
 
     return (
-        <div
-            className={ classes }
-            {...getRootProps()}
-        >
-            <input
-                className='invis'
-                type='text'
-                {...register('imageAR' as Path<FV>)}
-            />
-
-            { content }
-            
-        </div>
-    );
+        <ImageInputView {...{
+            register,
+            getRootProps,
+            isDragAccept,
+            isDragReject,
+            imageURL,
+            imgRef,
+            setAspectRatio,
+            deleteImage,
+            ignoreHover,
+            setIgnoreHover,
+            isUser
+        }}/>
+    )
 }

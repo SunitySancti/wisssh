@@ -22,9 +22,16 @@
 
 .user {
     display: flex;
-    flex-flow: row nowrap;
+    flex-wrap: nowrap;
     align-items: center;
     gap: 1rem;
+
+    &.text-right {
+        flex-direction: row;
+    }
+    &.text-left {
+        flex-direction: row-reverse;
+    }
 
     span {
         font: $general;

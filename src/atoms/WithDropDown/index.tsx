@@ -1,8 +1,10 @@
 import { useState,
          useEffect,
+         memo,
          useRef,
          forwardRef,
-         useImperativeHandle } from 'react'
+         useImperativeHandle, 
+         useCallback} from 'react'
 
 import './styles.scss'
 import { Icon } from 'atoms/Icon'
@@ -10,155 +12,214 @@ import { Portal } from 'containers/Portal'
 
 import type { ReactNode,
               ForwardedRef,
-              SetStateAction,
-              SyntheticEvent } from 'react'
+              SyntheticEvent,
+              RefObject } from 'react'
 import type { IconName } from 'atoms/Icon'
+import type { WidthAwared } from 'typings'
 
 
-interface OptionArgs {
+interface OptionBaseProps {
     onClick: (e: SyntheticEvent) => void;
-    icon?: IconName;
-    text?: string;
-    className?: string;
-    dontHideAfterClick?: boolean;
+    icon: IconName;
+    text: string;
     clickedIcon?: IconName;
-    clickedText?: string;
-    [prop: string]: any
+    clickedText?: string
 }
 
-interface OptionProps extends OptionArgs {
-    setIsDropped: (value: SetStateAction<boolean>) => void;
+export interface DropdownOption extends OptionBaseProps {
+    dontHideAfterClick?: boolean;
+}
+
+interface OptionProps extends DropdownOption {
+    setIsDropped: (value: boolean) => void;
+}
+
+interface OptionViewProps extends OptionBaseProps {
+    clicked: boolean
 }
 
 interface WithDropDownProps {
     trigger: ReactNode;
-    options: OptionArgs[];
-    className: string;
-    [prop: string]: any
+    options: DropdownOption[];
+    className?: string
 }
 
-export interface WithDropDownRef {
+interface WithDropDownViewProps extends WithDropDownProps {
+    triggerRef: RefObject<HTMLDivElement>;
+    dropdownRef: RefObject<HTMLDivElement>;
+    openDropDown(e: SyntheticEvent): void;
+    isDropped: boolean;
+    setIsDropped(value: boolean): void;
+    left: number | undefined;
+    right: number | undefined;
+    top: number | undefined
+}
+
+export type WithDropDownRef = WidthAwared & {
     closeDropDown(): void
 }
 
-
-const Option = ({
+const OptionView = memo(({
     icon,
     text,
-    onClick,
-    setIsDropped,
-    className,
-    dontHideAfterClick,
     clickedIcon,
     clickedText,
-    ...rest
+    onClick,
+    clicked
+} : OptionViewProps
+) => (
+    <div
+        className={ 'dropdown-option ' + (clicked ? 'disabled ' : '') }
+        onClick={ onClick }
+    >
+        { icon && 
+            <Icon name={ clicked ? clickedIcon || icon : icon }/>
+        }
+        { text &&
+            <span>{ clicked ? clickedText || text : text }</span>
+        }
+    </div>
+));
+
+const Option = ({
+    onClick,
+    setIsDropped,
+    dontHideAfterClick,
+    ...baseProps
 } : OptionProps
 ) => {
-    const [clicked, setClicked] = useState(false);
-    const handleClick = (e: SyntheticEvent) => {
+    const [ clicked, setClicked ] = useState(false);
+    const handleClick = useCallback((e: SyntheticEvent) => {
         onClick(e);
         if(dontHideAfterClick) {
             setClicked(true)
         } else {
             setIsDropped(false)
         }
-    }
+    },[ dontHideAfterClick,
+        setIsDropped
+    ]);
+
     return (
-        <div
-            className={ 'dropdown-option ' + (clicked ? 'disabled ' : '') + (className ? className : '')}
-            onClick={ handleClick }
-            { ...rest }
-        >
-            { icon && 
-                <Icon name={ clicked ? clickedIcon || icon : icon }/>
-            }
-            { text &&
-                <span>{ clicked ? clickedText || text : text }</span>
-            }
-        </div>
+        <OptionView {...{
+            ...baseProps,
+            onClick: handleClick,
+            clicked
+        }}/>
     )
 }
 
-export const WithDropDown = forwardRef(({
+const WithDropDownView = memo(({
     trigger,
     options,
     className,
-    ...rest
-} : WithDropDownProps,
+    openDropDown,
+    setIsDropped,
+    isDropped,
+    triggerRef,
+    dropdownRef,
+    left,
+    right,
+    top
+}:  WithDropDownViewProps
+) => {
+    return (
+        <>
+            <div
+                className={ 'dropdown-trigger ' + (className || '')}
+                children={ trigger }
+                ref={ triggerRef }
+                onClick={ openDropDown }
+            />
+            { isDropped && 
+                <Portal layer='dropdown'>
+                    <div
+                        ref={ dropdownRef }
+                        className='dropdown'
+                        style={{ left, right, top }}
+                    >
+                        { options.map( (option) => (
+                            <Option {...{
+                                ...option,
+                                setIsDropped,
+                                key: option.text
+                            }}/>
+                        ))}
+                    </div>
+                </Portal>
+            }
+        </>
+    )
+});
+
+export const WithDropDown = forwardRef((
+    props : WithDropDownProps,
     ref: ForwardedRef<WithDropDownRef>
 ) => {
     const [ isDropped, setIsDropped ] = useState(false);
-    const [ coords, setCoords ] = useState({});
+    const [ top, setTop ] = useState<number | undefined>(undefined);
+    const [ left, setLeft ] = useState<number | undefined>(undefined);
+    const [ right, setRight ] = useState<number | undefined>(undefined);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const triggerRef = useRef<HTMLDivElement>(null);
     const minPadding = 11;
 
-    const openDropDown = (e: SyntheticEvent) => {
+    const openDropDown = useCallback((e: SyntheticEvent) => {
         e.stopPropagation();
         alignDropdown();
         setIsDropped(true)
-    }
+    },[]);
 
-    const closeDropDown = (e: MouseEvent) => {
+    const closeDropDownOnClickOutside = useCallback((e: MouseEvent) => {
         if(dropdownRef.current && !dropdownRef.current.contains(e.target as HTMLElement | null)) {
             setIsDropped(false)
         }
-    }
+    },[]);
+
+    const closeDropDown = useCallback(() => setIsDropped(false),[])
 
     useImperativeHandle(ref, () => ({
-        closeDropDown() { setIsDropped(false) }
+        closeDropDown,
+        getWidth: () => triggerRef.current?.offsetWidth
     }));
 
 
-    const alignDropdown = () => {
+    const alignDropdown = useCallback(() => {
         const rect = triggerRef.current?.getBoundingClientRect();
         if(!rect) return
         
         const dropToRight = (rect.left + rect.width / 2) < (window.innerWidth * 2 / 3);
-        let left = null, right = null;
 
         if(dropToRight) {
-            left = Math.max(rect.left, minPadding);
+            setLeft(Math.max(rect.left, minPadding));
+            setRight(undefined);
         } else {
-            right = Math.max(window.innerWidth - rect.right, minPadding)
+            setRight(Math.max(window.innerWidth - rect.right, minPadding));
+            setLeft(undefined)
         }
-
-        setCoords({ left, right, top: rect?.bottom })
-    }
+        setTop(rect.bottom)
+    },[]);
 
     useEffect(() => {
-        window.addEventListener('resize', alignDropdown);
-        document.addEventListener('mousedown', closeDropDown);
+        window.addEventListener('resize', closeDropDown);
+        document.addEventListener('mousedown', closeDropDownOnClickOutside);
         return () => {
-            window.removeEventListener('resize', alignDropdown);
-            document.removeEventListener('mousedown', closeDropDown)
+            window.removeEventListener('resize', closeDropDown);
+            document.removeEventListener('mousedown', closeDropDownOnClickOutside)
         }
-    },[ dropdownRef.current ]);
+    },[]);
 
-    return <>
-        <div
-            ref={ triggerRef }
-            className={ 'dropdown-trigger ' + (className || '')}
-            children={ trigger }
-            onClick={ openDropDown }
-            {...rest}
-        />
-        { isDropped && 
-            <Portal layer='dropdown'>
-                <div
-                    ref={ dropdownRef }
-                    className='dropdown'
-                    style={ coords }
-                >
-                    { options?.map( (option, index) => (
-                        <Option
-                            key={ index }
-                            { ...option }
-                            setIsDropped={ setIsDropped }
-                        />
-                    ))}
-                </div>
-            </Portal>
-        }
-    </>
+    return (
+        <WithDropDownView {...{
+            ...props,
+            openDropDown,
+            setIsDropped,
+            isDropped,
+            triggerRef,
+            dropdownRef,
+            left,
+            right,
+            top
+        }}/>
+    )
 })

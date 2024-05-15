@@ -2,11 +2,17 @@
 
 .list-of-lists-page {
     position: relative;
+    height: 100%;
     display: flex;
     flex-flow: column nowrap;
   
     .hidden {
+        transition: opacity ease 400ms;
         opacity: 0;
+    }
+
+    .invisible {
+        display: none !important;
     }
   
     .group-header {

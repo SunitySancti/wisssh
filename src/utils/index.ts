@@ -4,6 +4,10 @@ import type { DateArray,
               Wishlist } from 'typings'
 
 
+export function delay(duration: number) {  // duration in milliseconds
+    return new Promise((resolve) => setTimeout(resolve, duration));
+}
+
 export function checkStatus(res: Response) {
     if(res.status >= 200 && res.status < 300) {
         return Promise.resolve(res)

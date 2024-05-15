@@ -1,9 +1,15 @@
+import { forwardRef,
+         useImperativeHandle,
+         memo,
+         useRef } from 'react'
 import { Link } from 'react-router-dom'
 
 import './styles.scss'
 import { Icon } from 'atoms/Icon'
 import { WithTooltip } from 'atoms/WithTooltip'
 
+import type { ForwardedRef } from 'react'
+import type { WidthAwared } from 'typings'
 
 const Gratitude = () => (
     <svg width="66" height="66" viewBox="0 0 66 66" xmlns="http://www.w3.org/2000/svg" className='gratitude-icon'>
@@ -13,34 +19,53 @@ const Gratitude = () => (
     </svg>
 );
 
-export const CreationGroup = () => {
+const NewWishButton = memo(() => {
     return (
-        <div className='creation-group'>
+        <Link
+            to='/my-wishes/items/new'
+            className='icon-link'
+            children={ <Icon name='newWish'/> }
+        />
+    )
+});
+
+const NewWishlistButton = memo(() => (
+    <Link
+        to='/my-wishes/lists/new'
+        className='icon-link'
+        children={ <Icon name='newList'/> }
+    />
+));
+
+
+export const CreationGroup = forwardRef((
+    _props,
+    ref: ForwardedRef<WidthAwared>
+) => {
+    const creationGroupRef = useRef<HTMLDivElement>(null);
+
+    useImperativeHandle(ref, () => ({
+        getWidth: () => creationGroupRef.current?.offsetWidth
+    }));
+
+    return (
+        <div
+            className='creation-group'
+            ref={ creationGroupRef }
+        >
             {/* <WithTooltip
                 trigger={ <Gratitude/> }
                 text='Благодарность разработчику'
             /> */}
             <Gratitude/>
             <WithTooltip
-                trigger={
-                    <Link
-                        to='/my-wishes/items/new'
-                        className='icon-link'
-                        children={ <Icon name='newWish'/> }
-                    />
-                }
+                trigger={ <NewWishButton/> }
                 text='Новое желание'
             />
             <WithTooltip
-                trigger={
-                    <Link
-                        to='/my-wishes/lists/new'
-                        className='icon-link'
-                        children={ <Icon name='newList'/> }
-                    />
-                }
+                trigger={ <NewWishlistButton/> }
                 text='Новый вишлист'
             />
         </div>
-    );
-}
+    )
+})

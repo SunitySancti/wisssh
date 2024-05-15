@@ -1,57 +1,98 @@
 import { useRef,
-         useEffect } from 'react'
+         forwardRef,
+         useImperativeHandle,
+         useMemo,
+         memo, 
+         useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import './styles.scss'
 import { WithDropDown } from 'atoms/WithDropDown'
-import { UserPic } from 'atoms/User'
+import { User } from 'atoms/User'
 
 import { compressAndDoSomething } from 'inputs/ImageInput'
-import { postImage,
-         promoteImages } from 'store/imageSlice'
+import { postImage } from 'store/imageSlice'
 import { useUpdateProfileMutation } from 'store/apiSlice'
 import { getCurrentUser } from 'store/getters'
-import { useAppDispatch,
-         useAppSelector } from 'store'
+import { useAppDispatch } from 'store'
 
-import type { ChangeEvent } from 'react'
-import type { WithDropDownRef } from 'atoms/WithDropDown'
+import type { ChangeEvent,
+              RefObject,
+              ForwardedRef } from 'react'
+import type { DropdownOption,
+              WithDropDownRef } from 'atoms/WithDropDown'
+import type { UserId,
+              WidthAwared } from 'typings'
 
 
-export const UserGroup = () => {
+interface UserGroupViewProps {
+    handleImagePick(e: ChangeEvent<HTMLInputElement>): void;
+    imageInputRef: RefObject<HTMLInputElement>;
+    dropdownRef: RefObject<WithDropDownRef>;
+    dropdownOptions: DropdownOption[];
+    userId?: UserId
+}
+
+const UserGroupView = memo(({
+    handleImagePick,
+    imageInputRef,
+    dropdownRef,
+    dropdownOptions,
+    userId
+} : UserGroupViewProps
+) => {
+    return(
+    <WithDropDown
+        ref={ dropdownRef }
+        options={ dropdownOptions }
+        trigger={
+            <div className='user-group'>
+                <input
+                    ref={ imageInputRef }
+                    type='file'
+                    accept='image/png, image/jpeg'
+                    onChange={ handleImagePick }
+                    style={{ display: 'none', height: 0 }}
+                />
+                <User id={ userId } picSize={ 6 } reverse />
+            </div>
+        }
+    />
+)})
+
+export const UserGroup = forwardRef((
+    _props,
+    ref: ForwardedRef<WidthAwared>
+) => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const dropdownRef = useRef<WithDropDownRef>(null);
+    const imageInputRef = useRef<HTMLInputElement>(null);
     const [ updateProfile ] = useUpdateProfileMutation();
 
     const { user } = getCurrentUser();
-    const imageURL = useAppSelector(state => state.images.imageURLs[user ? user.id : 'undefined']);
-    const isLoading = useAppSelector(state => state.images.loading[user ? user.id : 'undefined']);
-    const shouldShowImage = (imageURL || isLoading) && user?.imageExtension;
 
-    useEffect(() => {
-        if(user?.imageExtension) {
-            dispatch(promoteImages(user?.id))
-        }
-    },[ user?.id ]);
-
-    const dropdownOptions = [
+    const dropdownOptions = useMemo(() => [
         {
-            text: shouldShowImage ? 'Поменять аватарку' : 'Загрузить аватарку',
-            icon: shouldShowImage ? 'change' : 'upload',
-            onClick: () => document.getElementById('uploadUserAvatar')?.click()
+            text: user?.imageExtension ? 'Поменять аватарку' : 'Загрузить аватарку',
+            icon: user?.imageExtension ? 'change' as const   : 'upload' as const,
+            onClick: () => imageInputRef.current?.click()
         },{
             text: 'Настройки профиля',
-            icon: 'settings',
+            icon: 'settings' as const,
             onClick: () => navigate('/profile')
         },{
             text: 'Выйти',
-            icon: 'logout',
+            icon: 'logout' as const,
             onClick: () => navigate('/logout')
         }
-    ];
+    ],[ user?.imageExtension ]);
 
-    function handleImagePick(e: ChangeEvent<HTMLInputElement>)  {
+    useImperativeHandle(ref, () => ({
+        getWidth() { return dropdownRef.current?.getWidth() }
+    }));
+
+    const handleImagePick = useCallback((e: ChangeEvent<HTMLInputElement>) => {
         dropdownRef.current?.closeDropDown();
         const fileList = e.target?.files;
         const file = fileList && fileList[0];
@@ -70,32 +111,15 @@ export const UserGroup = () => {
             softCompress: true
         }
         compressAndDoSomething(file, handlePostImage, compressOptions);
-    }
-    
+    },[]);
 
     return (
-        <WithDropDown
-            ref={ dropdownRef }
-            options={ dropdownOptions }
-            trigger={<>
-                <div className='user-group'>
-                    <input
-                        id='uploadUserAvatar'
-                        type='file'
-                        accept='image/png, image/jpeg'
-                        onChange={ handleImagePick }
-                        style={{ display: 'none', height: 0 }}
-                    />
-                    { user?.name &&
-                        <span className='user-name'>@ { user.name }</span>
-                    }
-                    <UserPic 
-                        imageURL={ user?.imageExtension ? imageURL : null }
-                        isLoading={ isLoading }
-                        size={ 6 }
-                    />
-                </div>
-            </>}
-        />
-    );
-}
+        <UserGroupView {...{
+            handleImagePick,
+            imageInputRef,
+            dropdownRef,
+            dropdownOptions,
+            userId: user?.id
+        }}/>
+    )
+})
