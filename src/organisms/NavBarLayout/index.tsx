@@ -19,9 +19,11 @@ import { getCurrentUser,
          getUserWishes,
          getInvites,
          getFriendWishes } from 'store/getters'
+import { useAppSelector } from 'store'
 
 import type { RefObject,
               ForwardedRef } from 'react'
+import { findOutMobile } from 'store/responsivenessSlice'
 
 
 interface NavBarViewProps {
@@ -108,13 +110,24 @@ export const NavBarLayout = () => {
     const workSpaceRef = useRef<HTMLDivElement>(null);
     const navBarRef = useRef<NavBarRef>(null);
 
+    const isMobile = findOutMobile();
+    const { isNarrow,
+            sidePadding } = useAppSelector(state => state.responsiveness);
+
     return (
         <>
             <NavBar {...{ workSpaceRef, ref: navBarRef }}/>
             <div
-                className='work-space'
+                className={ 'work-space' + ( isNarrow ? ' narrow' : '' )}
                 ref={ workSpaceRef }
                 onScroll={ () => navBarRef.current?.toggleNavBarShadow() }
+                style={ isMobile
+                    ? undefined
+                    : {
+                        paddingLeft: sidePadding - 16,
+                        paddingRight: sidePadding - 16
+                    }
+                }
             >
                 <Outlet />
             </div>

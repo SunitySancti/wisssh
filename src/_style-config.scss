@@ -2,9 +2,6 @@
 $smallStep: 4px;
 $bigStep: 11px;
 $appHeaderHeight: 8rem;
-:root {
-  --app-body-padding: 10rem;
-}
 // Colors:
 $primary: #F3E672;
 $primaryHover: #f8ed8f;
@@ -45,6 +42,7 @@ $appHeader: 400 20px/32px 'RoundedMplus1c', sans-serif;
 $navbar: 400 18px/22px 'RoundedMplus1c', sans-serif;
 $action: 400 16px/30px 'GothamPro', sans-serif;
 $wishHeader: 500 18px/32px 'GothamPro', sans-serif;
+$wishHeaderMobile: 500 14px/28px 'GothamPro', sans-serif;
 $wishPageHeader: 500 30px/44px 'RoundedMplus1c', sans-serif;
 $price: 400 18px/32px 'GothamPro', sans-serif;
 $status: 600 13px/22px 'Lato', sans-serif;

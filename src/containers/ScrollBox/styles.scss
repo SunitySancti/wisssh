@@ -20,8 +20,8 @@ $maskWidth: 4rem;
     }
 
     .field {
-        width: var(--app-body-padding);
         height: inherit;
+        width: 10rem;
         background-color: $background;
         display: flex;
         flex-flow: row nowrap;

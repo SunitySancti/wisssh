@@ -78,22 +78,6 @@ a.active, a:hover {
     }
 }
 
-::-webkit-scrollbar {
-    position: absolute;
-    width: 22px;
-}
-
-::-webkit-scrollbar-thumb {
-    background-color: $gray1;
-    border-radius: 100vw;
-    border: solid 5px white;
-    transition: all 0.3s ease-in-out;
-    &:hover {
-        border: solid 4px white;
-        background-color: $gray2;
-    }
-}
-
 .invis {
     position: absolute;
     width: 0;

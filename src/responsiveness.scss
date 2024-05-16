@@ -1,0 +1,66 @@
+@import './style-config';
+
+.app-layout {
+    &:not(.mobile) {
+        ::-webkit-scrollbar {
+            position: absolute;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: $gray1;
+            border-radius: 100vw;
+            border: solid 5px $primaryGhost;
+            transition: all 0.3s ease-in-out;
+            &:hover {
+                border: solid 4px white;
+                background-color: $gray2;
+            }
+        }
+
+        .work-space {
+            padding: 2rem 8rem 1rem;
+        }
+
+        .wishcard {
+            &:not(:hover) .star-rating {
+                opacity: 0.5;
+            }
+            &:hover .star-rating {
+                opacity: 1;
+            }
+            .wishcard-content {
+                padding: $bigStep 2*$bigStep;
+                .title {
+                    font: $wishHeader;
+                }
+            }
+        }
+
+    }
+
+    &.mobile {
+        .work-space {
+            padding: 2px;
+        }
+
+        .wishcard {
+            .star-rating {
+                opacity: 1;
+            }
+            .wish-cover {
+                min-width: unset !important;
+            }
+            .wishcard-content {
+                padding: $bigStep/2 $bigStep;
+                .title {
+                    font: $wishHeaderMobile;
+                }
+            }
+        }
+    }
+
+    // &:not(.narrow) {
+    // }
+
+    // &.narrow {
+    // }
+}

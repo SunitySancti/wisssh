@@ -37,6 +37,7 @@ import type { ModalRef,
               ModalProps } from 'atoms/Modal'
 import type { DropdownOption } from 'atoms/WithDropDown'
 import type { ButtonProps } from 'atoms/Button'
+import { findOutMobile } from 'store/responsivenessSlice'
 
 
 interface StatusBarProps {
@@ -49,6 +50,8 @@ interface StatusBarViewProps {
     hideText(): void;
     onCard: boolean;
     width: number;
+    padding: string;
+    opacity: number;
     innerRef: RefObject<HTMLDivElement>;
     isCompleted: boolean;
     ofCurrentUser: boolean;
@@ -94,23 +97,37 @@ const StatusBarView = memo(({
     hideText,
     onCard,
     width,
+    padding,
+    opacity,
     innerRef,
     isCompleted,
     ofCurrentUser,
     isReservedByCurrentUser
 } : StatusBarViewProps
 ) => {
-    const text = isCompleted && isReservedByCurrentUser && !ofCurrentUser ? 'Желание исполнено вами'
-               : isCompleted                                              ? 'Желание исполнено'
-               : isReservedByCurrentUser                                  ? 'Вы исполняете это желание'
-                                                                          : 'Желание исполняется';
+    const isMobile = findOutMobile();
+    const text = isMobile
+        ? ( isCompleted && isReservedByCurrentUser && !ofCurrentUser
+            ? 'Исполнено вами'
+            : isCompleted
+            ? 'Исполнено'
+            : isReservedByCurrentUser
+            ? 'Исполняется вами'
+            : 'Исполняется')
+        : ( isCompleted && isReservedByCurrentUser && !ofCurrentUser
+            ? 'Желание исполнено вами'
+            : isCompleted
+            ? 'Желание исполнено'
+            : isReservedByCurrentUser
+            ? 'Вы исполняете это желание'
+            : 'Желание исполняется')
 
     const icon = isCompleted ? 'completed' as const
                              : 'inProgress' as const;
     return (
         <div
             className={ 'status-bar' + (onCard ? ' on-card' : '') }
-            style={ onCard ? { width } : undefined }
+            style={ onCard ? { width, padding, opacity } : undefined }
             onClick={ e => e.stopPropagation() }
             onMouseEnter={ showText }
             onMouseLeave={ hideText }
@@ -133,19 +150,31 @@ export const StatusBar = ({
     onCard
 } : StatusBarProps
 ) => {
+    const isMobile = findOutMobile();
     const defaultWidth = 34;
+    const defaultPadding = '0';
+    const defaultOpacity = 0.6;
     const innerRef = useRef<HTMLDivElement>(null);
     const [ width, setWidth ] = useState(defaultWidth);
+    const [ padding, setPadding ] = useState(defaultPadding);
+    const [ opacity, setOpacity ] = useState(defaultOpacity);
     const { user } = getCurrentUser();
 
     const showText = useCallback(() => {
         if(onCard) {
-            setWidth(innerRef.current ? innerRef.current.offsetWidth + 22 : defaultWidth)
+            setWidth(innerRef.current ? innerRef.current.offsetWidth + 22 : defaultWidth);
+            setPadding('0 6px');
+            setOpacity(1)
+            if(isMobile) {
+                setTimeout(hideText, 2000)
+            }
         }
     },[ defaultWidth ]);
     const hideText = useCallback(() => {
         if(onCard) {
-            setWidth(defaultWidth)
+            setWidth(defaultWidth);
+            setPadding(defaultPadding);
+            setOpacity(defaultOpacity)
         }
     },[ defaultWidth ]);
 
@@ -155,6 +184,8 @@ export const StatusBar = ({
             hideText,
             onCard: !!onCard,
             width,
+            padding,
+            opacity,
             innerRef,
             isCompleted: wish.isCompleted,
             ofCurrentUser: wish.author === user?.id,
@@ -173,7 +204,10 @@ const WishCoverView = memo(({
 ) => (
     <div
         className='wish-cover'
-        style={{ aspectRatio: (wish?.imageAR || 1) + '' }}
+        style={ wish.imageExtension
+            ? { aspectRatio: (wish?.imageAR || 1) + '' }
+            : { height: '3.5rem' }
+        }
     >
         <StarRating readOnly rating={ wish?.stars }/>
         { withUserPic &&
@@ -190,7 +224,8 @@ const WishCoverView = memo(({
         }
         { imageURL
             ? <img src={ imageURL }/>
-            : <WishPreloader {...{ isLoading }}/>
+            : wish.imageExtension &&
+                <WishPreloader {...{ isLoading }}/>
         }
     </div>
 ));

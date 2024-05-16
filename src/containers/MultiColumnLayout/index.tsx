@@ -3,6 +3,8 @@ import { useEffect,
          useRef } from 'react'
 import { useLocation } from 'react-router'
 
+import { findOutMobile } from 'store/responsivenessSlice'
+
 import type { FC } from 'react'
 import type { Wish } from 'typings'
 
@@ -30,10 +32,19 @@ export const MultiColumnLayout = ({
     const [ columnedData, setColumnedData ] = useState<Wish[][]>([]);
     const [ opacity, setOpacity ] = useState(0.5);
 
+    // RESPONSIVENESS //
+    const isMobile = findOutMobile();
+
     // STYLES //
-    const gap = 22;
-    const minWidth = 270;
-    const defaultMaxWidth = 400;
+    const gap = isMobile
+        ? 2
+        : 22;
+    const minWidth = isMobile
+        ? (window.innerWidth - gap * 3) / 2 
+        : 270;
+    const defaultMaxWidth = isMobile
+        ? (window.innerWidth - gap * 3) / 2
+        : 400;
     const [ maxWidth, setMaxWidth ] = useState<number | undefined>(defaultMaxWidth);
 
     const containerStyles = {
@@ -41,7 +52,7 @@ export const MultiColumnLayout = ({
         flexFlow: 'row nowrap',
         width: '100%',
         gap: `${ gap }px`,
-        paddingBottom: '20rem'
+        paddingBottom: isMobile ? '1rem' : '20rem'
     };
     const columnStyles = {
         display: 'flex',
@@ -66,8 +77,8 @@ export const MultiColumnLayout = ({
     const updateColumnsQty = () => {
         const layoutWidth = layoutRef.current?.clientWidth;
         if(layoutWidth) {
-            const columnsQtyLimit = Math.floor((layoutWidth - 2 * gap) / (minWidth + gap));
-            setColumnsQty(Math.min(columnsQtyLimit, items?.length));
+            const columnsQtyLimit = Math.floor((layoutWidth + gap + 1) / (minWidth + gap));
+            setColumnsQty(Math.min(columnsQtyLimit, items?.length))
         }
     }
 
@@ -120,7 +131,9 @@ export const MultiColumnLayout = ({
 
     useEffect(() => {
         if(items?.length > columnsQty) {
-            setMaxWidth(undefined)
+            if(!isMobile) {
+                setMaxWidth(undefined)
+            }
         } else {
             setMaxWidth(defaultMaxWidth)
         }

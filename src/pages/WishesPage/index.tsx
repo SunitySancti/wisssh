@@ -13,6 +13,7 @@ import { getLocationConfig,
          getFriendWishes,
          getLoadingStatus } from 'store/getters'
 import { promoteImages } from 'store/imageSlice'
+import { useAppSelector } from 'store'
 
 import type { Wish } from 'typings'
 
@@ -20,14 +21,16 @@ import type { Wish } from 'typings'
 interface WishesPageViewProps {
     isLoading: boolean;
     wishes: Wish[];
-    noWishesMessage: string
+    noWishesMessage: string;
+    isNarrow?: boolean
 }
 
 
 const WishesPageView = ({
     isLoading,
     wishes,
-    noWishesMessage
+    noWishesMessage,
+    // isNarrow
 } : WishesPageViewProps
 ) => (
     isLoading
@@ -39,6 +42,13 @@ const WishesPageView = ({
                 Card={ WishCard }
                 data={ wishes }
             />
+        // ?   ( isNarrow
+        //         ?   wishes.map(wish => <WishCard data={ wish }/>)
+        //         :   <MultiColumnLayout
+        //                 Card={ WishCard }
+        //                 data={ wishes }
+        //             />
+        //     )
         :   <Plug message={ noWishesMessage }/>
     )
 
@@ -101,12 +111,16 @@ export const WishesPage = () => {
             dispatch(promoteImages(wishIds))
         }
     },[ wishes ]);
+    
+    // RESPONSIVENESS
+    const { isNarrow } = useAppSelector(state => state.responsiveness);
 
     return (
         <WishesPageView {...{
             isLoading,
             wishes,
-            noWishesMessage
+            noWishesMessage,
+            isNarrow
         }}/>
     )
 }

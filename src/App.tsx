@@ -4,6 +4,7 @@ import { Navigate,
          Route } from 'react-router-dom'
 
 import './App.scss'
+import './responsiveness.scss'
 import { AppLayout } from 'organisms/AppLayout'
 import { NavBarLayout } from 'organisms/NavBarLayout'
 import { WishesPage } from 'pages/WishesPage'
@@ -18,7 +19,8 @@ import { RedirectPage } from 'pages/RedirectPage'
 import { ProfilePage } from 'pages/ProfilePage'
 import { InvitationAcceptancePage } from 'pages/InvitationAcceptancePage'
 
-import { useMediaQuery } from 'hooks/useMediaQuery'
+// import { useMediaQuery } from 'hooks/useMediaQuery'
+import { useWindowSize } from 'hooks/useWindowSize'
 import { getFriends,
          getUserWishlists,
          getUserWishes,
@@ -27,7 +29,7 @@ import { getFriends,
          getLocationConfig } from 'store/getters'
 import { useAppDispatch } from 'store'
 import { usePrefetch } from 'store/apiSlice'
-import { setNarrow } from 'store/responsivenessSlice'
+import { responseWidth } from 'store/responsivenessSlice'
 
 
 const DataFetchController = () => {
@@ -89,10 +91,22 @@ const DataFetchController = () => {
 
 const ResponsivenessController = () => {
     const dispatch = useAppDispatch();
-    const isNarrow = useMediaQuery('(max-width: 500px)');
+    // const isNarrow = useMediaQuery('(max-width: 500px)');
+    const { width } = useWindowSize();
+
     useEffect(() => {
-        dispatch(setNarrow(isNarrow))
-    },[ isNarrow ])
+        dispatch(responseWidth(width))
+    },[ width ]);
+
+    // const { isMobile } = useAppSelector(state => state.responsiveness)
+
+    // useEffect(() => {
+    //     if (isMobile) {
+    //         console.log('Это мобильное устройство');
+    //     } else {
+    //         console.log('Это не мобильное устройство');
+    //     }
+    // },[ isMobile ])
 
     return null
 }

@@ -6,6 +6,8 @@ import { useState,
 import './styles.scss'
 import { Button } from 'atoms/Button'
 
+import { useAppSelector } from 'store'
+
 import type { ReactNode,
               RefObject,
               WheelEvent } from 'react'
@@ -23,7 +25,8 @@ interface ScrollBoxViewProps extends ScrollBoxProps {
     rightOverflow: boolean;
     scrollLeft(): void;
     scrollRight(): void;
-    scrollByWheel(e: WheelEvent<HTMLDivElement>): void
+    scrollByWheel(e: WheelEvent<HTMLDivElement>): void;
+    width?: number;
 }
 
 
@@ -36,11 +39,15 @@ const ScrollBoxView = ({
     rightOverflow,
     scrollLeft,
     scrollRight,
-    scrollByWheel
+    scrollByWheel,
+    width
 } : ScrollBoxViewProps
 ) => (
     <div className='scroll-box'>
-        <div  className={ leftOverflow ? 'left field masked' : 'left field' }>
+        <div
+            className={ leftOverflow ? 'left field masked' : 'left field' }
+            style={{ width }}
+        >
 
             { (leftOverflow || rightOverflow) && (
                 <Button
@@ -58,6 +65,7 @@ const ScrollBoxView = ({
         />
         <div
             className={ rightOverflow ? 'right field masked' : 'right field' }
+            style={{ width }}
         >
             { (leftOverflow || rightOverflow) &&
                 <Button
@@ -134,6 +142,8 @@ export const ScrollBox = ({
         detectOverflow();
     },[ scrollPosition ]);
 
+    // RESPONSIVENESS //
+    const { sidePadding } = useAppSelector(state => state.responsiveness);
 
     return (
         <ScrollBoxView {...{
@@ -145,7 +155,8 @@ export const ScrollBox = ({
             rightOverflow,
             scrollLeft,
             scrollRight,
-            scrollByWheel
+            scrollByWheel,
+            width: sidePadding
         }}/>
     )
 }

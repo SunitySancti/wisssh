@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import './styles.scss'
@@ -5,10 +6,10 @@ import { WishCover,
          WishMenu } from 'molecules/WishStuff'
 
 import { getLocationConfig } from 'store/getters'
+import { findOutMobile } from 'store/responsivenessSlice'
 
 import type { Wish,
               WishId } from 'typings'
-import { useCallback } from 'react'
 
 
 interface WishCardProps {
@@ -25,19 +26,19 @@ export const WishCard = ({
 } : WishCardProps
 ) => {
     // METHODS //
-
     const navigate = useNavigate();
     const { location,
             isInvitesSection } = getLocationConfig();
+
+    // RESPONSIVENESS //
+    const isMobile = findOutMobile();
     
     // ELEMENTS //
-
     const currency = wish.currency==='rouble' ? ' ₽'
                    : wish.currency==='dollar' ? ' $'
                    : wish.currency==='euro'   ? ' €' : '';
 
     // INPUT OR VIEW FEATURES //
-    
     const isInput = !!value && !!onChange;
     const selected = isInput && value.includes(wish.id);
     
@@ -60,13 +61,13 @@ export const WishCard = ({
             key={ wish.id }
             onClick={ handleCardClick }
         >
-            <WishCover wish={ wish } withUserPic={ isInvitesSection } onCard/>
+            <WishCover wish={ wish } withUserPic={ !isMobile && isInvitesSection } onCard/>
             <WishMenu wish={ wish }/>
             <div className='wishcard-content'>
                 { wish.title &&
                     <span className='title'>{ wish.title }</span>
                 }
-                { !!wish.price &&
+                { !!wish.price && !isMobile &&
                     <span className='price'>{ wish.price + currency }</span>
                 }
             </div>

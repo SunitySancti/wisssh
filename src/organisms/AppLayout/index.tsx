@@ -22,6 +22,7 @@ import type { RefObject,
               WheelEvent } from 'react'
 import type { QueueItem } from 'store/imageSlice'
 import type { WidthAwared } from 'typings'
+import { findOutMobile } from 'store/responsivenessSlice'
 
 
 interface AppHeaderViewProps {
@@ -140,9 +141,15 @@ export const AppHeader = () => {
     );
 }
 
-export const AppLayout = () => (
-    <div className='app-layout'>
-        <AppHeader/>
-        <Outlet/>
-    </div>
-)
+export const AppLayout = () => {
+    // RESPONSIVENESS //
+    const { isNarrow } = useAppSelector(state => state.responsiveness);
+    const isMobile = findOutMobile()
+    
+    return (
+        <div className={'app-layout' + (isNarrow ? ' narrow' : '') + (isMobile ? ' mobile' : '')}>
+            <AppHeader/>
+            <Outlet/>
+        </div>
+    )
+}
