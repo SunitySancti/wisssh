@@ -19,6 +19,19 @@
         .work-space {
             padding: 2rem 8rem 1rem;
         }
+        .navbar .bread-crumbs {
+            margin-bottom: 1rem;
+            .nav-elem {
+                height: 4rem;
+                font: $navbar;
+                &.option {
+                    padding: 0 2rem;
+                }
+            }
+            .bc-slider {
+                bottom: 12px;
+            }
+        }
 
         .wishcard {
             &:not(:hover) .star-rating {
@@ -41,7 +54,44 @@
         .work-space {
             padding: 2px;
         }
-
+        .navbar {
+            width: 100%;
+            .bread-crumbs {
+                .icon-link.invisible {
+                    visibility: hidden;
+                }
+                .wishlist-menu,
+                .wish-menu {
+                    width: 6rem;
+                    position: relative;
+                }
+                .nav-elem {
+                    height: 6rem;
+                    font: $navbarMobile;
+                }
+                &.items {
+                    .nav-elem.option {
+                        flex: 1;
+                        flex-basis: content;
+                        justify-content: center;
+                    }
+                }
+                &.lists {
+                    padding: 0;
+                    .nav-elem {
+                        &:not(.active) {
+                            display: none;
+                        }
+                        &.option {
+                            padding: 0;
+                        }
+                    }
+                }
+                .bc-slider {
+                    bottom: 23px;
+                }
+            }
+        }
         .wishcard {
             .star-rating {
                 opacity: 1;
@@ -50,7 +100,7 @@
                 min-width: unset !important;
             }
             .wishcard-content {
-                padding: $bigStep/2 $bigStep;
+                padding: calc($bigStep / 2) $bigStep;
                 .title {
                     font: $wishHeaderMobile;
                 }

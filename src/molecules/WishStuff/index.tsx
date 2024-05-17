@@ -285,7 +285,7 @@ export const WishButton = ({
 const MemoizedMenuButton = memo(() => (
     <>
         <KebapBackground/>
-        <Button icon='kebap' size={ 4 }/>
+        <Button className='wish-menu' icon='kebap' size={ 4 }/>
     </>
 ));
 

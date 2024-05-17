@@ -29,7 +29,7 @@ interface WishlistMenuViewProps {
     modalProps: ModalProps
 }
 
-const MemoizedMenuButton = memo(() => <Button icon='kebap' size={ 4 }/>)
+const MemoizedMenuButton = memo(() => <Button className='wishlist-menu' icon='kebap' size={ 4 }/>)
 
 const WishlistMenuView = memo(({
     dropdownOptions,

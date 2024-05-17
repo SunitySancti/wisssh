@@ -13,8 +13,8 @@ import type { ReactNode,
 
 
 interface WithTooltipProps {
-    text: string;
-    trigger: ReactNode
+    trigger: ReactNode;
+    text?: string;
 }
 
 interface WithTooltipViewProps extends WithTooltipProps {
@@ -39,26 +39,28 @@ const WithTooltipView = memo(({
     isVisible,
     isTransparent
 } : WithTooltipViewProps
-) => (
-    <>
-        <div
-            ref={ triggerRef }
-            className='tooltip-trigger'
-            children={ trigger }
-            onMouseEnter={ showTooltip }
-            onMouseLeave={ hideTooltip }
-        />
-        { isVisible &&
-            <Portal layer='tooltip'>
+) => {
+    return text
+        ?   <>
                 <div
-                    className={ 'tooltip' + (isTransparent ? ' hidden' : '') }
-                    style={{ left, top }}
-                    children={ text }
+                    ref={ triggerRef }
+                    className='tooltip-trigger'
+                    children={ trigger }
+                    onMouseEnter={ showTooltip }
+                    onMouseLeave={ hideTooltip }
                 />
-            </Portal>
-        }
-    </>
-));
+                { isVisible &&
+                    <Portal layer='tooltip'>
+                        <div
+                            className={ 'tooltip' + (isTransparent ? ' hidden' : '') }
+                            style={{ left, top }}
+                            children={ text }
+                        />
+                    </Portal>
+                }
+            </>
+        : trigger
+});
 
 export const WithTooltip = memo((props : WithTooltipProps) => {
     const [ isVisible, setIsVisible ] = useState(false);

@@ -80,15 +80,24 @@ const RefreshButton = memo(() => {
 });
 
 
-const NavBarView = ({ shouldDropShadow } : NavBarViewProps) => (
-    <div className='navbar'>
-        <ScrollBox {...{ shouldDropShadow }}>
-            <ModeToggle/>
-            <BreadCrumbs/>
-            <RefreshButton/>
-        </ScrollBox>
-    </div>
-);
+const NavBarView = ({ shouldDropShadow } : NavBarViewProps) => {
+    const isMobile = findOutMobile();
+    return (
+        <div className='navbar'>
+            { isMobile
+                ?   <BreadCrumbs {...{
+                        shouldDropShadow,
+                        isMobile
+                    }}/>            
+                :   <ScrollBox {...{ shouldDropShadow }}>
+                        <ModeToggle/>
+                        <BreadCrumbs/>
+                        <RefreshButton/>
+                    </ScrollBox>
+            }
+        </div>
+    );
+}
 
 
 const NavBar = forwardRef(({
