@@ -91,22 +91,11 @@ const DataFetchController = () => {
 
 const ResponsivenessController = () => {
     const dispatch = useAppDispatch();
-    // const isNarrow = useMediaQuery('(max-width: 500px)');
     const { width } = useWindowSize();
 
     useEffect(() => {
         dispatch(responseWidth(width))
     },[ width ]);
-
-    // const { isMobile } = useAppSelector(state => state.responsiveness)
-
-    // useEffect(() => {
-    //     if (isMobile) {
-    //         console.log('Это мобильное устройство');
-    //     } else {
-    //         console.log('Это не мобильное устройство');
-    //     }
-    // },[ isMobile ])
 
     return null
 }

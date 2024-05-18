@@ -40,8 +40,7 @@ const UserGroupView = memo(({
     dropdownOptions,
     userId
 } : UserGroupViewProps
-) => {
-    return(
+) => (
     <WithDropDown
         ref={ dropdownRef }
         options={ dropdownOptions }
@@ -58,7 +57,7 @@ const UserGroupView = memo(({
             </div>
         }
     />
-)})
+));
 
 export const UserGroup = forwardRef((
     _props,

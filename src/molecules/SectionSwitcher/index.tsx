@@ -211,9 +211,8 @@ const SectionSwitcherView = ({
 }
 
 export const SectionSwitcher = memo(() => {
-    const { section,
-            mode,
-            isWishesSection,
+    const { isWishesSection,
+            isItemsMode,
             isInvitesSection } = getLocationConfig();
             
     // take refs of sections:
@@ -243,12 +242,12 @@ export const SectionSwitcher = memo(() => {
     const myInvitesItems = useAppSelector(state => state.history.myInvitesSection.itemsModeLast);
     const myInvitesLists = useAppSelector(state => state.history.myInvitesSection.listsModeLast);
 
-    const firstSectionPath  = isWishesSection         ? section + '/' + mode
+    const firstSectionPath  = isWishesSection         ? (isItemsMode ? '/my-wishes/items/actual' : '/my-wishes/lists')
                             : (lastMode === 'items')  ? myWishesItems
                             : (lastMode === 'lists')  ? myWishesLists
                                                       : '/my-wishes/items/actual';
                                                 
-    const secondSectionPath = isInvitesSection        ? section + '/' + mode
+    const secondSectionPath = isInvitesSection        ? (isItemsMode ? '/my-invites/items/reserved' : '/my-invites/lists')
                             : (lastMode === 'items')  ? myInvitesItems
                             : (lastMode === 'lists')  ? myInvitesLists
                                                       : '/my-invites/items/reserved';

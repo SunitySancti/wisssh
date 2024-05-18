@@ -19,16 +19,16 @@ interface HistoryState {
 
 const initialState: HistoryState = Object.freeze({
     myWishesSection: {
-        itemsModeLast: '/my-wishes/items',
+        itemsModeLast: '/my-wishes/items/actual',
         listsModeLast: '/my-wishes/lists',
-        last: '/my-wishes/items',
+        last: '/my-wishes/items/actual',
     },
     myInvitesSection: {
-        itemsModeLast: '/my-invites/items',
+        itemsModeLast: '/my-invites/items/reserved',
         listsModeLast: '/my-invites/lists',
-        last: '/my-invites/items',
+        last: '/my-invites/items/reserved',
     },
-    anySectionLast: '/my-wishes/items',
+    anySectionLast: '/my-wishes/items/actual',
 })
 
 const historySlice = createSlice({

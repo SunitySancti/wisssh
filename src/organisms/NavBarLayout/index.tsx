@@ -114,8 +114,33 @@ const NavBar = forwardRef(({
     return <NavBarView {...{ shouldDropShadow }}/>
 });
 
+interface WorkSpaceProps {
+    isNarrow: boolean;
+    isMobile: boolean;
+    sidePadding: number;
+    workSpaceRef: RefObject<HTMLDivElement>;
+    navBarRef: RefObject<NavBarRef>
+}
 
-export const NavBarLayout = () => {
+const WorkSpace = memo(({ isNarrow, isMobile, sidePadding, workSpaceRef, navBarRef }: WorkSpaceProps) => (
+    <div
+        className={ 'work-space' + ( isNarrow ? ' narrow' : '' )}
+        ref={ workSpaceRef }
+        onScroll={ () => navBarRef.current?.toggleNavBarShadow() }
+        style={ isMobile
+            ? undefined
+            : {
+                paddingLeft: sidePadding - 16,
+                paddingRight: sidePadding - 16
+            }
+        }
+    >
+        <Outlet />
+    </div>
+))
+
+
+export const NavBarLayout = memo(() => {
     const workSpaceRef = useRef<HTMLDivElement>(null);
     const navBarRef = useRef<NavBarRef>(null);
 
@@ -126,20 +151,7 @@ export const NavBarLayout = () => {
     return (
         <>
             <NavBar {...{ workSpaceRef, ref: navBarRef }}/>
-            <div
-                className={ 'work-space' + ( isNarrow ? ' narrow' : '' )}
-                ref={ workSpaceRef }
-                onScroll={ () => navBarRef.current?.toggleNavBarShadow() }
-                style={ isMobile
-                    ? undefined
-                    : {
-                        paddingLeft: sidePadding - 16,
-                        paddingRight: sidePadding - 16
-                    }
-                }
-            >
-                <Outlet />
-            </div>
+            <WorkSpace {...{ isNarrow, isMobile, sidePadding, workSpaceRef, navBarRef }}/>
         </>
     )
-}
+})

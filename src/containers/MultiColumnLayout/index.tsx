@@ -1,6 +1,7 @@
 import { useEffect,
          useState,
-         useRef } from 'react'
+         useRef,
+         memo } from 'react'
 import { useLocation } from 'react-router'
 
 import { findOutMobile } from 'store/responsivenessSlice'
@@ -16,7 +17,7 @@ interface MultiColumnLayoutProps {
 }
 
 
-export const MultiColumnLayout = ({
+export const MultiColumnLayout = memo(({
     Card,
     data,
     ...cardProps
@@ -161,4 +162,4 @@ export const MultiColumnLayout = ({
             )}
         </div>
     );
-}
+})

@@ -19,6 +19,7 @@
         .work-space {
             padding: 2rem 8rem 1rem;
         }
+
         .navbar .bread-crumbs {
             margin-bottom: 1rem;
             .nav-elem {
@@ -31,6 +32,10 @@
             .bc-slider {
                 bottom: 12px;
             }
+        }
+
+        .login-page > .logo-icon {
+            margin: 1rem 0;
         }
 
         .wishcard {
@@ -54,6 +59,7 @@
         .work-space {
             padding: 2px;
         }
+
         .navbar {
             width: 100%;
             .bread-crumbs {
@@ -92,6 +98,11 @@
                 }
             }
         }
+
+        .login-page > .logo-icon {
+            margin: 0;
+        }
+
         .wishcard {
             .star-rating {
                 opacity: 1;

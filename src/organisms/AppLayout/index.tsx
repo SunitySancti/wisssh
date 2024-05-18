@@ -1,28 +1,37 @@
-import { useEffect,
+import { Fragment,
+         useState,
+         useEffect,
          memo,
          useMemo, 
          useRef,
-         useCallback} from 'react'
+         useCallback } from 'react'
 import { Outlet,
+         Link,
          useNavigate } from 'react-router-dom'
 
 import './styles.scss'
 import { SectionSwitcher } from 'molecules/SectionSwitcher'
 import { CreationGroup } from 'molecules/CreationGroup'
 import { UserGroup } from 'molecules/UserGroup'
+import { Icon,
+         LogoIcon,
+         BurgerCross } from 'atoms/Icon'
+import { User } from 'atoms/User'
 
 import { updateHistory,
          clearHistory } from 'store/historySlice'
 import { getImage } from 'store/imageSlice'
-import { getLocationConfig } from 'store/getters'
+import { getLocationConfig,
+         getCurrentUser } from 'store/getters'
 import { useAppDispatch,
          useAppSelector } from 'store'
+import { findOutMobile } from 'store/responsivenessSlice'
+// import { equalizeWidthsByClass } from 'utils'
 
 import type { RefObject,
               WheelEvent } from 'react'
 import type { QueueItem } from 'store/imageSlice'
 import type { WidthAwared } from 'typings'
-import { findOutMobile } from 'store/responsivenessSlice'
 
 
 interface AppHeaderViewProps {
@@ -69,12 +78,9 @@ const AppHeaderView = memo(({
     </div>
 ));
 
-export const AppHeader = () => {
-    const dispatch = useAppDispatch();
+function useRedirectController() {
+    // REDIRECTING TO LOGIN PAGE //
     const navigate = useNavigate();
-    const { location } = getLocationConfig();
-
-    // REDIRECTING TO LOGIN OR LOGOUT //
     const token = useAppSelector(state => state.auth.token);
 
     useEffect(() => {
@@ -82,12 +88,10 @@ export const AppHeader = () => {
             navigate('/login',{ state:{ redirectedFrom: location }})
         }
     },[ token ]);
+}
 
-    // HISTORY UPDATING //
-    useEffect(() => { dispatch(updateHistory(location)) },[ location ]);
-    useEffect(() => { return () => { dispatch(clearHistory()) }},[]);
-    
-    // FETCH IMAGES //
+function useFetchImagesController() {
+    const dispatch = useAppDispatch();
     const queue = useAppSelector(state => state.images.queue);
     const prior = useAppSelector(state => state.images.prior);
     const isLoading = useAppSelector(state => Boolean(Object.keys(state.images.loading).length));
@@ -104,6 +108,18 @@ export const AppHeader = () => {
             part.forEach(item => dispatch(getImage(item)))
         }
     },[ queue, prior, isLoading ]);
+}
+
+const AppHeader = () => {
+    const dispatch = useAppDispatch();
+    const { location } = getLocationConfig();
+
+    useRedirectController();
+    useFetchImagesController();
+
+    // HISTORY UPDATING //
+    useEffect(() => { dispatch(updateHistory(location)) },[ location ]);
+    useEffect(() => { return () => { dispatch(clearHistory()) }},[]);
 
     // HANDLE SCROLLING //
     const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -141,6 +157,114 @@ export const AppHeader = () => {
     );
 }
 
+
+const AppHeaderMobile = () => {
+    useRedirectController();
+    useFetchImagesController();
+
+    const optionGroups = [[{
+        icon: 'present' as const,
+        text: 'Мои желания',
+        path: '/my-wishes/items/actual',
+        id: 'my-wishes/items',
+    }, {
+        icon: 'wishlist' as const,
+        text: 'Мои вишлисты',
+        path: '/my-wishes/lists',
+        id: 'my-wishes/lists',
+    }, {
+        icon: 'invite' as const,
+        text: 'Приглашения',
+        path: '/my-invites/lists',
+        id: 'my-invites/lists',
+    }, {
+        icon: 'magicWand' as const,
+        text: 'Желания друзей',
+        path: '/my-invites/items/reserved',
+        id: 'my-invites/items',
+    }], [{
+        icon: 'profile' as const,
+        text: 'Профиль',
+        path: '/profile',
+        id: 'profile',
+    }], [{
+        icon: 'logout' as const,
+        text: 'Выйти',
+        path: '/logout',
+        id: 'logout',
+    }]];
+    const Divider = () => <div className='divider'/>;
+
+    const appHeaderHeight = 66;
+
+    const { section,
+            mode } = getLocationConfig();
+    const { user } = getCurrentUser();
+
+    const optionId = mode ? section + '/' + mode : section!;
+
+    const [ isMenuOpen, setIsMenuOpen ] = useState(true);
+
+    const top = useMemo(() => {
+        const targetOption = document.getElementById(optionId) as HTMLAnchorElement | null;
+        const rect = targetOption?.getBoundingClientRect()
+        return rect
+            ? (appHeaderHeight - rect.height) / 2 - rect.top
+            : 0
+    },[ isMenuOpen ]);
+    
+    const toggleMenu = () => {
+        setIsMenuOpen(!isMenuOpen);
+        const animation = document.getElementById('burger-to-cross') as unknown as SVGAnimateElement | null
+        animation?.beginElement()
+    }
+    
+    return (
+        <div className='app-header-mobile'
+             style={{ height: appHeaderHeight }}
+        >
+            <User id={ user?.id } picSize={ 5 } picOnly />
+
+            <div className='cutting-frame'
+                 style={{ height: isMenuOpen ? '100vh' : appHeaderHeight }}
+            >
+                <div className='app-menu'
+                     style={{ top: isMenuOpen ? 0 : top }}
+                >
+                    <div className='logo-icon'>
+                        <LogoIcon/>
+                        <div className='beta'>Beta</div>
+                    </div>
+                    <div className='upper space'/>
+                    <div className='menu-options'>
+                        { optionGroups.map((group, index) => (
+                            <Fragment key={ 'group' + index }>
+                                { !!index && <Divider/> }
+                                { group.map(({ icon, text, path, id }, index) => (
+                                    <Link
+                                        className='app-menu-option'
+                                        id={ id }
+                                        to={ path }
+                                        onClick={ toggleMenu }
+                                        children={<>
+                                            <Icon name={ icon }/>
+                                            <span>{ text }</span>
+                                        </>}
+                                        key={ 'option' + index }
+                                    />
+                                )) }
+                            </Fragment>
+                        ))}
+                    </div>
+                    <div className='lower space'/>
+                </div>
+            </div>
+
+            <BurgerCross reverse={ !isMenuOpen } onClick={ toggleMenu } />
+        </div>
+    )
+}
+
 export const AppLayout = () => {
     // RESPONSIVENESS //
     const { isNarrow } = useAppSelector(state => state.responsiveness);
@@ -148,7 +272,10 @@ export const AppLayout = () => {
     
     return (
         <div className={'app-layout' + (isNarrow ? ' narrow' : '') + (isMobile ? ' mobile' : '')}>
-            <AppHeader/>
+            { isMobile
+                ? <AppHeaderMobile/>
+                : <AppHeader/>
+            }
             <Outlet/>
         </div>
     )

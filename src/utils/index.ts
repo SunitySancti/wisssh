@@ -196,3 +196,10 @@ export function splitIntoParts(array: any[], partLength: number) {
     };
     return parts
 }
+
+export function equalizeWidthsByClass(className: string) {
+    const elements = document.querySelectorAll<HTMLElement>('.' + className);
+    const widths = [...elements].map(elem => elem.offsetWidth);
+    const maxWidth = Math.ceil(Math.max(...widths));
+    elements.forEach(elem => elem.style.width = maxWidth + 'px')
+}

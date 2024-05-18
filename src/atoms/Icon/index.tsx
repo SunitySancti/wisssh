@@ -127,6 +127,36 @@ export const UserPlaceholder = (props: {[prop: string]: any}) => (
     </svg>
 );
 
+interface BurgerCrossProps {
+    onClick: () => void;
+    reverse: boolean
+}
+
+export const BurgerCross = ({ onClick, reverse }: BurgerCrossProps) => {
+    const steps = [
+        'M11.5 15.5 L21.5 15.5 L31.5 15.5 M11.5 22.5 L21.5 22.5 L31.5 22.5 M11.5 29.5 L21.5 29.5 L31.5 29.5',
+        'M11.5 15.5 L21.5 15.5 L31.5 15.5 M14.5 29.5 L21.5 22.5 L28.5 15.5 M11.5 29.5 L21.5 29.5 L31.5 29.5',
+        'M11.5 15.5 L21.5 12.5 L31.5 15.5 M21.5 32.4 L21.5 22.5 L21.5 12.6 M11.5 29.5 L21.5 32.5 L31.5 29.5',
+        'M14.5 15.5 L21.5 22.5 L28.5 15.5 M21.5 22.5 L21.5 22.5 L21.5 22.5 M14.5 29.5 L21.5 22.5 L28.5 29.5',
+    ];
+    return (
+        <div className='burger-cross icon' onClick={ onClick }>
+            <svg width='44px' height='44px' viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d={ steps.at(-1) } stroke='rgba(0,0,0,.6)' stroke-linecap="round">
+                    <animate
+                        attributeName="d"
+                        values={ (reverse ? steps.slice().reverse() : steps).join('; ') }
+                        dur='0.7s'
+                        fill="freeze"
+                        begin="indefinite"
+                        id="burger-to-cross"
+                    />
+                </path>
+            </svg>
+        </div>
+    )
+}
+
 export const Icon = ({ name, size, className, ...props }: IconProps) => {
     const customSize = size ? size : 44
     return ( paths[name]

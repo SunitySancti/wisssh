@@ -65,6 +65,8 @@ export const WishesPage = () => {
     const { awaitingWishes: isLoading } = getLoadingStatus();
 
     const wishes = useMemo(() => {
+        console.log('calculating wishes')
+        console.log(section, tab, userWishes.length, friendWishes.length)
         const allWishes = isWishesSection  ? userWishes
                         : isInvitesSection ? friendWishes : [];
 
@@ -83,8 +85,8 @@ export const WishesPage = () => {
         }
     },[ section,
         tab,
-        userWishes,
-        friendWishes,
+        userWishes.length,
+        friendWishes.length,
     ]);
 
     const noWishesMessage = useMemo(() => {
