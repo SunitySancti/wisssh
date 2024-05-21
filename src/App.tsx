@@ -1,7 +1,8 @@
 import { useEffect } from 'react'
 import { Navigate,
          Routes,
-         Route } from 'react-router-dom'
+         Route, 
+         useNavigate} from 'react-router-dom'
 
 import './App.scss'
 import './responsiveness.scss'
@@ -19,7 +20,6 @@ import { RedirectPage } from 'pages/RedirectPage'
 import { ProfilePage } from 'pages/ProfilePage'
 import { InvitationAcceptancePage } from 'pages/InvitationAcceptancePage'
 
-// import { useMediaQuery } from 'hooks/useMediaQuery'
 import { useWindowSize } from 'hooks/useWindowSize'
 import { getFriends,
          getUserWishlists,
@@ -100,10 +100,24 @@ const ResponsivenessController = () => {
     return null
 }
 
+const URLCorrector = () => {
+    const navigate = useNavigate();
+    const { location } = getLocationConfig();
+
+    useEffect(() => {
+        if(location.at(-1) === '/') {
+            navigate(location.slice(0, -1))
+        }
+    },[ location ]);
+
+    return null
+}
+
 const App = () => (
     <>
         <DataFetchController/>
         <ResponsivenessController/>
+        <URLCorrector/>
         <Routes>
             <Route path='/' element={ <AppLayout/> }>
                 <Route index element={ <Navigate to='/my-wishes/items/actual' replace/> }/>

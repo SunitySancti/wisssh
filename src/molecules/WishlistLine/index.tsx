@@ -2,7 +2,6 @@ import './styles.scss'
 import { User } from 'atoms/User'
 import { WishlistMenu,
          TimeInfo } from 'molecules/WishlistStuff'
-import { Plug } from 'atoms/Plug'
 
 import type { SyntheticEvent } from 'react'
 import type { Wishlist } from 'typings'
@@ -10,7 +9,7 @@ import { findOutMobile } from 'store/responsivenessSlice'
 
 
 interface WishlistHeaderProps {
-    wishlist: Wishlist | 'past-events-header';
+    wishlist: Wishlist;
     onClick?: (e: SyntheticEvent<HTMLDivElement>) => void
 }
 
@@ -22,9 +21,8 @@ export const WishlistLine = ({
 ) => {
     const isMobile = findOutMobile();
 
-    return (wishlist === 'past-events-header')
-        ? <Plug message='Прошедшие события'/>
-        : <div
+    return (
+        <div
             className='wishlist-line'
             id={ wishlist.id }
             onClick={ onClick }
@@ -47,4 +45,5 @@ export const WishlistLine = ({
 
             <WishlistMenu {...{ wishlist }}/>
         </div>
+    )
 }
