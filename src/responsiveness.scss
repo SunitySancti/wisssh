@@ -8,7 +8,7 @@
         ::-webkit-scrollbar-thumb {
             background-color: $gray1;
             border-radius: 100vw;
-            border: solid 5px $primaryGhost;
+            border: solid 5px $background;
             transition: all 0.3s ease-in-out;
             &:hover {
                 border: solid 4px white;
@@ -52,16 +52,162 @@
                 }
             }
         }
+        
+        .wishlist-line {
+            height: 7rem;
 
+            .user-container {
+                padding: 0.5rem;
+            }
+
+            .flex-container {
+                // 8rem = margin-left + menu button width (5)
+                width: calc(100% - 8.5rem);
+                margin-left: 3.5rem;
+                min-width: 20rem;
+
+                .title {
+                    padding: 0.5rem 0.5rem 0.5rem 2.5rem;
+                    font: $wishlistHeader;
+
+                    &::before,
+                    &::after {
+                        width: 3rem;
+                    }
+                    &::before {
+                        left: 2rem;
+                    }
+
+                    .scroll-container {
+                        padding: 0 2rem;
+                    }
+                }
+            }
+
+            .user {
+                transform-origin: center;
+                transition: transform ease-in-out 0.4s;
+            }
+
+            &.on-wishlist-page {
+                top: -2rem;
+                padding: 2rem;
+                background-color: $lightGray1;
+                border-bottom: solid 1px $lightGray2;
+                overflow: hidden;
+
+                .user {
+                    transform: scale(1.3333);
+                }
+
+                .wishlist-body {
+                    gap: 3rem;
+
+                    .title-container {
+                        background-color: $primary;
+                        fill: $primary;
+                    }
+                }
+                .description.line {
+                    opacity: 0;
+                }
+                .description.full {
+                    opacity: 1;
+                }
+            }
+        
+            &:not(.on-wishlist-page) {
+                padding: 0.5rem 2rem;
+
+                .wishlist-body {
+                    gap: 1rem;
+                }
+
+                &:not(.selected) .title-container,
+                &:not(:hover) .title-container {
+                    fill: $lightGray2;
+                }
+            
+                .title-container {
+                    background-color: $lightGray2;
+                }
+                
+                &:hover {
+                    background-color: $lightGray1;
+                    cursor: pointer;
+
+                    .user {
+                        transform: scale(1.06);
+                    }
+            
+                    .title-container {
+                        background-color: $primaryHover;
+                        fill: $primaryHover;
+                    }
+                }
+                &.selected {
+                    background-color: $lightGray1;
+
+                    .user {
+                        transform: scale(1.3333);
+                    }
+                    .description.line {
+                        opacity: 0;
+                    }
+            
+                    .title-container {
+                        background-color: $primary;
+                        fill: $primary;
+                        filter: drop-shadow(0 0 10px rgb(255, 255, 255));
+                    }
+                }
+
+                &.broad {
+                    top: -2rem;
+                    padding: 2rem;
+                }
+
+                .description.line {
+                    transition: all ease .4s;
+                    opacity: 1;
+                }
+                .description.full {
+                    opacity: 0;
+                    display: none;
+                }
+            }
+        }
+
+        .wishlist-header {
+            top: -2rem;
+            padding: 2rem;
+            min-width: 40rem;
+
+            .description {
+                margin: 0 7rem;
+                // add padding on a blur glass card if wihlist with cover
+                // padding: 0.5rem;
+            }
+        }
+
+        .list-of-lists-page .plug {
+            padding-left: 3.5rem;
+        }
     }
 
     &.mobile {
+        &::-webkit-scrollbar {
+            display: none; /* Скрыть скроллбар в Chrome и Safari */
+        }
+        -ms-overflow-style: none; /* Скрыть скроллбар в IE и Edge */
+        scrollbar-width: none; /* Скрыть скроллбар в Firefox и других браузерах */
         .work-space {
-            padding: 2px;
+            padding: 0;
         }
 
         .navbar {
             width: 100%;
+
             .bread-crumbs {
                 .icon-link.invisible {
                     visibility: hidden;
@@ -96,6 +242,9 @@
                 .bc-slider {
                     bottom: 23px;
                 }
+                &:not(.with-shadow) {
+                    border-bottom: solid 1px $lightGray2;
+                }
             }
         }
 
@@ -116,6 +265,51 @@
                     font: $wishHeaderMobile;
                 }
             }
+        }
+
+        .wishlist-line {
+            height: 6rem;
+
+            .user-container {
+                left: 0.25rem;
+                padding: 0.25rem;
+            }
+
+            .flex-container {
+                // 8rem = margin-left + menu button width (5)
+                width: calc(100% - 8rem);
+                margin-left: 3rem;
+
+                .title {
+                    padding: 0.5rem 1rem 0.5rem 2.5rem;
+                    font: $wishlistHeaderMobile;
+
+                    &::before,
+                    &::after {
+                        width: 2rem;
+                    }
+
+                    &::before {
+                        left: 1.5rem;
+                    }
+
+                    .scroll-container {
+                        padding: 0 1rem;
+                    }
+                }
+            }
+        }
+
+        .wishlist-header {
+            padding: 1rem;
+            
+            .description {
+                margin: 1rem;
+            }
+        }
+
+        .list-of-lists-page .plug {
+            padding-left: 1.5rem;
         }
     }
 

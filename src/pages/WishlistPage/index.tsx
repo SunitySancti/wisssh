@@ -41,10 +41,7 @@ const WishlistPageView = memo(({
                 ?   <WishPreloader isLoading/>
                 :   wishlist
                     ?   <>
-                            <WishlistHeader
-                                wishlist={ wishlist }
-                                onWishlistPage
-                            />
+                            <WishlistHeader {...{ wishlist }}/>
                             { wishes.length
                                 ?   <MultiColumnLayout
                                         Card={ WishCard }

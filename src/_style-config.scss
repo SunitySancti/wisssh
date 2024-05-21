@@ -3,28 +3,34 @@ $smallStep: 4px;
 $bigStep: 11px;
 $appHeaderHeight: 8rem;
 // Colors:
-$primary: #F3E672;
-$primaryHover: #f8ed8f;
-$primaryLight: #fffdee;
-$primaryGhost: #fffef8;
-$primaryDark1: #d1c345;
-$primaryDark2: #5c5419;
-$accent: #c76df1;
-$accentHover: #CF83F2;
-$positive: #6fc555;
-$positiveHover: #CBFABC;
-$negative: #f34358;
-$negativeHover: #f75a6c;
-$negativeLight: #f8e2e4;
-$lightGray1: #FAFAFA;
-$lightGray2: #e5e5df;
-$lightGray3: #d4d4d4;
-$gray1: #C5C5C5;
+$primary: rgb(243, 230, 114);
+$primaryHover: rgb(248, 237, 143);
+$primaryGhost: rgb(255, 254, 248);
+$primaryLight: rgb(255, 253, 240);
+$primaryLight2: rgb(240, 240, 228);
+$primaryDark1: rgb(209, 195, 69);
+$primaryDark2: rgb(92, 84, 25);
+$accent: rgb(199, 109, 241);
+$accentHover: rgb(207, 131, 242);
+$positive: rgb(111, 197, 85);
+$positiveHover: rgb(203, 250, 188);
+$negative: rgb(243, 67, 88);
+$negativeHover: rgb(247, 90, 108);
+$negativeLight: rgb(248, 226, 228);
+$lightGray1: rgb(250, 250, 250);
+$lightGray2: rgb(229, 229, 223);
+$lightGray3: rgb(212, 212, 212);
+$gray1: rgb(197, 197, 197);
 $gray2: rgba(0, 0, 0, 0.4);
-$darkGray1: #777777;
-$darkGray2: #505050;
+$darkGray1: rgb(119, 119, 119);
+$darkGray2: rgb(80, 80, 80);
 
 $background: $primaryGhost;
+
+@function rgbToRgba($rgb, $alpha) {
+    $rgba: rgba($rgb, $alpha);
+    @return $rgba;
+}
 
 // Shadows:
 $lyingCard: 0 1px 2px 0 rgba(0,0,0,.17), 0 1px 5px 0 rgba(0,0,0,.08);
@@ -44,6 +50,8 @@ $navbarMobile: 400 16px/22px 'RoundedMplus1c', sans-serif;
 $action: 400 16px/30px 'GothamPro', sans-serif;
 $wishHeader: 500 18px/32px 'GothamPro', sans-serif;
 $wishHeaderMobile: 500 14px/28px 'GothamPro', sans-serif;
+$wishlistHeader: 500 18px/32px 'GothamPro', sans-serif;
+$wishlistHeaderMobile: 500 16px/30px 'GothamPro', sans-serif;
 $wishPageHeader: 500 30px/44px 'RoundedMplus1c', sans-serif;
 $price: 400 18px/32px 'GothamPro', sans-serif;
 $status: 600 13px/22px 'Lato', sans-serif;

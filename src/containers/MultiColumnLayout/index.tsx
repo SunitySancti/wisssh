@@ -35,25 +35,23 @@ export const MultiColumnLayout = memo(({
 
     // RESPONSIVENESS //
     const isMobile = findOutMobile();
+    const isOneColumn = isMobile && data.length <= 2;
+    const isTwoColumns = isMobile && !isOneColumn;
 
     // STYLES //
-    const gap = isMobile
-        ? 2
-        : 22;
-    const minWidth = isMobile
-        ? (window.innerWidth - gap * 3) / 2 
-        : 270;
-    const defaultMaxWidth = isMobile
-        ? (window.innerWidth - gap * 3) / 2
-        : 400;
+    const gap = isMobile ? 2 : 22;
+    const layoutMinWidth = isMobile ? undefined : 440;
+    const cardMinWidth = 270;
+    const defaultMaxWidth = 400;
     const [ maxWidth, setMaxWidth ] = useState<number | undefined>(defaultMaxWidth);
 
     const containerStyles = {
         display: 'flex',
         flexFlow: 'row nowrap',
         width: '100%',
+        minWidth: layoutMinWidth,
         gap: `${ gap }px`,
-        paddingBottom: isMobile ? '1rem' : '20rem'
+        padding: isMobile ? `${gap}px ${gap}px 1rem ${gap}px` : '0 0 2rem 0'
     };
     const columnStyles = {
         display: 'flex',
@@ -76,10 +74,16 @@ export const MultiColumnLayout = memo(({
     }
 
     const updateColumnsQty = () => {
-        const layoutWidth = layoutRef.current?.clientWidth;
-        if(layoutWidth) {
-            const columnsQtyLimit = Math.floor((layoutWidth + gap + 1) / (minWidth + gap));
-            setColumnsQty(Math.min(columnsQtyLimit, items?.length))
+        if(isOneColumn) {
+            setColumnsQty(1)
+        } else if(isTwoColumns) {
+            setColumnsQty(2)
+        } else {
+            const layoutWidth = layoutRef.current?.clientWidth;
+            if(layoutWidth) {
+                const columnsQtyLimit = Math.floor((layoutWidth + gap + 1) / (cardMinWidth + gap));
+                setColumnsQty(Math.min(columnsQtyLimit, items?.length))
+            }
         }
     }
 

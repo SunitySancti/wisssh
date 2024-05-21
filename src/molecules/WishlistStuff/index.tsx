@@ -3,6 +3,7 @@ import { useMemo,
          useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import './styles.scss'
 import { Button } from 'atoms/Button'
 import { WithDropDown } from 'atoms/WithDropDown'
 import { Modal } from 'atoms/Modal'
@@ -29,7 +30,12 @@ interface WishlistMenuViewProps {
     modalProps: ModalProps
 }
 
-const MemoizedMenuButton = memo(() => <Button className='wishlist-menu' icon='kebap' size={ 4 }/>)
+interface TimeInfoProps {
+    wishlist: Wishlist
+}
+
+
+const MemoizedMenuButton = memo(() => <Button className='wishlist-menu' icon='kebap' size={ 5 }/>)
 
 const WishlistMenuView = memo(({
     dropdownOptions,
@@ -140,4 +146,38 @@ export const WishlistMenu = memo(({
 
     return !!wishlist &&
         <WishlistMenuView {...{ dropdownOptions, modalRef, modalProps }}/>
+});
+
+export const TimeInfo = memo(({
+    wishlist
+} : TimeInfoProps
+) => {
+    if(!wishlist.date) return null;
+
+    const eventTS = new Date( wishlist.date[2], wishlist.date[1] - 1, wishlist.date[0]).getTime();
+    const nowTS = Date.now();
+    const daysToEvent = Math.ceil((eventTS - nowTS)/86400000);
+    const dateString = wishlist.date.map(n => (n < 10) ? '0' + n : n).join('.');
+
+    const isPast = daysToEvent < 0;
+    const isToday = daysToEvent === 0;
+    const isTomorrow = daysToEvent === 1;
+    const isSoon = isToday || isTomorrow || daysToEvent === 2;
+    const isUpToWeek = daysToEvent >=3 && daysToEvent <=6;
+    const isInWeek = daysToEvent === 7;
+
+    return (
+        <div className={ 'time-info ' + (isSoon ? 'soon' : isPast ? 'past' : 'future') }>
+            { isSoon
+                ?   <span className='big'>{ isToday ? 'Сегодня' : isTomorrow ? 'Завтра' : 'Послезавтра' }</span>
+                :   isUpToWeek
+                ?   <>
+                        <span className='small'>через</span>
+                        <span className='big'>{ daysToEvent }</span>
+                        <span className='small'>{ (daysToEvent % 10 <= 4) ? 'дня' : 'дней' }</span>
+                    </>
+                :   <span className='small'> { isInWeek ? 'Через неделю' : dateString }</span>
+            }
+        </div>
+    )
 });
