@@ -23,7 +23,7 @@ import { useAppSelector } from 'store'
 
 import type { RefObject,
               ForwardedRef } from 'react'
-import { findOutMobile } from 'store/responsivenessSlice'
+import { askMobile } from 'store/responsivenessSlice'
 
 
 interface NavBarViewProps {
@@ -81,7 +81,7 @@ const RefreshButton = memo(() => {
 
 
 const NavBarView = ({ shouldDropShadow } : NavBarViewProps) => {
-    const isMobile = findOutMobile();
+    const isMobile = askMobile();
     return (
         <div className='navbar'>
             { isMobile
@@ -144,7 +144,7 @@ export const NavBarLayout = memo(() => {
     const workSpaceRef = useRef<HTMLDivElement>(null);
     const navBarRef = useRef<NavBarRef>(null);
 
-    const isMobile = findOutMobile();
+    const isMobile = askMobile();
     const { isNarrow,
             sidePadding } = useAppSelector(state => state.responsiveness);
 

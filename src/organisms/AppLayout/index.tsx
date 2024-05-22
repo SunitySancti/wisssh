@@ -25,7 +25,7 @@ import { getLocationConfig,
          getCurrentUser } from 'store/getters'
 import { useAppDispatch,
          useAppSelector } from 'store'
-import { findOutMobile } from 'store/responsivenessSlice'
+import { askMobile } from 'store/responsivenessSlice'
 // import { equalizeWidthsByClass } from 'utils'
 
 import type { RefObject,
@@ -268,7 +268,7 @@ const AppHeaderMobile = () => {
 export const AppLayout = () => {
     // RESPONSIVENESS //
     const { isNarrow } = useAppSelector(state => state.responsiveness);
-    const isMobile = findOutMobile()
+    const isMobile = askMobile()
     
     return (
         <div className={'app-layout' + (isNarrow ? ' narrow' : '') + (isMobile ? ' mobile' : '')}>

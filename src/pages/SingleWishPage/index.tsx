@@ -26,6 +26,7 @@ import { promoteImages } from 'store/imageSlice'
 import type { Wish,
               Wishlist } from 'typings'
 import type { Section } from 'store/getters'
+import { askMobile } from 'store/responsivenessSlice'
 
 
 interface WishlistEntriesProps {
@@ -91,6 +92,7 @@ const Description = ({
             style={{
                 position: 'relative',
                 left: pointerOffset,
+                top: '1px'
             }}
         >
             <WishpageDescriptionPointer/>
@@ -144,8 +146,8 @@ interface SingleWishPageViewProps {
     isLoading: boolean;
     wish: Wish | undefined;
     wishlists: Wishlist[];
-    firstColumnMinWidth: number;
-    firstColumnMaxWidth: number;
+    firstColumnMinWidth?: number;
+    firstColumnMaxWidth?: number;
     pointerOffset: number
 }
 
@@ -162,6 +164,7 @@ const SingleWishPageView = ({
     const { section,
             mode,
             tab } = getLocationConfig();
+    const isMobile = askMobile();
 
     return ( isLoading
         ?   <div className='wish-page'>
@@ -179,13 +182,11 @@ const SingleWishPageView = ({
                         secondColumn={
                             <>
                                 <div className='header'>
-                                    <WishMenu wish={ wish }/>
+                                    { !isMobile && <WishMenu wish={ wish }/> }
                                     <span className='title'>{ wish.title }</span>
+                                    <div style={{ flex: 1 }}/>
                                     <OuterLink urlString={ wish.external }/>
-                                    
                                 </div>
-
-                                <StatusBar wish={ wish }/>
 
                                 <div className='info'>
                                     <WishlistEntries {...{ wishlists, section }}/>
@@ -205,6 +206,8 @@ const SingleWishPageView = ({
                                         <PriceLine price={ wish.price } currency={ wish.currency } />
                                     }
                                     <WishButton wish={ wish }/>
+
+                                    <StatusBar wish={ wish }/>
                                 </div>
                             </>
                         }
@@ -218,6 +221,7 @@ const SingleWishPageView = ({
 }
 
 export const SingleWishPage = () => {
+    const isMobile = askMobile();
     const dispatch = useAppDispatch();
     const { wishId } = getLocationConfig();
     
@@ -245,26 +249,23 @@ export const SingleWishPage = () => {
     const imageURL = useAppSelector(state => state.images.imageURLs[wishId || 'undefined']);
 
     const firstColumnMinWidth = useMemo(() => {
-        const minHeight = 330
-        if(!imageURL || !wish) {
-            return minHeight
-        } else {
-            return minHeight * wish.imageAR
-        }
-    },[ imageURL, wish?.imageAR ]);
+        const minHeight = 330;
+        console.log({ isMobile })
+        return isMobile
+            ? 1
+            : (wish && wish.imageAR && imageURL)
+            ? minHeight * wish.imageAR
+            : minHeight
+    },[ imageURL, wish?.imageAR, isMobile ]);
     
     const firstColumnMaxWidth = useMemo(() => {
         if(!imageURL || !wish) return 440
 
-        const widthFromAR = ( window.innerHeight - 250 ) * wish.imageAR;
-        const maximumWidth = 1000;
+        const widthFromAR = ( window.innerHeight - (isMobile ? 200 : 250) ) * wish.imageAR;
+        const maximumWidth = isMobile ? window.innerWidth : 1000;
         
-        if(widthFromAR < maximumWidth) {
-            return widthFromAR
-        } else {
-            return maximumWidth
-        }
-    },[ imageURL, wish?.imageAR ]);
+        return Math.min(widthFromAR, maximumWidth)
+    },[ imageURL, wish?.imageAR, isMobile ]);
 
     return (
         <SingleWishPageView {...{

@@ -52,6 +52,6 @@ export const {
     responseWidth
 } = responsivenessSlice.actions;
 
-export const findOutMobile = () => /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+export const askMobile = () => /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
 export default responsivenessSlice.reducer

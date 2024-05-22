@@ -37,7 +37,7 @@ import type { ModalRef,
               ModalProps } from 'atoms/Modal'
 import type { DropdownOption } from 'atoms/WithDropDown'
 import type { ButtonProps } from 'atoms/Button'
-import { findOutMobile } from 'store/responsivenessSlice'
+import { askMobile } from 'store/responsivenessSlice'
 
 
 interface StatusBarProps {
@@ -105,7 +105,7 @@ const StatusBarView = memo(({
     isReservedByCurrentUser
 } : StatusBarViewProps
 ) => {
-    const isMobile = findOutMobile();
+    const isMobile = askMobile();
     const text = isMobile
         ? ( isCompleted && isReservedByCurrentUser && !ofCurrentUser
             ? 'Исполнено вами'
@@ -150,7 +150,7 @@ export const StatusBar = ({
     onCard
 } : StatusBarProps
 ) => {
-    const isMobile = findOutMobile();
+    const isMobile = askMobile();
     const defaultWidth = 34;
     const defaultPadding = '0';
     const defaultOpacity = 0.6;

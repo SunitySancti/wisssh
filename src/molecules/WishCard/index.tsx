@@ -6,7 +6,7 @@ import { WishCover,
          WishMenu } from 'molecules/WishStuff'
 
 import { getLocationConfig } from 'store/getters'
-import { findOutMobile } from 'store/responsivenessSlice'
+import { askMobile } from 'store/responsivenessSlice'
 
 import type { Wish,
               WishId } from 'typings'
@@ -31,7 +31,7 @@ export const WishCard = ({
             isInvitesSection } = getLocationConfig();
 
     // RESPONSIVENESS //
-    const isMobile = findOutMobile();
+    const isMobile = askMobile();
     
     // ELEMENTS //
     const currency = wish.currency==='rouble' ? ' ₽'

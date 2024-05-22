@@ -193,10 +193,20 @@
         .list-of-lists-page .plug {
             padding-left: 3.5rem;
         }
+
+        .wish-page {
+            .first.column .wish-cover {
+                min-height: 30rem;
+            }
+            .second.column .title {
+                text-indent: 6rem;
+                margin: 0 4rem 1rem 0;
+            }
+        }
     }
 
     &.mobile {
-        &::-webkit-scrollbar {
+        *::-webkit-scrollbar {
             display: none; /* Скрыть скроллбар в Chrome и Safari */
         }
         -ms-overflow-style: none; /* Скрыть скроллбар в IE и Edge */
@@ -211,32 +221,43 @@
             .bread-crumbs {
                 .icon-link.invisible {
                     visibility: hidden;
+                    width: 2rem
                 }
                 .wishlist-menu,
                 .wish-menu {
                     width: 6rem;
+                    height: 6rem;
                     position: relative;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
                 }
                 .nav-elem {
                     height: 6rem;
                     font: $navbarMobile;
                 }
-                &.items {
+                &.tabs {
                     .nav-elem.option {
                         flex: 1;
                         flex-basis: content;
                         justify-content: center;
                     }
                 }
-                &.lists {
+                &.crumbs {
                     padding: 0;
+                    width: 100%;
+
                     .nav-elem {
                         &:not(.active) {
                             display: none;
                         }
-                        &.option {
-                            padding: 0;
+                        &.active {
+                            width: 100%;
+                            overflow: scroll;
                         }
+                        // &.option {
+                        //     padding: 0;
+                        // }
                     }
                 }
                 .bc-slider {
@@ -310,6 +331,16 @@
 
         .list-of-lists-page .plug {
             padding-left: 1.5rem;
+        }
+
+        .wish-page {
+            .second.column {
+                padding: 1rem 2rem 4rem;
+
+                .title {
+                    margin-bottom: 1rem;
+                }
+            }
         }
     }
 

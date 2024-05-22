@@ -5,7 +5,7 @@ import { WishlistMenu,
          TimeInfo } from 'molecules/WishlistStuff'
 
 import type { Wishlist } from 'typings'
-import { findOutMobile } from 'store/responsivenessSlice'
+import { askMobile } from 'store/responsivenessSlice'
 
 
 
@@ -18,7 +18,7 @@ export const WishlistHeader = ({
     wishlist
 } : WishlistHeaderProps
 ) => {
-    const isMobile = findOutMobile();
+    const isMobile = askMobile();
 
     return (
         <div

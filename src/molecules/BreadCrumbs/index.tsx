@@ -1,7 +1,7 @@
 import { useEffect,
-         useMemo,
          memo,
-         useState } from 'react'
+         useState, 
+         useRef } from 'react'
 import { NavLink,
          Link } from 'react-router-dom'
 
@@ -16,9 +16,11 @@ import { getWishlistById,
          getWishById,
          getLoadingStatus,
          getLocationConfig } from 'store/getters'
+import { useOverflowDetector } from 'hooks/useOverflowDetector'
 
 import type { Wish,
               Wishlist } from 'typings'
+import type { ReactNode } from 'react'
 
 
 interface SliderProps {
@@ -40,24 +42,43 @@ interface LinkOption {
     text: string
 }
 
+interface CrumbProps {
+    to: string;
+    children: ReactNode
+}
+
+interface EditCrumbProps {
+    location: string
+    title?: string
+}
+
+interface PlusProps {
+    isWishCreating?: boolean
+}
+
 interface BreadCrumbsProps {
     isMobile?: boolean;
     shouldDropShadow?: boolean;
 }
 
-interface BreadCrumbsViewProps {
-    wish: Wish | undefined;
-    wishlist: Wishlist | undefined;
-    awaitingWishes: boolean;
-    awaitingUserWishes: boolean;
-    awaitingWishlists: boolean;
+interface TabsProps {
+    wishTitle?: string;
     isMobile?: boolean;
-    shouldDropShadow?: boolean;
+}
+
+interface CrumbsProps {
+    awaitingWishlists: boolean;
+    awaitingWishes: boolean;
+    isMobile?: boolean;
+    wishlist?: Wishlist;
+    wish?: Wish;
+    leftOverflow?: boolean;
+    rightOverflow?: boolean;
 }
 
 
 const Slider = ({ location }: SliderProps) => {
-    const sliderPadding = -4;
+    const sliderPadding = 0;
     const [sliderStyles, setSliderStyles] = useState<SliderStyles | undefined>(undefined);
     const [lastActiveTab, setLastActiveTab] = useState<TabCoords | undefined>(undefined);
     const currentTab = document.querySelector<HTMLAnchorElement>('.nav-elem.option.active');
@@ -74,6 +95,8 @@ const Slider = ({ location }: SliderProps) => {
         const nextWidth = activeTab.offsetWidth;
         if(nextLeft === lastLeft && nextWidth === lastWidth) return;
 
+        console.log(activeTab, nextLeft, nextWidth)
+
         if(nextLeft > lastLeft) {
             setSliderStyles({
                 ...sliderStyles,
@@ -89,11 +112,16 @@ const Slider = ({ location }: SliderProps) => {
     
     const finishSliderMove = () => {
         const activeTab = document.querySelector<HTMLSpanElement>('.nav-elem.option.active span');
+        const container = document.querySelector<HTMLAnchorElement>('.nav-elem.option.active');
         if(!activeTab) return;
+
+        console.log({ currentTab, activeTab })
 
         setSliderStyles({
             left: activeTab.offsetLeft + sliderPadding,
-            width: activeTab.offsetWidth - 2 * sliderPadding
+            width: container?.offsetWidth
+                ? Math.min(activeTab.offsetWidth, container.offsetWidth) - 2 * sliderPadding
+                : activeTab.offsetWidth - 2 * sliderPadding
         });
         setLastActiveTab({
             offsetLeft: activeTab.offsetLeft,
@@ -112,254 +140,275 @@ const Slider = ({ location }: SliderProps) => {
     return <div className='bc-slider' style={ sliderStyles }/>
 }
 
-const BreadCrumbsView = memo(({
-    wish,
-    wishlist,
-    awaitingWishes,
-    awaitingUserWishes,
-    awaitingWishlists,
+const Crumb = ({ to, children }: CrumbProps) => {
+    const ref = useRef(null);
+    const [leftOverflow, rightOverflow] = useOverflowDetector(ref);
+
+
+    useEffect(() => {
+        console.log({ leftOverflow, rightOverflow })
+    },[ leftOverflow,
+        rightOverflow
+    ])
+    return (
+        <NavLink
+            className='nav-elem option'
+            end
+            {...{ to, ref }}
+        >
+            <div className={ 'left overflow-mask' + (leftOverflow ? '' : ' hidden')}/>
+            { children }
+            <div className={ 'right overflow-mask' + (rightOverflow ? '' : ' hidden')}/>
+        </NavLink>
+    )
+};
+
+const EditCrumb = memo(({ title, location }: EditCrumbProps) => {
+    return title
+        ?   <Crumb
+                to={ location }
+                children={ <span>{ 'Редактирование: ' + title }</span> }
+            />
+        : null
+});
+
+const Plus = memo(({ isWishCreating }: PlusProps) => (
+    <WithTooltip
+        trigger={
+            <Link
+                className='icon-link'
+                to={ `/my-wishes/${ isWishCreating ? 'items' : 'lists' }/new` }
+                children={ <Icon name='plus'/> }
+            />
+        }
+        text={ isWishCreating ? 'Новое желание' : 'Новый вишлист' }
+    />
+));
+
+
+const Tabs = memo(({
     isMobile,
-    shouldDropShadow
-} : BreadCrumbsViewProps
+    wishTitle
+} : TabsProps
+) => {
+    const { location,
+            wishId,
+            isWishesSection,
+            isInvitesSection,
+            isNewWish,
+            isNewWishlist,
+            isEditWish } = getLocationConfig();
+
+    const options: LinkOption[] = [];
+
+    if(isWishesSection) {
+        options.push({
+            to: '/my-wishes/items/actual',
+            text: 'Актуальные'
+        }, {
+            to: '/my-wishes/items/completed',
+            text: 'Исполненные'
+        }, {
+            to: '/my-wishes/items/all',
+            text: 'Все'
+        });
+
+        if(isNewWish) {
+            options.push({
+                to: `/my-wishes/items/new`,
+                text: 'Новое желание'
+            })
+        }
+    } else if(isInvitesSection) {
+        options.push({
+            to: '/my-invites/items/reserved',
+            text: isMobile ? 'Исполняется' : 'Зарезервировано мной'
+        }, {
+            to: '/my-invites/items/completed',
+            text: 'Подарено'
+        }, {
+            to: '/my-invites/items/all',
+            text: 'Все'
+        });
+    }
+    return  <>
+        { options.map((option, index) =>
+            <NavLink
+                key={ 'tab' + index }
+                className='nav-elem option'
+                to={ option.to }
+                children={ <span>{ option.text }</span> }
+                end={ isEditWish }
+            />
+        )}
+        
+        { !isMobile && isWishesSection && !(isNewWish || isNewWishlist) &&
+            <Plus isWishCreating/>
+        }
+    
+        { wishId && isEditWish &&
+            <EditCrumb {...{ location, title: wishTitle }}/>
+        }
+    </>
+});
+
+const Crumbs = memo(({
+    isMobile,
+    awaitingWishlists,
+    awaitingWishes,
+    wishlist,
+    wish
+} : CrumbsProps
 ) => {
     const { location,
             section,
             wishId,
             wishlistId,
             isWishesSection,
-            isInvitesSection,
-            isItemsMode,
-            isListsMode,
-            isNewWish,
             isNewWishlist,
             isEditWish,
             isEditWishlist } = getLocationConfig();
-    const isListsRoot = location === '/my-wishes/lists' || location === 'my-invites/lists';
 
-    const itemsModeOptions = useMemo(() => {
-        const options: LinkOption[] = [];
+    const Slash = memo(() => <div className='nav-elem'>/</div>);
+    
+    const RootCrumb = memo(() => (
+        <Crumb
+            to={ `/${ section }/lists` }
+            children={ <span>{ section === 'my-invites' ? 'Все приглашения' : 'Все вишлисты' }</span> }
+        />
+    ));
+    
+    const WishlistCrumb = memo(() => (
+        <Crumb to={ `/${ section }/lists/${ wishlistId }` }>
+            <span>{ wishlist?.title }</span>
+        </Crumb>
+    ));
+    
+    const WishCrumb = memo(() => (
+        <Crumb to={ location }>
+            <span>{ wish?.title }</span>
+        </Crumb>
+    ));
 
-        if(isWishesSection) {
-            options.push({
-                to: '/my-wishes/items/actual',
-                text: 'Актуальные'
-            }, {
-                to: '/my-wishes/items/completed',
-                text: 'Исполненные'
-            }, {
-                to: '/my-wishes/items/all',
-                text: 'Все'
-            });
-
-            if(isNewWish) {
-                options.push({
-                    to: `/my-wishes/items/new`,
-                    text: 'Новое желание'
-                })
-            }
-        } else if(isInvitesSection) {
-            options.push({
-                to: '/my-invites/items/reserved',
-                text: isMobile ? 'Исполняется' : 'Зарезервировано мной'
-            }, {
-                to: '/my-invites/items/completed',
-                text: 'Подарено'
-            }, {
-                to: '/my-invites/items/all',
-                text: 'Все'
-            });
-        }
-        return  <>
-                    { options.map((option, index) =>
-                            <NavLink
-                                key={ index }
-                                className='nav-elem option'
-                                to={ option.to }
-                                children={ <span>{ option.text }</span> }
-                                end={ isEditWish }
-                            />
-                    )}
-                    { isEditWish &&
-                        <>
-                            <div className='nav-elem'>/</div>
-                            { awaitingUserWishes
-                                ?   <NavbarEllipsis/>
-                                :   <NavLink
-                                        className='nav-elem option'
-                                        to={ location }
-                                        children={ wish?.title ? wish.title + ': редактирование' : null }
-                                        end
-                                    />
-                            }
-                        </>
-                    }
-                    { !isMobile && isWishesSection && !(isNewWish || isNewWishlist) &&
-                        <WithTooltip
-                            trigger={
-                                <Link
-                                    className='icon-link'
-                                    to='/my-wishes/items/new'
-                                    children={ <Icon name='plus'/> }
-                                />
-                            }
-                            text='Новое желание'
-                        />
+    const NewWishlistCrumb = memo(() => (
+        <Crumb
+            to='/my-wishes/lists/new'
+            children={ <span>Новый вишлист</span> }
+        />
+    ));
+    
+    return <>
+            <RootCrumb/>
+            
+            { wishlistId && // We're in a /lists/ mode and on a whether <WishlistPage> or <SingleWishPage>
+                <>
+                    <Slash/>
+                    { awaitingWishlists
+                        ? <NavbarEllipsis/>
+                    : isEditWishlist
+                        ? <EditCrumb {...{ location, title: wishlist?.title }}/>
+                        : <WishlistCrumb/>
                     }
                 </>
-    },[ location,
-        wish?.title
-    ]);
+            }
+            
+            { wishlistId && wishId && // We're still in a /lists/ mode and on a <SingleWishPage>
+                <>
+                    <Slash/>
+                    { awaitingWishes
+                        ? <NavbarEllipsis/>
+                        : isEditWish
+                        ? <EditCrumb {...{ location, title: wish?.title }}/>
+                        : <WishCrumb/>
+                    }
+                </>
+            }
 
-    const listsModeOptions = useMemo(() => {
-        const Slash = () => <div className='nav-elem'>/</div>;
-        const RootCrumb = () => (
-            <NavLink
-                className='nav-elem option'
-                to={ `/${ section }/lists` }
-                children={ <span>{ isMobile ? 'Все вишлисты' : 'Вишлисты' }</span> }
-                end
-            />
-        );
-        const WishlistCrumb = () => (
-            <NavLink
-                className='nav-elem option'
-                to={ `/${ section }/lists/${ wishlistId }` }
-                children={ <span>{ wishlist?.title }</span> }
-                end
-            />
-        );
-        const WishCrumb = () => (
-            <NavLink
-                className='nav-elem option'
-                to={ `/${ section }/lists/${ wishlistId }/${ wishId }` }
-                children={ <span>{ wish?.title }</span> }
-                end
-            />
-        );
-        const EditCrumb = ({ title }: { title: string }) => (
-            <NavLink
-                className='nav-elem option'
-                to={ location }
-                children={ <span>{ title + ': редактирование' }</span> }
-                end
-            />
-        );
-        const NewWishlistCrumb = () => (
-            <NavLink
-                className='nav-elem option'
-                to='/my-wishes/lists/new'
-                children={<span>Новый вишлист</span>}
-                end
-            />
-        );
-        const Plus = () => (
-            <WithTooltip
-                trigger={ <Link
-                    className='icon-link'
-                    to='/my-wishes/lists/new'
-                    children={ <Icon name='plus'/> }
-                />}
-                text={ isMobile ? 'Новый вишлист' : undefined }
-            />
-        );
-        const Back = () => (
-            <Link
-                className={ 'icon-link' + (isListsRoot ? ' invisible' : '')}
-                to={ location.split('/').slice(0,-1).join('/') }
-                children={ <Icon name='back' size={ 66 }/> }
-            />
-        );
-        return <>
-            { isMobile && <Back/> }
-
-            <div className='bread-box'>
-                <RootCrumb/>
-                
-                { wishlistId &&
-                    <>
-                        <Slash/>
-                        { awaitingWishlists
-                            ? <NavbarEllipsis/>
-                            : isEditWishlist
-                            ? wishlist?.title && <EditCrumb title={ wishlist.title }/>
-                            : wishlist?.title && <WishlistCrumb/>
-                        }
-                    </>
-                }
-                
-                { wishlist?.title && wishId &&
+            { !wishlistId && wishId && // We're in /items/ mode now. In mobile version of Wish page and Wish edit page
                     <>
                         <Slash/>
                         { awaitingWishes
                             ? <NavbarEllipsis/>
-                            : isEditWish
-                            ? wish?.title && <EditCrumb title={ wish.title }/>
-                            : wish?.title && <WishCrumb/>
+                        : isEditWish
+                            ? <EditCrumb {...{ location, title: wish?.title }}/>
+                            : <WishCrumb/>
                         }
                     </>
                 }
 
-                { (isNewWishlist && !isEditWishlist && !isEditWish)
-                    ? <NewWishlistCrumb/>
-                    : (!wishlistId && !wishId && isWishesSection && !isMobile) && <Plus/>
-                }
-            </div>
-            
-            { isMobile && wishlistId && wishlist && !wishId &&
-                <WishlistMenu {...{ wishlist }}/>
+            { (isNewWishlist && !isEditWishlist && !isEditWish)
+                ? <NewWishlistCrumb/>
+                : (!wishlistId && !wishId && isWishesSection && !isMobile) && <Plus/>
             }
-            { isMobile && wishlist?.title && wishId && wish &&
-                <WishMenu {...{ wish }}/>
-            }
-        </>
-    },[ location,
-        wishlistId,
-        wishId,
-        wishlist?.title,
-        wish?.title,
-        awaitingWishlists,
-        awaitingWishes,
-        isMobile,
-        isListsRoot
-    ]);
-
-    return (
-        <div className={ 'bread-crumbs' + (isListsMode ? ' lists' : ' items') + (shouldDropShadow ? ' with-shadow' : '')}>
-            <Slider {...{ location }}/>
-            {   isItemsMode
-                    ?   itemsModeOptions
-              : isListsMode
-                    ?   listsModeOptions
-                    :   null
-            }
-        </div>
-    )
+    </>
 });
+
 
 export const BreadCrumbs = memo(({
     isMobile,
     shouldDropShadow
 } : BreadCrumbsProps
 ) => {
-    const { wishId,
-            wishlistId } = getLocationConfig()
+    const { location,
+            isListsMode,
+            isItemsMode,
+            wishId,
+            wishlistId,
+            isEditWish,
+            isEditWishlist } = getLocationConfig()
 
     const   wish = getWishById(wishId);
     const   wishlist = getWishlistById(wishlistId);
-    const { awaitingUserWishes,
-            awaitingWishes,
+    const { awaitingWishes,
             awaitingWishlists } = getLoadingStatus();
 
+    const isCrumbs = isListsMode || isMobile && wishId;
+
+    const Back = memo(() => {
+        const isListsRoot = location === '/my-wishes/lists' || location === '/my-invites/lists';
+        return <Link
+            className={ 'icon-link' + (isListsRoot ? ' invisible' : '')}
+            to={ location.split('/').slice(0,-1).join('/') }
+            children={ <Icon name='back' size={ 66 }/> }
+        />
+    });
+
     return (
-        <BreadCrumbsView {...{
-            wishlistTitle: wishlist?.title,
-            wish,
-            wishlist,
-            awaitingWishes,
-            awaitingUserWishes,
-            awaitingWishlists,
-            isMobile,
-            shouldDropShadow
-        }}/>
+        <div className={ 'bread-crumbs ' + (isCrumbs ? 'crumbs' : 'tabs') + (shouldDropShadow ? ' with-shadow' : '')}>
+            
+            { isMobile && isCrumbs && <Back/> }
+
+            <div className='bread-box crumbs'>
+                <Slider {...{ location }}/>
+                { isCrumbs // true in /lists/ mode and in mobile version of wish pages and wish edit pages
+                    ? <Crumbs {...{
+                        isMobile,
+                        awaitingWishlists,
+                        awaitingWishes,
+                        wishlist,
+                        wish
+                    }}/>
+                    : <Tabs {...{
+                        isMobile,
+                        wishTitle: wish?.title
+                    }}/>
+                }
+            </div>
+            
+            { isMobile && wishlistId && wishlist && !wishId &&
+                <>{
+                    isEditWishlist
+                        ? <div style={{ width: '2rem', flexShrink: '0' }}/>
+                        : <WishlistMenu {...{ wishlist }}/>
+                }</>
+            }
+            { isMobile && (isItemsMode || wishlist) && wish &&
+                <>{
+                    isEditWish
+                        ? <div style={{ width: '2rem', flexShrink: '0' }}/>
+                        : <WishMenu {...{ wish }}/>
+                }</>
+            }
+        </div>
     )
 });

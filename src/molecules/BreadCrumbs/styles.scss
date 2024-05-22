@@ -26,6 +26,30 @@
         overflow: hidden;
         display: flex;
         flex-flow: row nowrap;
+        position: relative;
+
+        .overflow-mask {
+            position: absolute;
+            width: 4rem;
+            height: 100%;
+            z-index: 2;
+            transition: opacity 0.3s ease-in-out;
+
+            &.left {
+                left: 0;
+                background: linear-gradient(to left, rgbToRgba($background, 0), rgbToRgba($background, 1));
+            }
+            &.right {
+                right: 0;
+                background: linear-gradient(to right, rgbToRgba($background, 0), rgbToRgba($background, 1));
+            }
+            &.hidden {
+                opacity: 0;
+            }
+            &:not(.hidden) {
+                opacity: 1;
+            }
+        }
     }
 
     .nav-elem {
@@ -42,6 +66,10 @@
             &.active, &:hover {
                 color: $darkGray2;
             }
+        }
+
+        span {
+            padding: 4px;
         }
     }
 }

@@ -12,7 +12,6 @@
 
     .first.column .wish-cover {
         width: 100%;
-        min-height: 30rem;
         overflow: hidden;
         display: flex;
         flex-direction: column;
@@ -45,9 +44,7 @@
             .title {
                 font: $wishPageHeader;
                 color: $darkGray2;
-                margin: 0 4rem 1rem 0;
                 white-space: pre-line;
-                text-indent: 6rem;
             }
     
             a {
@@ -98,6 +95,7 @@
                 .description-pointer {
                     height: 2rem;
                     fill: white;
+                    width: fit-content;
                 }
         
                 .description-container {

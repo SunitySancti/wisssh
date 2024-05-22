@@ -105,8 +105,9 @@ const URLCorrector = () => {
     const { location } = getLocationConfig();
 
     useEffect(() => {
-        if(location.at(-1) === '/') {
-            navigate(location.slice(0, -1))
+        const corrected = '/' + location.split('/').filter(str => str).join('/');
+        if(corrected !== location) {
+            navigate(corrected)
         }
     },[ location ]);
 

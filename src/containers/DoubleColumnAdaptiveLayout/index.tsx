@@ -3,6 +3,7 @@ import { useState,
          useRef } from 'react'
 
 import './styles.scss'
+import { askMobile } from 'store/responsivenessSlice';
 
 import type { ReactNode,
               RefObject } from 'react'
@@ -33,9 +34,9 @@ interface DCALBaseProps {
 interface DCALViewProps extends DCALBaseProps {
     firstColumnStyles: ColumnStyles;
     secondColumnStyles: ColumnStyles;
-    gap: number;
     isLandscape: boolean;
     layoutRef: RefObject<HTMLDivElement>
+    gap?: number;
 }
 
 interface DCALProps extends DCALBaseProps {
@@ -57,32 +58,35 @@ const DoubleColumnAdaptiveLayoutView = ({
     isLandscape,
     layoutRef
 } : DCALViewProps
-) => (
-    <div
-        ref={ layoutRef }
-        className={ 'double-column-layout' + (isLandscape ? ' landscape' : ' portrait') }
-        style={{ gap }}
-    >
+) => {
+    const isMobile = askMobile();
+    return (
         <div
-            {...firstColumnProps}
-            className='first column'
-            children={ firstColumn }
-            style={ firstColumnStyles }
-        />
-        { !isLandscape && (
+            ref={ layoutRef }
+            className={ 'double-column-layout' + (isLandscape ? ' landscape' : ' portrait') }
+            style={{ gap }}
+        >
             <div
-                className='divider'
+                {...firstColumnProps}
+                className='first column'
+                children={ firstColumn }
+                style={ firstColumnStyles }
+            />
+            { !isLandscape && !isMobile && (
+                <div
+                    className='divider'
+                    style={ secondColumnStyles }
+                />
+            )}
+            <div
+                {...secondColumnProps}
+                className='second column'
+                children={ secondColumn }
                 style={ secondColumnStyles }
             />
-        )}
-        <div
-            {...secondColumnProps}
-            className='second column'
-            children={ secondColumn }
-            style={ secondColumnStyles }
-        />
-    </div>
+        </div>
 )
+}
 
 export const DoubleColumnAdaptiveLayout = ({
     firstColumn,
@@ -95,10 +99,13 @@ export const DoubleColumnAdaptiveLayout = ({
     interColumnGaps
 } : DCALProps
 ) => {
+    const isMobile = askMobile();
     const [ isLandscape, setIsLandscape ] = useState(true);
     const layoutRef = useRef<HTMLDivElement>(null);
     
-    const gap = isLandscape
+    const gap = isMobile
+        ? undefined
+        : isLandscape
         ? interColumnGaps?.landscape || 66
         : interColumnGaps?.portrait  || 22
 
@@ -117,13 +124,17 @@ export const DoubleColumnAdaptiveLayout = ({
         : widthBreakpoint || 1040
 
     useEffect(() => {
-        const setPageOrientation = () => {
-            if(layoutRef.current) setIsLandscape(layoutRef.current?.offsetWidth > breakpoint)
-        };
-        setPageOrientation();
-        window.addEventListener('resize', setPageOrientation)
-        return () => window.removeEventListener('resize', setPageOrientation)
-    },[ breakpoint ]);
+        if(isMobile) {
+            setIsLandscape(false)
+        } else {
+            const setPageOrientation = () => {
+                if(layoutRef.current) setIsLandscape(layoutRef.current?.offsetWidth > breakpoint)
+            };
+            setPageOrientation();
+            window.addEventListener('resize', setPageOrientation)
+            return () => window.removeEventListener('resize', setPageOrientation)
+        }
+    },[ breakpoint, isMobile ]);
 
     return (
         <DoubleColumnAdaptiveLayoutView {...{

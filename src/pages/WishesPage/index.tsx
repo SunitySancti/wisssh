@@ -29,8 +29,7 @@ interface WishesPageViewProps {
 const WishesPageView = ({
     isLoading,
     wishes,
-    noWishesMessage,
-    // isNarrow
+    noWishesMessage
 } : WishesPageViewProps
 ) => (
     isLoading
@@ -42,13 +41,6 @@ const WishesPageView = ({
                 Card={ WishCard }
                 data={ wishes }
             />
-        // ?   ( isNarrow
-        //         ?   wishes.map(wish => <WishCard data={ wish }/>)
-        //         :   <MultiColumnLayout
-        //                 Card={ WishCard }
-        //                 data={ wishes }
-        //             />
-        //     )
         :   <Plug message={ noWishesMessage }/>
     )
 
@@ -65,8 +57,6 @@ export const WishesPage = () => {
     const { awaitingWishes: isLoading } = getLoadingStatus();
 
     const wishes = useMemo(() => {
-        console.log('calculating wishes')
-        console.log(section, tab, userWishes.length, friendWishes.length)
         const allWishes = isWishesSection  ? userWishes
                         : isInvitesSection ? friendWishes : [];
 

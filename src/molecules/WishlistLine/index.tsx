@@ -5,7 +5,7 @@ import { WishlistMenu,
 
 import type { SyntheticEvent } from 'react'
 import type { Wishlist } from 'typings'
-import { findOutMobile } from 'store/responsivenessSlice'
+import { askMobile } from 'store/responsivenessSlice'
 
 
 interface WishlistHeaderProps {
@@ -19,7 +19,7 @@ export const WishlistLine = ({
     onClick
 } : WishlistHeaderProps
 ) => {
-    const isMobile = findOutMobile();
+    const isMobile = askMobile();
 
     return (
         <div

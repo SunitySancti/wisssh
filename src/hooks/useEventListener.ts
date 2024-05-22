@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react"
 export function useEventListener(
     eventType: keyof WindowEventMap,
     callback: (e: any) => void,
-    element?: EventTarget
+    element?: EventTarget | null
 ) {
     const callbackRef = useRef(callback)
 
@@ -14,9 +14,9 @@ export function useEventListener(
     useEffect(() => {
         if (!element) return
         const handler = (e: any) => callbackRef.current(e);
-        element.addEventListener(eventType, handler)
+        (element || window).addEventListener(eventType, handler)
 
-        return () => element.removeEventListener(eventType, handler)
+        return () => (element || window).removeEventListener(eventType, handler)
     },[ eventType,
         element
     ])

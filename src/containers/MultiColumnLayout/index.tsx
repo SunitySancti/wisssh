@@ -4,7 +4,7 @@ import { useEffect,
          memo } from 'react'
 import { useLocation } from 'react-router'
 
-import { findOutMobile } from 'store/responsivenessSlice'
+import { askMobile } from 'store/responsivenessSlice'
 
 import type { FC } from 'react'
 import type { Wish } from 'typings'
@@ -34,7 +34,7 @@ export const MultiColumnLayout = memo(({
     const [ opacity, setOpacity ] = useState(0.5);
 
     // RESPONSIVENESS //
-    const isMobile = findOutMobile();
+    const isMobile = askMobile();
     const isOneColumn = isMobile && data.length <= 2;
     const isTwoColumns = isMobile && !isOneColumn;
 
