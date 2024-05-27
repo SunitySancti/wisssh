@@ -1,12 +1,10 @@
 import { useState,
          useEffect, 
-         useCallback,
-         useRef } from 'react'
+         useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 
 import './styles.scss'
 import { Button } from 'atoms/Button'
-import { ScrollBox } from 'containers/ScrollBox'
 import { LineContainer } from 'containers/LineContainer'
 import { DoubleColumnAdaptiveLayout } from 'containers/DoubleColumnAdaptiveLayout'
 import { ImageInput } from 'inputs/ImageInput'
@@ -20,8 +18,7 @@ import { useUpdateProfileMutation } from 'store/apiSlice'
 import { postImage,
          deleteImage } from 'store/imageSlice'
 
-import type { BaseSyntheticEvent,
-              RefObject } from 'react'
+import type { BaseSyntheticEvent } from 'react'
 import type { FormState,
               SubmitHandler,
               UseFormRegister } from 'react-hook-form'
@@ -30,13 +27,6 @@ import type { UserId } from 'typings'
 
 interface LabelAlignment {
     labelWidth: number
-}
-
-interface ProfilePageViewProps extends LabelAlignment {
-    toggleNavBarShadow(): void;
-    shouldDropShadow: boolean;
-    profileBodyRef: RefObject<HTMLDivElement>;
-    userName: string
 }
 
 interface ProfileFormViewProps extends LabelAlignment {
@@ -58,14 +48,6 @@ interface ProfileFormValues {
     confirmPassword?: string
 }
 
-
-const defaultValues: ProfileFormValues = {
-    id: undefined,
-    name: undefined,
-    email: undefined,
-    newPassword: undefined,
-    confirmPassword: undefined
-}
 
 const ProfileFormView = ({
     handleFormSubmit,
@@ -91,42 +73,44 @@ const ProfileFormView = ({
             }
             secondColumn={
                 <>
-                    <TextInput {...{
-                        register,
-                        name: 'name',
-                        label: 'Никнейм',
-                        formState,
-                        labelWidth,
-                        required: true
-                    }}/>
-                    <TextInput {...{
-                        register,
-                        name: 'email',
-                        label: 'email',
-                        type: 'email',
-                        patternType: 'email',
-                        formState,
-                        labelWidth,
-                        required: true,
-                    }}/>
-                    <PasswordInput {...{
-                        register,
-                        name: 'newPassword',
-                        label: 'Изменить пароль',
-                        autoComplete: "new-password",
-                        labelWidth
-                    }}/>
-                    { watchNewPassword &&
+                    <div className='inputs'>
+                        <TextInput {...{
+                            register,
+                            name: 'name',
+                            label: 'Никнейм',
+                            formState,
+                            labelWidth,
+                            required: true
+                        }}/>
+                        <TextInput {...{
+                            register,
+                            name: 'email',
+                            label: 'email',
+                            type: 'email',
+                            patternType: 'email',
+                            formState,
+                            labelWidth,
+                            required: true,
+                        }}/>
                         <PasswordInput {...{
                             register,
-                            name: 'confirmPassword',
-                            label: 'Подтверждение',
-                            autoComplete: "off",
-                            required: true,
-                            warningMessage: passwordsNotSame ? 'Пароли не совпадают' : undefined,
+                            name: 'newPassword',
+                            label: 'Изменить пароль',
+                            autoComplete: "new-password",
                             labelWidth
                         }}/>
-                    }
+                        { watchNewPassword &&
+                            <PasswordInput {...{
+                                register,
+                                name: 'confirmPassword',
+                                label: 'Подтверждение',
+                                autoComplete: "off",
+                                required: true,
+                                warningMessage: passwordsNotSame ? 'Пароли не совпадают' : undefined,
+                                labelWidth
+                            }}/>
+                        }
+                    </div>
 
                     <div className='divider'/>
 
@@ -154,6 +138,14 @@ const ProfileForm = ({ labelWidth }: LabelAlignment) => {
     const dispatch = useAppDispatch();
     const { user } = getCurrentUser();
     const [ updateProfile ] = useUpdateProfileMutation();
+    
+    const defaultValues: ProfileFormValues = {
+        id: user?.id,
+        name: user?.name,
+        email: user?.email,
+        newPassword: undefined,
+        confirmPassword: undefined
+    }
 
     // FORM SETTINGS //
     const { handleSubmit,
@@ -186,7 +178,10 @@ const ProfileForm = ({ labelWidth }: LabelAlignment) => {
         if(formState.isDirty) {
             setIsSubmitted(false)
         }
-    },[ watchName, watchEmail, watchNewPassword ])
+    },[ watchName,
+        watchEmail,
+        watchNewPassword
+    ]);
 
 
     // IMAGE SETTINGS //
@@ -264,44 +259,7 @@ const ProfileForm = ({ labelWidth }: LabelAlignment) => {
     )
 }
 
-
-const ProfilePageView = ({
-    toggleNavBarShadow,
-    shouldDropShadow,
-    profileBodyRef,
-    userName,
-    labelWidth
-} : ProfilePageViewProps
-) => (
-    <>
-        <div className='navbar'>
-            <ScrollBox {...{ shouldDropShadow }}>
-                <div className='profile-header'>
-                    Профиль пользователя <b>{ userName }</b>
-                </div>
-            </ScrollBox>
-        </div>
-        <div
-            className='profile-body'
-            onScroll={ toggleNavBarShadow }
-            ref={ profileBodyRef }
-        >
-            <ProfileForm {...{ labelWidth }}/>
-        </div>
-    </>
-);
-
 export const ProfilePage = () => {
-    const { user } = getCurrentUser();
-
-    // TOGGLE NAV SHADOW ON SCROLL //
-    const [ shouldDropShadow, setShouldDropShadow ] = useState(false);
-    const profileBodyRef = useRef<HTMLDivElement>(null);
-    
-    const toggleNavBarShadow = useCallback(() => {
-        setShouldDropShadow(!!profileBodyRef.current?.scrollTop)
-    },[ setShouldDropShadow, profileBodyRef.current ]);
-
     // LABEL ALIGNMENT //
     const defaultLabelWidth = 151;
     const [ labelWidth, setLabelWidth ] = useState<number>(defaultLabelWidth);
@@ -314,13 +272,5 @@ export const ProfilePage = () => {
         setLabelWidth(maxWidth);
     });
     
-    return (
-        <ProfilePageView {...{
-            toggleNavBarShadow,
-            shouldDropShadow,
-            profileBodyRef,
-            userName: user ? '@' + user.name : '',
-            labelWidth
-        }}/>
-    )
+    return <ProfileForm {...{ labelWidth }}/>
 }

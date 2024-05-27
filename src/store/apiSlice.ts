@@ -533,9 +533,11 @@ export const apiSlice = createApi({
 
         getUserWishes: builder.query<Wish[], void>({
             query: () => 'wishes/get-user-wishes',
-            transformResponse: (res: Wish[]) => res.sort((a, b) => {
-                return (b.createdAt || Date.now()) - (a.createdAt || Date.now())
-            }),
+            transformResponse: (res: Wish[]) => res
+                // sort by stars...
+                .sort((a, b) => (b.stars - a.stars)),
+                // ... or by date of creation
+                // .sort((a, b) => (b.createdAt || Date.now()) - (a.createdAt || Date.now())),
             providesTags: ['Auth', 'UserWishes']
         }),
         getFriendWishes: builder.query<Wish[], void>({

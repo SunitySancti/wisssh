@@ -7,8 +7,11 @@ import 'react-datepicker/dist/react-datepicker.css'
 import './styles.scss'
 import { TextLabel } from 'atoms/TextLabel'
 import { Button } from 'atoms/Button'
+
 import { generateId,
          formatDateToArray } from 'utils'
+import { useAppSelector } from 'store'
+
 
 import type { ForwardedRef } from 'react'
 import type { Control,
@@ -55,6 +58,7 @@ export const DateSelect = <FV extends FieldValues>({
     required
 } : DateSelectProps<FV>
 ) => {
+    const { isNarrow } = useAppSelector(state => state.responsiveness);
     const months = [ "Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь" ];
     const buttonId = generateId<BasicId>();
 
@@ -104,7 +108,7 @@ export const DateSelect = <FV extends FieldValues>({
     );
     
     return (
-        <div className='date-select'>
+        <div className={ 'date-select' + (isNarrow ? ' narrow' : '')}>
             <TextLabel
                 htmlFor={ buttonId }
                 text={ label }

@@ -93,16 +93,18 @@ export const WishlistMenu = memo(({
         navigate('/' + section + '/lists')
     }
 
+    const tooNarrow = window.innerWidth >= 375;
+
     const dropdownOptions = useMemo(() => {
         return isInvitesSection
             ?   [{
                     icon: 'delete' as const,
-                    text: 'Удалить из списка приглашений',
+                    text: tooNarrow ? 'Удалить приглашение' : 'Удалить из списка приглашений',
                     onClick: (e: SyntheticEvent) => modalRef.current?.showModal(e)
                 }]
             :   [{
                     icon: 'copy' as const,
-                    text: 'Скопировать пригласительную ссылку',
+                    text: `Скопировать ${ tooNarrow ? 'пригласительную ': '' }ссылку`,
                     clickedIcon: 'ok' as const,
                     clickedText: 'Ссылка скопирована',
                     dontHideAfterClick: true,
@@ -130,6 +132,7 @@ export const WishlistMenu = memo(({
         actions: [{
             icon: 'cancel' as const,
             text: 'Отмена',
+            kind: 'clear' as const,
             onClick: (e: SyntheticEvent) => modalRef.current?.hideModal(e)
         }, {
             kind: 'negative primary' as const,
@@ -137,6 +140,7 @@ export const WishlistMenu = memo(({
             text: isInvitesSection
                 ? 'Удалить приглашение'
                 : 'Удалить вишлист',
+            round: true,
             onClick: handleDelete
         }]
     }),[

@@ -5,16 +5,9 @@
     position: relative;
     height: 100%;
 
-    form > .double-column-layout {
-        .column > .line-container {
-            width: 100%;
-            display: flex;
-            flex-flow: row nowrap;
-            gap: 2rem;
-        }
-    
+    form > .double-column-layout {    
         .select-box {
-        width: 100%;
+            width: 100%;
         }
     }
 }

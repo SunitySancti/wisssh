@@ -18,24 +18,54 @@ import { getCurrentUser,
          getUserWishlists,
          getUserWishes,
          getInvites,
-         getFriendWishes } from 'store/getters'
+         getFriendWishes,
+         getLocationConfig } from 'store/getters'
 import { useAppSelector } from 'store'
 
 import type { RefObject,
-              ForwardedRef } from 'react'
+              ForwardedRef,
+              Dispatch,
+              SetStateAction } from 'react'
 import { askMobile } from 'store/responsivenessSlice'
 
 
-interface NavBarViewProps {
-    shouldDropShadow: boolean
-}
-
-interface NavBarProps {
-    workSpaceRef: RefObject<HTMLDivElement>
-}
-
 interface NavBarRef {
     toggleNavBarShadow(): void
+}
+
+export interface SubmitRef {
+    submit?(): void;
+    isValid?: boolean
+}
+
+interface SubmitRefs {
+    wishSubmitRef: RefObject<SubmitRef>;
+    wishlistSubmitRef: RefObject<SubmitRef>;
+}
+
+export interface OutletContextType extends SubmitRefs {
+    setIsAbleToSumbit: Dispatch<SetStateAction<boolean>>;
+}
+
+interface NavBarViewProps extends SubmitRefs {
+    shouldDropShadow: boolean;
+    isAbleToSumbit: boolean
+}
+
+interface NavBarProps extends SubmitRefs {
+    workSpaceRef: RefObject<HTMLDivElement>;
+    isAbleToSumbit: boolean
+}
+
+interface WorkSpaceProps {
+    isNarrow: boolean;
+    isMobile: boolean;
+    sidePadding: number;
+    workSpaceRef: RefObject<HTMLDivElement>;
+    navBarRef: RefObject<NavBarRef>;
+    wishSubmitRef: RefObject<SubmitRef>;
+    wishlistSubmitRef: RefObject<SubmitRef>;
+    setIsAbleToSumbit: Dispatch<SetStateAction<boolean>>;
 }
 
 
@@ -80,18 +110,27 @@ const RefreshButton = memo(() => {
 });
 
 
-const NavBarView = ({ shouldDropShadow } : NavBarViewProps) => {
+const NavBarView = ({
+    shouldDropShadow,
+    wishSubmitRef,
+    wishlistSubmitRef,
+    isAbleToSumbit
+} : NavBarViewProps) => {
     const isMobile = askMobile();
+    const { isProfileSection } = getLocationConfig();
     return (
         <div className='navbar'>
             { isMobile
                 ?   <BreadCrumbs {...{
                         shouldDropShadow,
-                        isMobile
+                        isMobile,
+                        wishSubmitRef,
+                        wishlistSubmitRef,
+                        isAbleToSumbit
                     }}/>            
                 :   <ScrollBox {...{ shouldDropShadow }}>
-                        <ModeToggle/>
-                        <BreadCrumbs/>
+                        { !isProfileSection && <ModeToggle/> }
+                        <BreadCrumbs {...{ wishSubmitRef, wishlistSubmitRef, isAbleToSumbit }}/>
                         <RefreshButton/>
                     </ScrollBox>
             }
@@ -101,7 +140,10 @@ const NavBarView = ({ shouldDropShadow } : NavBarViewProps) => {
 
 
 const NavBar = forwardRef(({
-    workSpaceRef
+    workSpaceRef,
+    wishSubmitRef,
+    wishlistSubmitRef,
+    isAbleToSumbit
 } : NavBarProps,
     ref: ForwardedRef<NavBarRef>
 ) => {
@@ -111,18 +153,25 @@ const NavBar = forwardRef(({
         toggleNavBarShadow() { setShouldDropShadow(!!workSpaceRef.current?.scrollTop) }
     }));
     
-    return <NavBarView {...{ shouldDropShadow }}/>
+    return <NavBarView {...{
+        shouldDropShadow,
+        wishSubmitRef,
+        wishlistSubmitRef,
+        isAbleToSumbit
+    }}/>
 });
 
-interface WorkSpaceProps {
-    isNarrow: boolean;
-    isMobile: boolean;
-    sidePadding: number;
-    workSpaceRef: RefObject<HTMLDivElement>;
-    navBarRef: RefObject<NavBarRef>
-}
-
-const WorkSpace = memo(({ isNarrow, isMobile, sidePadding, workSpaceRef, navBarRef }: WorkSpaceProps) => (
+const WorkSpace = memo(({ 
+    isNarrow,
+    isMobile,
+    sidePadding,
+    workSpaceRef,
+    navBarRef,
+    wishSubmitRef,
+    wishlistSubmitRef,
+    setIsAbleToSumbit
+} : WorkSpaceProps
+) => (
     <div
         className={ 'work-space' + ( isNarrow ? ' narrow' : '' )}
         ref={ workSpaceRef }
@@ -135,14 +184,18 @@ const WorkSpace = memo(({ isNarrow, isMobile, sidePadding, workSpaceRef, navBarR
             }
         }
     >
-        <Outlet />
+        <Outlet context={{ wishSubmitRef, wishlistSubmitRef, setIsAbleToSumbit } satisfies OutletContextType}/>
     </div>
-))
+));
 
 
 export const NavBarLayout = memo(() => {
     const workSpaceRef = useRef<HTMLDivElement>(null);
     const navBarRef = useRef<NavBarRef>(null);
+    const wishSubmitRef = useRef<SubmitRef>(null);
+    const wishlistSubmitRef = useRef<SubmitRef>(null);
+
+    const [ isAbleToSumbit, setIsAbleToSumbit ] = useState(false);
 
     const isMobile = askMobile();
     const { isNarrow,
@@ -150,8 +203,23 @@ export const NavBarLayout = memo(() => {
 
     return (
         <>
-            <NavBar {...{ workSpaceRef, ref: navBarRef }}/>
-            <WorkSpace {...{ isNarrow, isMobile, sidePadding, workSpaceRef, navBarRef }}/>
+            <NavBar {...{
+                workSpaceRef,
+                wishSubmitRef,
+                wishlistSubmitRef,
+                isAbleToSumbit,
+                ref: navBarRef
+            }}/>
+            <WorkSpace {...{
+                isNarrow,
+                isMobile,
+                sidePadding,
+                workSpaceRef,
+                navBarRef,
+                wishSubmitRef,
+                wishlistSubmitRef,
+                setIsAbleToSumbit
+            }}/>
         </>
     )
 })

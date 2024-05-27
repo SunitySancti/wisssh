@@ -243,6 +243,7 @@ const getLocationConfig = () => {
 
     const isWishesSection = steps[1] === 'my-wishes';
     const isInvitesSection = steps[1] === 'my-invites';
+    const isProfileSection = steps[1] === 'profile';
     const isItemsMode = steps[2] === 'items';
     const isListsMode = steps[2] === 'lists';
     
@@ -277,6 +278,7 @@ const getLocationConfig = () => {
         encodedEmail,
         isWishesSection,
         isInvitesSection,
+        isProfileSection,
         isItemsMode,
         isListsMode,
         isNewWish,

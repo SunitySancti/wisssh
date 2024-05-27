@@ -9,7 +9,6 @@
 
     .container {
         width: 100%;
-        min-height: 30rem;
         overflow: hidden;
 
         svg.placeholder {
@@ -57,7 +56,6 @@
         flex-flow: column;
         align-items: center;
         justify-content: flex-start;
-        gap: 2rem;
         position: relative;
         fill: rgba(0, 0, 0, 0.06);
 
@@ -95,8 +93,6 @@
 
             &.close-btn {
                 transform: scale(1.5);
-                right: 0;
-                top: 0;
 
                 &:hover svg {
                     fill: $negativeHover;

@@ -2,6 +2,16 @@
 
 .select-box {
     display: flex;
-    flex-flow: row nowrap;
     flex: 1 1;
+
+    &:not(.narrow) {
+        flex-flow: row nowrap;
+    }
+    &.narrow {
+        flex-flow: column;
+
+        > div {
+            min-width: unset;
+        }
+    }
 }

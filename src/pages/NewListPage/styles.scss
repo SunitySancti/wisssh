@@ -11,14 +11,12 @@ $widthConstraint: 132rem;
         display: flex;
         flex-flow: column;
         align-items: center;
-        gap: 3rem;
         width: 100%;
         max-width: 150rem;
         
         .inputs {
             display: flex;
             flex-flow: column;
-            gap: 2rem;
             width: 100%;
             max-width: $widthConstraint;
 

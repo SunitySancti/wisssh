@@ -62,9 +62,11 @@ export const WishesPage = () => {
 
         if(!allWishes.length) return []
 
+
         switch (tab) {
             case 'actual':
                 return allWishes.filter(wish => !wish.isCompleted)
+                // .sort((a, b) => (b.stars - a.stars))
             case 'reserved':
                 return allWishes.filter(wish => !wish.isCompleted && wish.reservedBy === user?.id)
             case 'completed':

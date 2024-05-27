@@ -22,6 +22,8 @@
 
         .navbar .bread-crumbs {
             margin-bottom: 1rem;
+            padding: 0 1rem;
+
             .nav-elem {
                 height: 4rem;
                 font: $navbar;
@@ -55,19 +57,26 @@
         
         .wishlist-line {
             height: 7rem;
+            padding: 0.5rem;
 
             .user-container {
                 padding: 0.5rem;
             }
 
+            .user {
+                transform-origin: center;
+                transition: transform ease-in-out 0.4s;
+            }
+
             .flex-container {
-                // 8rem = margin-left + menu button width (5)
-                width: calc(100% - 8.5rem);
-                margin-left: 3.5rem;
+                // 100% - (margin-left + menu button width (5))
+                width: calc(100% - 6.5rem);
+                margin-left: 1.5rem;
                 min-width: 20rem;
+                transition: margin ease-in-out 0.4s;
 
                 .title {
-                    padding: 0.5rem 0.5rem 0.5rem 2.5rem;
+                    padding: 0.5rem 0.5rem 0.5rem 4.5rem;
                     font: $wishlistHeader;
 
                     &::before,
@@ -84,96 +93,16 @@
                 }
             }
 
-            .user {
-                transform-origin: center;
-                transition: transform ease-in-out 0.4s;
-            }
-
-            &.on-wishlist-page {
-                top: -2rem;
-                padding: 2rem;
+            &:hover {
                 background-color: $lightGray1;
-                border-bottom: solid 1px $lightGray2;
-                overflow: hidden;
+                cursor: pointer;
 
                 .user {
-                    transform: scale(1.3333);
-                }
-
-                .wishlist-body {
-                    gap: 3rem;
-
-                    .title-container {
-                        background-color: $primary;
-                        fill: $primary;
-                    }
-                }
-                .description.line {
-                    opacity: 0;
-                }
-                .description.full {
-                    opacity: 1;
-                }
-            }
-        
-            &:not(.on-wishlist-page) {
-                padding: 0.5rem 2rem;
-
-                .wishlist-body {
-                    gap: 1rem;
-                }
-
-                &:not(.selected) .title-container,
-                &:not(:hover) .title-container {
-                    fill: $lightGray2;
-                }
-            
-                .title-container {
-                    background-color: $lightGray2;
+                    transform: scale(1.06);
                 }
                 
-                &:hover {
-                    background-color: $lightGray1;
-                    cursor: pointer;
-
-                    .user {
-                        transform: scale(1.06);
-                    }
-            
-                    .title-container {
-                        background-color: $primaryHover;
-                        fill: $primaryHover;
-                    }
-                }
-                &.selected {
-                    background-color: $lightGray1;
-
-                    .user {
-                        transform: scale(1.3333);
-                    }
-                    .description.line {
-                        opacity: 0;
-                    }
-            
-                    .title-container {
-                        background-color: $primary;
-                        fill: $primary;
-                        filter: drop-shadow(0 0 10px rgb(255, 255, 255));
-                    }
-                }
-
-                &.broad {
-                    top: -2rem;
-                    padding: 2rem;
-                }
-
-                .description.line {
-                    transition: all ease .4s;
-                    opacity: 1;
-                }
-                .description.full {
-                    opacity: 0;
-                    display: none;
+                .flex-container {
+                    margin-left: 2rem;
                 }
             }
         }
@@ -203,6 +132,62 @@
                 margin: 0 4rem 1rem 0;
             }
         }
+        
+        .new-list-page form {
+            gap: 3rem;
+        }
+
+        textarea {
+            height: 12rem;
+            min-height: 6rem;
+        }
+
+        .date-select {
+            flex-flow: row nowrap;
+
+            .react-datepicker-popper {
+                inset: 4rem 0 auto auto !important;
+            }
+        }
+
+        .card-select {
+            .line-container .button-group {
+                gap: 2rem;
+            }
+        }
+
+        .image-input {
+            &.no-image {
+                gap: 2rem;
+            }
+            .container {
+                min-height: 30rem;
+            }
+            &.preview .close-btn {
+                right: 0;
+                top: 0;
+            }
+        }
+
+        .double-column-layout {
+            > div {
+                gap: 1rem;
+            }
+            .column > .line-container {
+                gap: 2rem;
+            }
+        }
+
+        form .inputs {
+            display: flex;
+            flex-flow: column;
+            gap: 2rem;
+        }
+
+        .wish-preloader {
+            height: 60%;
+            width: 60%;
+        }
     }
 
     &.mobile {
@@ -219,10 +204,27 @@
             width: 100%;
 
             .bread-crumbs {
-                .icon-link.invisible {
-                    visibility: hidden;
-                    width: 2rem
+                .icon-link {
+                    &.invisible {
+                        visibility: hidden;
+                        width: 2rem
+                    }
+                    &.right {
+                        display: flex;
+                        flex-flow: row;
+                        align-items: center;
+                        flex-shrink: 0;
+                    }
                 }
+                &.tabs .icon-link.right {
+                    width: 5rem;
+                    justify-content: flex-start;
+                }
+                &.crumbs .icon-link.right {
+                    width: 6rem;
+                    justify-content: center;
+                }
+
                 .wishlist-menu,
                 .wish-menu {
                     width: 6rem;
@@ -237,6 +239,7 @@
                     font: $navbarMobile;
                 }
                 &.tabs {
+                    padding: 0 0 0 1rem;
                     .nav-elem.option {
                         flex: 1;
                         flex-basis: content;
@@ -255,9 +258,6 @@
                             width: 100%;
                             overflow: scroll;
                         }
-                        // &.option {
-                        //     padding: 0;
-                        // }
                     }
                 }
                 .bc-slider {
@@ -319,6 +319,10 @@
                     }
                 }
             }
+
+            .wishlist-menu svg {
+                left: 2rem
+            }
         }
 
         .wishlist-header {
@@ -329,8 +333,11 @@
             }
         }
 
-        .list-of-lists-page .plug {
-            padding-left: 1.5rem;
+        .list-of-lists-page {
+            padding-top: 1rem;
+            .plug {
+                padding: 1rem 1.5rem 2rem;
+            }
         }
 
         .wish-page {
@@ -342,11 +349,106 @@
                 }
             }
         }
+
+        .new-list-page form {
+            .inputs {
+                padding: 1rem;
+
+                .line-container {
+                    gap: 1rem
+                }
+            }
+        }
+
+        textarea {
+            min-height: 10rem;
+        }
+
+        .date-select {
+            flex-flow: column;
+
+            .react-datepicker-popper {
+                inset: 7rem 0 auto auto !important;
+            }
+
+            .react-datepicker-popper,
+            .custom-calendar,
+            .react-datepicker__month-container {
+                width: 100%;
+            }
+        }
+
+        .card-select {
+            .line-container {
+                flex-flow: column;
+                padding: 1rem 0;
+
+                span {
+                    padding: 0 2rem;
+                }
+
+                .button-group {
+                    // justify-content: space-between;
+                    flex-flow: row-reverse;
+                    > div {
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        flex: 1
+                    }
+                }
+            }
+        }
+
+        .image-input {
+            &.no-image {
+                gap: 1rem;
+            }
+            .container {
+                min-height: 100px;
+                padding: 1rem;
+            }
+            .button {
+                margin-bottom: 2rem;
+            }
+            &.preview .close-btn {
+                right: 1rem;
+                top: 1rem;
+            }
+        }
+
+        .double-column-layout {
+            > div {
+                gap: 1rem;
+            }
+            .divider {
+                margin: unset;
+            }
+            .second.column .inputs {
+                padding: 1rem;
+            }
+            .column .line-container {
+                gap: 1rem;
+                align-items: flex-end;
+            }
+            .column > .line-container {
+                padding: 1rem 2rem 2rem;
+            }
+        }
+
+        form .inputs {
+            display: flex;
+            flex-flow: column;
+            gap: 1rem;
+        }
+
+        #modal-root .button {
+            padding: 0 1.5rem
+        }
+
+        .wish-preloader {
+            height: 40%;
+            width: 40%;
+        }
     }
-
-    // &:not(.narrow) {
-    // }
-
-    // &.narrow {
-    // }
 }

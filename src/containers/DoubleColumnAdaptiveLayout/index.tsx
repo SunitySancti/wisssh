@@ -59,7 +59,6 @@ const DoubleColumnAdaptiveLayoutView = ({
     layoutRef
 } : DCALViewProps
 ) => {
-    const isMobile = askMobile();
     return (
         <div
             ref={ layoutRef }
@@ -72,7 +71,7 @@ const DoubleColumnAdaptiveLayoutView = ({
                 children={ firstColumn }
                 style={ firstColumnStyles }
             />
-            { !isLandscape && !isMobile && (
+            { !isLandscape && (
                 <div
                     className='divider'
                     style={ secondColumnStyles }
@@ -134,7 +133,10 @@ export const DoubleColumnAdaptiveLayout = ({
             window.addEventListener('resize', setPageOrientation)
             return () => window.removeEventListener('resize', setPageOrientation)
         }
-    },[ breakpoint, isMobile ]);
+    },[ breakpoint,
+        isMobile,
+        layoutRef.current
+    ]);
 
     return (
         <DoubleColumnAdaptiveLayoutView {...{

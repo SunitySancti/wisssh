@@ -2,13 +2,12 @@ import { useEffect,
          useState,
          useRef,
          memo } from 'react'
-import { useLocation } from 'react-router'
 
+import { getLocationConfig } from 'store/getters';
 import { askMobile } from 'store/responsivenessSlice'
 
 import type { FC } from 'react'
 import type { Wish } from 'typings'
-
 
 interface MultiColumnLayoutProps {
     Card: FC<{ data: Wish }>;
@@ -23,9 +22,10 @@ export const MultiColumnLayout = memo(({
     ...cardProps
 } : MultiColumnLayoutProps
 ) => {
+    console.log('MCT')
     // STATE //
     const layoutRef = useRef<HTMLDivElement>(null);
-    const location = useLocation().pathname;
+    const { location } = getLocationConfig();
 
     const [ items, setItems ] = useState<Wish[]>([]);
     const [ columnsQty, setColumnsQty ] = useState(0);
@@ -115,7 +115,10 @@ export const MultiColumnLayout = memo(({
     // LIFE CYCLE //
     useEffect(() => {
         resetState();
-    },[ location, data ]);
+    },[ location,
+        // if uncomment this it will cause blink rerender in card select
+        // data
+    ]);
 
     useEffect(() => {
         updateColumnsQty(); 
@@ -143,6 +146,7 @@ export const MultiColumnLayout = memo(({
             setMaxWidth(defaultMaxWidth)
         }
     },[ columnedData ]);
+    
 
     return (
         <div

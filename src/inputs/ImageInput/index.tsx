@@ -11,6 +11,8 @@ import { Icon,
          UserPlaceholder } from 'atoms/Icon'
 import { Button } from 'atoms/Button'
 
+import { askMobile } from 'store/responsivenessSlice'
+
 import type { RefObject,
               SyntheticEvent } from 'react'
 import type { FieldValues,
@@ -137,6 +139,7 @@ const ImageInputView = <FV extends FieldValues>({
     deleteImage
 } : ImageInputViewProps<FV>
 ) => {
+    const isMobile = askMobile();
     const classes = useMemo(() => {
         let result = isUser ? 'image-input user-avatar' : 'image-input wish-cover';
         if(isDragAccept) result += ' droppable';
@@ -187,6 +190,7 @@ const ImageInputView = <FV extends FieldValues>({
                             text='Загрузить изображение'
                             icon='upload'
                             round
+                            kind={ isMobile ? 'primary' : 'secondary' }
                         />
                     </>
             }

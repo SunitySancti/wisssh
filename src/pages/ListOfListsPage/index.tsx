@@ -37,6 +37,7 @@ const MappedEvents = ({
     const { location } = getLocationConfig();
     
     return wishlists.map((item, index) => {
+
         const handleClick = useCallback(() => {
             navigate(location + '/' + item?.id)
         },[ location ])
@@ -46,7 +47,6 @@ const MappedEvents = ({
                 key={ index }
                 wishlist={ item }
                 onClick={ handleClick }
-                // onClick={() => handleClick(item?.id)}
             />
         )})
 }
@@ -82,14 +82,16 @@ const ListOfListsPageView = ({
                         )
                     :   <>
                             <MappedEvents wishlists={ actualEvents }/>
-                            <Plug message='Прошедшие события'/>
+                            { !!pastEvents.length &&
+                                <Plug message='Прошедшие события'/>
+                            }
                             <MappedEvents wishlists={ pastEvents }/>
                         </>
                     )
             }
         </div>
     )
-};
+}
 
 
 export const ListOfListsPage = () => {

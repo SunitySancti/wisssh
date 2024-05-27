@@ -13,32 +13,33 @@
 
         .modal-window {
             position: relative;
-            border-radius: 1rem;
+            border-radius: 0.5rem;
             background-color: white;
             display: flex;
             flex-flow: column;
-            width: 50vw;
+            width: calc(100vw - 1rem);
             max-width: 55rem;
             box-shadow: $flyingAbove;
             cursor: auto;
 
             .header {
                 padding: 1rem 2rem 0.5rem;
-                background: linear-gradient(135deg, $primaryHover, $primary);
-                border-bottom: solid 1px $primaryDark1;
-                border-radius: 1rem 1rem 0 0;
+                background: $primaryLight2;
+                border-bottom: solid 1px $lightGray2;
+                border-radius: 0.5rem 0.5rem 0 0;
                 font: $general;
                 color: $primaryDark2;
             }
 
             .body {
-                padding: 4rem 6rem;
+                padding: 6% 10%;
                 background-color: white;
                 font: $general;
                 color: $darkGray2;
             }
 
             .actions {
+                padding: 2px;
                 display: flex;
                 flex-flow: row nowrap;
                 border-radius: 0 0 1rem 1rem;

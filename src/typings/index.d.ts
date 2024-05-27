@@ -79,7 +79,8 @@ export interface WishlistDefaultValues extends FieldValues {
 export interface Wishlist extends WishlistDefaultValues {
     id: WishlistId;
     author: UserId;
-    invitationCode?: InvitationCode     // undefined для invites
+    guests: UserId[];
+    invitationCode?: InvitationCode;    // undefined для invites
     key?: WishlistId;                   // обрабатывается сервером
 }
 

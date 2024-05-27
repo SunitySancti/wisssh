@@ -26,7 +26,6 @@ import { getLocationConfig,
 import { useAppDispatch,
          useAppSelector } from 'store'
 import { askMobile } from 'store/responsivenessSlice'
-// import { equalizeWidthsByClass } from 'utils'
 
 import type { RefObject,
               WheelEvent } from 'react'
@@ -203,7 +202,7 @@ const AppHeaderMobile = () => {
 
     const optionId = mode ? section + '/' + mode : section!;
 
-    const [ isMenuOpen, setIsMenuOpen ] = useState(true);
+    const [ isMenuOpen, setIsMenuOpen ] = useState(false);
 
     const top = useMemo(() => {
         const targetOption = document.getElementById(optionId) as HTMLAnchorElement | null;

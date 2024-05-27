@@ -7,9 +7,15 @@
 
     &:not(.narrow) {
         flex-flow: row nowrap;
+        
+        input,
+        textarea {
+            flex: 1
+        }
     }
     &.narrow {
         flex-flow: column;
+        min-width: 16rem;
     }
   
     > input {
@@ -20,12 +26,14 @@
     }
   
     > textarea {
-        height: 12rem;
-        min-height: 6rem;
-
         &::-webkit-resizer {
             display: none;
         }
+        &::-webkit-scrollbar {
+            display: none; /* Скрыть скроллбар в Chrome и Safari */
+        }
+        -ms-overflow-style: none; /* Скрыть скроллбар в IE и Edge */
+        scrollbar-width: none; /* Скрыть скроллбар в Firefox и других браузерах */
         
         + .icon {
             position: absolute;
@@ -38,42 +46,50 @@
     }
     
     > input, textarea {
-        flex: 1;
         padding: 11px 22px;
         border: 1px solid;
-        border-color: $gray1;
+        border-color: $lightGray3;
         border-radius: 2rem;
         outline: none;
         font: $general;
         color: $darkGray2;
+        cursor: default;
+        box-shadow: $insetShadow;
+
+        // &:not(.auto-height) {
+        //     flex: 1;
+        // }
     
         &:default {
-            border-color: $gray1;
+            border-color: $lightGray3;
         }
 
         &:hover:not(:disabled) {
-            border-color: $darkGray1;
+            border-color: $gray1;
             box-shadow: none;
         }
 
         &:active:not(:disabled),
         &:focus:not(:disabled) {
-            border: 1px solid $primary;
-            box-shadow: $insetGlow;
+            border: 1px solid $primaryDark1;
+            box-shadow: none;
+            background-color: $primaryLight;
     
             &::placeholder {
-            color: $lightGray3;
+                opacity: 0.7;
             }
         }
     
         &::placeholder {
-            color: $gray1;
+            color: $lightGray3;
         }
     
         &:invalid,
         &.error {
             border-color: $negative;
-            box-shadow: $insetNegativeGlow;
+            // box-shadow: $insetNegativeGlow;
+            box-shadow: unset;
+            background-color: rgbToRgba($negativeLight, 0.1);
         }
     
         :disabled {
@@ -84,7 +100,7 @@
     
     span.error-message {
         position: absolute;
-        bottom: -20px;
+        bottom: -18px;
         right: 0;
         font: $small;
         color: $negative;

@@ -13,6 +13,7 @@ import type { Control,
               Path } from 'react-hook-form'
 import type { Wish,
               WishId } from 'typings'
+import { askMobile } from 'store/responsivenessSlice'
  
 
 interface CardSelectProps<FV extends FieldValues> {
@@ -40,42 +41,57 @@ const CardSelectView = ({
     value,
     onChange
 } : CardSelectViewProps
-) => (
-    <div className='card-select'>
-        <LineContainer>
-            <span
-                children={
-                    value?.length
-                    ? `Выбрано желаний: ${value?.length}`                           
-                    : 'Кликните на карточку, чтобы добавить желание в вишлист'
-                }
-            />
-            <div style={{flex: 1}}/>
-            <Button
-                icon='clear'
-                onClick={(e: MouseEvent) => {
-                    e.preventDefault();
-                    onChange([]);
-                }}
-            />
-            <Button
-                text='Выделить все'
-                onClick={(e: MouseEvent) => {
-                    e.preventDefault();
-                    onChange(options.map(option => option.id));
-                }}
-                round
-                disabled={value?.length === options?.length}
-            />
-        </LineContainer>
-        <MultiColumnLayout
-            Card={ WishCard }
-            data={ options }
-            value={ value }
-            onChange={ onChange }
-        />
-    </div>
-);
+) => {
+    console.log('Card Select')
+    const isMobile = askMobile();
+    return (
+        <div className='card-select'>
+            <LineContainer>
+                <span
+                    children={
+                        value?.length
+                        ? `Выбрано желаний: ${value?.length}`                           
+                        : isMobile
+                        ? 'Прикрепите желания'
+                        : 'Кликните на карточку, чтобы добавить желание в вишлист'
+                    }
+                />
+                { !isMobile && <div style={{flex: 1}}/> }
+                <div className='button-group'>
+                    <div>
+                        <Button
+                            icon='clear'
+                            text='Очистить'
+                            kind='clear'
+                            onClick={(e: MouseEvent) => {
+                                e.preventDefault();
+                                onChange([]);
+                            }}
+                        />
+                    </div>
+                    <div>
+                        <Button
+                            text='Выбрать все'
+                            onClick={(e: MouseEvent) => {
+                                e.preventDefault();
+                                onChange(options.map(option => option.id));
+                            }}
+                            kind={ isMobile ? 'primary' : 'secondary' }
+                            round
+                            disabled={value?.length === options?.length}
+                        />
+                    </div>
+                </div>
+            </LineContainer>
+            <MultiColumnLayout {...{
+                data: options,
+                Card: WishCard,
+                value,
+                onChange
+            }}/>
+        </div>
+    )
+};
 
 export const CardSelect = <FV extends FieldValues>({
     control,

@@ -7,6 +7,8 @@ import { Icon } from 'atoms/Icon'
 import { TextLabel } from 'atoms/TextLabel'
 import { generateId } from 'utils'
 
+import { useAppSelector } from 'store'
+
 import type { ReactNode } from 'react'
 import type { StylesConfig,
               DropdownIndicatorProps,
@@ -48,6 +50,9 @@ export const SelectBox = <FV extends FieldValues>({
     noOptionsMessage
 } : SelectBoxProps<FV>
 ) => {
+    // GETTING RESPONSIVE 
+    const { isNarrow } = useAppSelector(state => state.responsiveness);
+
     const id = generateId<BasicId>();
 
     const customStyles: StylesConfig<Option> = {
@@ -195,7 +200,7 @@ export const SelectBox = <FV extends FieldValues>({
 
     return (
         <div
-            className={isMulti ? 'select-box multi' : 'select-box'}
+            className={ 'select-box' + (isMulti ? ' multi' : '' ) + (isNarrow ? ' narrow' : '')}
         >
             { label &&  <TextLabel
                             htmlFor={ id }

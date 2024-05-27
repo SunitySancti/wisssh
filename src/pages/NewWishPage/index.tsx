@@ -3,9 +3,13 @@ import { useState,
          useRef,
          useMemo,
          memo, 
-         useCallback} from 'react'
+         useCallback,
+         forwardRef,
+         useImperativeHandle } from 'react'
 import { useForm } from 'react-hook-form'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate,
+         useOutletContext } from 'react-router-dom'
+
 
 import './styles.scss'
 import { Button } from 'atoms/Button'
@@ -27,6 +31,7 @@ import { getLocationConfig,
 import { usePostWishMutation } from 'store/apiSlice'
 import { postImage,
          deleteImage } from 'store/imageSlice'
+import { askMobile } from 'store/responsivenessSlice'
 
 import type { MouseEvent,
               BaseSyntheticEvent, 
@@ -39,6 +44,7 @@ import type { WishId,
               WishlistId,
               WishDefaultValues } from 'typings'
 import type { ImageInputRef } from 'inputs/ImageInput'
+import type { OutletContextType } from 'organisms/NavBarLayout'
 
 
 interface NewWishPageViewProps {
@@ -114,6 +120,7 @@ const NewWishPageView = memo(({
     maxLabelWidth
 } : NewWishPageViewProps
 ) => {
+    const isMobile = askMobile();
     const invisibleFields = [{
         name: 'id' as const,
         required: true
@@ -150,98 +157,101 @@ const NewWishPageView = memo(({
                     firstColumnLimits={ firstColumnLimits }
                     secondColumn={
                         <>
-                            { invisibleFields.map(({name, required}, index) => (
-                                <input
-                                    key={ index }
-                                    className='invis'
-                                    type='text'
-                                    {...register(name,{ required })}
-                                />
-                            ))}
-                            <TextInput
-                                name='title'
-                                register={ register }
-                                placeholder='Таинственный артефакт'
-                                label='Название'
-                                labelWidth={ maxLabelWidth }
-                                required
-                                formState={ formState }
-                            />
-                            <TextInput
-                                name='description'
-                                register={ register }
-                                placeholder='Отметьте моменты, которые вам важны. Чем точнее вы опишете желание, тем проще друзьям будет его исполнить'
-                                label='Описание'
-                                labelWidth={ maxLabelWidth }
-                                multiline
-                                
-                            />
-                            <TextInput
-                                name='external'
-                                register={ register }
-                                placeholder='https://magicstore.com/goods/mysterious-artefact'
-                                label='Ссылка'
-                                labelWidth={ maxLabelWidth }
-                            />
-                            <LineContainer>
+                            <div className='inputs'>
+                                { invisibleFields.map(({name, required}, index) => (
+                                    <input
+                                        key={ index }
+                                        className='invis'
+                                        type='text'
+                                        {...register(name,{ required })}
+                                    />
+                                ))}
                                 <TextInput
-                                    name='price'
+                                    name='title'
                                     register={ register }
+                                    placeholder='Таинственный артефакт'
+                                    label='Название'
+                                    labelWidth={ maxLabelWidth }
+                                    required
                                     formState={ formState }
-                                    patternType='number'
-                                    placeholder='4200'
-                                    label='Цена'
+                                />
+                                <TextInput
+                                    name='description'
+                                    register={ register }
+                                    placeholder='Отметьте моменты, которые вам важны. Чем точнее вы опишете желание, тем проще друзьям будет его исполнить'
+                                    label='Описание'
+                                    labelWidth={ maxLabelWidth }
+                                    multiline
+                                    rows={ 4 }
+                                    
+                                />
+                                <TextInput
+                                    name='external'
+                                    register={ register }
+                                    placeholder='https://magicstore.com/goods/mysterious-artefact'
+                                    label='Ссылка'
                                     labelWidth={ maxLabelWidth }
                                 />
-                                <ToggleInput
-                                    name='currency'
-                                    control={ control }
-                                    options={ currencyOptions }
-                                />
-                            </LineContainer>
-                            <LineContainer>
+                                <LineContainer>
+                                    <TextInput
+                                        name='price'
+                                        register={ register }
+                                        formState={ formState }
+                                        patternType='number'
+                                        placeholder='4200'
+                                        label='Цена'
+                                        labelWidth={ maxLabelWidth }
+                                    />
+                                    <ToggleInput
+                                        name='currency'
+                                        control={ control }
+                                        options={ currencyOptions }
+                                    />
+                                </LineContainer>
+                                <LineContainer>
+                                    <SelectBox
+                                        control={ control }
+                                        name='isCompleted'
+                                        options={ statusOptions }
+                                        label='Статус'
+                                        labelWidth={ maxLabelWidth }
+                                        placeholder='Актуально'
+                                    />
+                                    <StarRating
+                                        name='stars'
+                                        control={ control }
+                                        maxStars={ 3 }
+                                        starBoxSize={ 4 }
+                                        rating={ 0 }
+                                    />
+                                </LineContainer>
                                 <SelectBox
                                     control={ control }
-                                    name='isCompleted'
-                                    options={ statusOptions }
-                                    label='Статус'
+                                    name='inWishlists'
+                                    options={ wishlistOptions }
+                                    label='Вишлисты'
                                     labelWidth={ maxLabelWidth }
-                                    placeholder='Актуально'
+                                    isMulti
+                                    placeholder='Можно сразу добавить в вишлисты'
+                                    noOptionsMessage={() => 'У вас пока нет актуальных вишлистов'}
                                 />
-                                <StarRating
-                                    name='stars'
-                                    control={ control }
-                                    maxStars={ 3 }
-                                    starBoxSize={ 4 }
-                                    rating={ 0 }
-                                />
-                            </LineContainer>
-                            <SelectBox
-                                control={ control }
-                                name='inWishlists'
-                                options={ wishlistOptions }
-                                label='Вишлисты'
-                                labelWidth={ maxLabelWidth }
-                                isMulti
-                                placeholder='Можно сразу добавить в вишлисты'
-                                noOptionsMessage={() => 'У вас пока нет актуальных вишлистов'}
-                            />
+                            </div>
 
                             <div className='divider'/>
 
-                            <LineContainer className='align-right'>
-                                <Button
-                                    icon='clear'
-                                    onClick={ resetForm }
-                                />
+                            <LineContainer className={ isMobile ? 'distribute-width' : 'align-right' }>
                                 <Button
                                     icon='cancel'
                                     onClick={ cancelForm }
                                 />
                                 <Button
+                                    icon='clear'
+                                    onClick={ resetForm }
+                                />
+                                <Button
                                     type='submit'
                                     kind='primary'
-                                    text='Сохранить желание'
+                                    text={ isMobile ? 'Сохранить' : 'Сохранить желание' }
                                     icon='save'
                                     round
                                     disabled={ isSubmitButtonDisabled }
@@ -250,14 +260,15 @@ const NewWishPageView = memo(({
                             </LineContainer>
                         </>
                     }
-                    secondColumnLimits={{ min: 500 }}
+                    secondColumnLimits={{ min: isMobile ? 100 : 500 }}
                 />
             </form>
         </div>
     )
-})
+});
 
-export const NewWishPage = () => {
+
+export const NewWishPage = forwardRef(() => {
     const dispatch = useAppDispatch();
     const navigate = useNavigate();
     const imageInputRef = useRef<ImageInputRef>(null);
@@ -273,6 +284,8 @@ export const NewWishPage = () => {
     const [ postWish,{
             isLoading: awaitPostWish }] = usePostWishMutation();
 
+    const isMobile = askMobile();
+
     // FORM SETTINGS //
 
     const { handleSubmit,
@@ -285,8 +298,6 @@ export const NewWishPage = () => {
         mode: 'onChange',
         defaultValues
     });
-
-    const memoizedFormState = useMemo(() => formState,[])
 
     useEffect(() => {
         if(editingWish && isEditWish) {
@@ -366,26 +377,29 @@ export const NewWishPage = () => {
     const onSubmit: SubmitHandler<WishDefaultValues> = async (data, e?: BaseSyntheticEvent) => { 
         e?.preventDefault();
 
-        const { id, author, isCompleted } = data;
-        if(!id || !author) return
-        
-        postWish({ ...data, id, author });
+        if(formState.isValid) {
+            const { id, author, isCompleted } = data;
+            if(!id || !author) return
+            
+            postWish({ ...data, id, author });
 
-        if(image && (isNewImage || isNewWish)) {
-            dispatch(postImage({
-                id,
-                file: image,
-                drive: 'covers'
-            }))
+            if(image && (isNewImage || isNewWish)) {
+                dispatch(postImage({
+                    id,
+                    file: image,
+                    drive: 'covers'
+                }))
+            }
+            if(!image && !isNewWish && isEditWish) {
+                dispatch(deleteImage({
+                    id,
+                    drive: 'covers'
+                }))
+            }
+            navigate(`/my-wishes/items/${ isCompleted ? 'completed' : 'actual'  }/${ id }`)
         }
-        if(!image && !isNewWish && isEditWish) {
-            dispatch(deleteImage({
-                id,
-                drive: 'covers'
-            }))
-        }
-        navigate(`/my-wishes/items/${ isCompleted ? 'completed' : 'actual'  }/${ id }`)
     }
+    const handleFormSubmit = handleSubmit(onSubmit);
 
     const cancelForm = useCallback((e: MouseEvent) => {
         e.preventDefault();
@@ -397,6 +411,16 @@ export const NewWishPage = () => {
         reset(defaultValues);
         imageInputRef.current?.deleteImage(e);
     },[ defaultValues ]);
+
+    // TRANSLATE SUBMIT FUNCTION TO NAVBAR //
+    const { wishSubmitRef, setIsAbleToSumbit } = useOutletContext<OutletContextType>();
+    useImperativeHandle(wishSubmitRef, () => ({
+        submit: handleFormSubmit
+    }));
+    useEffect(() => {
+        setIsAbleToSumbit(formState.isValid)
+    },[ formState.isValid ]);
+    
     
     // ALIGNMENTS //
 
@@ -412,29 +436,30 @@ export const NewWishPage = () => {
 
     const watchImageAR = watch('imageAR');
     const firstColumnLimits = useMemo(() => {
-        const minHeight = 330;
+        const minHeight = isMobile ? 100 : 330;
         const maxWidth = 1000
 
         return image
             ? {
                 min: minHeight * watchImageAR,
-                max: Math.min(( window.innerHeight - 250 ) * watchImageAR, maxWidth)
+                max: Math.min(( window.innerHeight - 250 ) * watchImageAR, maxWidth, window.innerWidth)
             }
             : {
                 min: minHeight,
                 max: 440
             }
-    },[ image, watchImageAR ]);
-
+    },[ image,
+        watchImageAR
+    ]);
 
     return (
         <NewWishPageView {...{
-            handleFormSubmit: handleSubmit(onSubmit),
+            handleFormSubmit,
             resetForm,
             cancelForm,
             register,
             control,
-            formState: memoizedFormState,
+            formState,
             currencyOptions,
             statusOptions,
             wishlistOptions,
@@ -442,10 +467,10 @@ export const NewWishPage = () => {
             imageInputRef,
             setImage: setNewImage,
             setValue,
-            isSubmitButtonDisabled: formState.isDirty && !formState.isValid,
+            isSubmitButtonDisabled: !formState.isValid,
             isSubmitButtonLoading: formState.isSubmitting || awaitPostWish,
             firstColumnLimits,
             maxLabelWidth
         }}/>
     );
-}
+})

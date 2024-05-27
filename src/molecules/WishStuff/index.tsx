@@ -513,11 +513,13 @@ export const WishMenu = ({
         actions: [{
             icon: 'cancel' as const,
             text: 'Отмена',
+            kind: 'clear' as const,
             onClick: hideDeleteModal
         }, {
             kind: 'negative primary' as const,
             icon: 'delete' as const,
             text: 'Удалить желание',
+            round: true,
             onClick: handleDelete
         }]
     }),[ wish.title,
@@ -531,11 +533,13 @@ export const WishMenu = ({
         actions: [{
             icon: 'actualize' as const,
             text: 'Актуализировать',
+            kind: 'clear' as const,
             onClick: handleUncomplete
         }, {
             kind: 'primary' as const,
             icon: 'cancel' as const,
             text: 'Отмена',
+            round: true,
             onClick: hideUncompleteModal
         }]
     }),[ hideUncompleteModal,

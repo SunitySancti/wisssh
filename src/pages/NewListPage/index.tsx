@@ -1,7 +1,9 @@
 import { useState,
-         useEffect } from 'react'
+         useEffect,
+         useImperativeHandle } from 'react'
 import { useForm } from 'react-hook-form'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate,
+         useOutletContext } from 'react-router-dom'
 
 import './styles.scss'
 import { Button } from 'atoms/Button'
@@ -19,6 +21,7 @@ import { getLocationConfig,
          getActualWishes,
          getWishlistById } from 'store/getters'
 import { promoteImages } from 'store/imageSlice'
+import { askMobile } from 'store/responsivenessSlice'
 
 import type { Control,
               FormState,
@@ -30,6 +33,7 @@ import type { WishlistDefaultValues,
               WishlistId,
               Wish,
               InvitationCode } from 'typings'
+import type { OutletContextType } from 'organisms/NavBarLayout'
 
 
 interface NewListPageViewProps {
@@ -71,6 +75,7 @@ const NewListPageView = ({
     maxLabelWidth
 } : NewListPageViewProps
 ) => {
+    const isMobile = askMobile();
     return (
         <div className='new-list-page'>
             <form onSubmit={ handleFormSubmit } >
@@ -114,31 +119,36 @@ const NewListPageView = ({
                         placeholder='Что писать? Начните с приветствия. Опишите, каким вы хотели бы видеть мероприятие, что планируется — поход в бар, домашние посиделки или, может быть, что-то экзотичное. Если есть пожелания для гостей — что надеть или взять с собой — укажите их'
                         label='Описание'
                         labelWidth={ maxLabelWidth }
-                        multiline 
+                        multiline
+                        rows={ 8 }
                     />
                 </div>
 
-                <div className='divider'/>
+                { !isMobile &&
+                    <>
+                        <div className='divider'/>
 
-                <LineContainer className='align-right'>
-                    <Button
-                        icon='clear'
-                        onClick={ resetForm }
-                    />
-                    <Button
-                        icon='cancel'
-                        onClick={ cancelForm }
-                    />
-                    <Button
-                        type='submit'
-                        kind='primary'
-                        text='Сохранить вишлист'
-                        icon='save'
-                        round
-                        disabled={ isSubmitButtonDisabled }
-                        isLoading={ isSubmitButtonLoading }
-                    />
-                </LineContainer>
+                        <LineContainer className='align-right'>
+                            <Button
+                                icon='clear'
+                                onClick={ resetForm }
+                            />
+                            <Button
+                                icon='cancel'
+                                onClick={ cancelForm }
+                            />
+                            <Button
+                                type='submit'
+                                kind='primary'
+                                text='Сохранить вишлист'
+                                icon='save'
+                                round
+                                disabled={ isSubmitButtonDisabled }
+                                isLoading={ isSubmitButtonLoading }
+                            />
+                        </LineContainer>
+                    </>
+                }
 
                 <div className='divider'/>
 
@@ -167,7 +177,6 @@ export const NewListPage = () => {
     const editingWishlist = getWishlistById(wishlistId);
 
     // FORM SETTINGS //
-
     const { handleSubmit,
             register,
             reset,
@@ -209,15 +218,17 @@ export const NewListPage = () => {
         }
     },[ user?.id, isNewWishlist, isEditWishlist ]);
     
-    // FORM SUBMITTING
-    
+    // FORM SUBMITTING //
     const onSubmit: SubmitHandler<WishlistDefaultValues> = async (data, e?: BaseSyntheticEvent) => {
         e?.preventDefault();
-        const { id, author, invitationCode } = data;
-        if(!id || !author || !invitationCode) return
-        postWishlist({ ...data, id, author, invitationCode });
-        navigate(`/my-wishes/lists/${ id }`)
+        if(formState.isValid) {
+            const { id, author, invitationCode } = data;
+            if(!id || !author || !invitationCode) return
+            postWishlist({ ...data, id, author, invitationCode });
+            navigate(`/my-wishes/lists/${ id }`)
+        }
     }
+    const handleFormSubmit = handleSubmit(onSubmit);
     
     const cancelForm = (e: MouseEvent) => {
         e.preventDefault();
@@ -228,8 +239,17 @@ export const NewListPage = () => {
         reset(defaultValues);
     }
 
-    // PAGE ORIENTATION
+    // TRANSLATE SUBMIT FUNCTION TO NAVBAR //
+    const { wishlistSubmitRef, setIsAbleToSumbit } = useOutletContext<OutletContextType>();
+    useImperativeHandle(wishlistSubmitRef, () => ({
+        submit: handleFormSubmit
+    }));
+    useEffect(() => {
+        setIsAbleToSumbit(formState.isValid)
+    },[ formState.isValid ]);
+    
 
+    // PAGE ORIENTATION //
     const [isLandscape, setIsLandscape] = useState(true);
     const setPageOrientation = () => setIsLandscape(window.innerWidth > 1080);
 
@@ -239,8 +259,7 @@ export const NewListPage = () => {
         return () => window.removeEventListener('resize', setPageOrientation);
     },[]);
     
-    // ALIGNMENTS
-
+    // ALIGNMENTS //
     const [maxLabelWidth, setMaxLabelWidth] = useState<number | undefined>(undefined);
 
     useEffect(() => {
@@ -255,17 +274,16 @@ export const NewListPage = () => {
         dispatch(promoteImages(actualWishIds))
     },[ actualWishIds?.length ])
 
-
     return (
         <NewListPageView {...{
-            handleFormSubmit: handleSubmit(onSubmit),
+            handleFormSubmit,
             resetForm,
             cancelForm,
             register,
             control,
             formState,
             actualWishes,
-            isSubmitButtonDisabled: formState.isDirty && !formState.isValid,
+            isSubmitButtonDisabled: !formState.isValid,
             isSubmitButtonLoading: formState.isSubmitting || awaitPostWishlist,
             isLandscape,
             maxLabelWidth

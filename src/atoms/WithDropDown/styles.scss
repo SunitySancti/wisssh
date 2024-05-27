@@ -15,6 +15,7 @@
     background-color: white;
     border-radius: 1rem;
     box-shadow: $flyingAbove;
+    max-width: calc(100vw - 22px);
   
     .dropdown-option {
         display: flex;
@@ -29,7 +30,6 @@
         > span {
             padding: 4px 1.5rem 0 0;
             font: $general;
-            white-space: nowrap;
         }
 
         &:not(.disabled) {

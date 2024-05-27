@@ -98,7 +98,11 @@ export const UserGroup = forwardRef((
         if(!file || !user) return;
 
         const handlePostImage = (file: Blob) => {
-            dispatch(postImage({ id: user.id, file, drive: 'avatars' }));
+            dispatch(postImage({
+                id: user.id,
+                file,
+                drive: 'avatars'
+            }));
             const type = file.type.split('/')[1];
             const imageExtension = type === 'jpeg' ? 'jpg' : 'png';
             updateProfile({ ...user, imageExtension })
@@ -110,7 +114,7 @@ export const UserGroup = forwardRef((
             softCompress: true
         }
         compressAndDoSomething(file, handlePostImage, compressOptions);
-    },[]);
+    },[ user?.id ]);
 
     return (
         <UserGroupView {...{

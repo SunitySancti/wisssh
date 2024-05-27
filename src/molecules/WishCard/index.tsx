@@ -1,4 +1,5 @@
-import { useCallback } from 'react'
+import { memo,
+         useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import './styles.scss'
@@ -19,12 +20,13 @@ interface WishCardProps {
 }
 
 
-export const WishCard = ({
+export const WishCard = memo(({
     data: wish,
     value,
     onChange
 } : WishCardProps
 ) => {
+    console.log('Wish Card', wish.title)
     // METHODS //
     const navigate = useNavigate();
     const { location,
@@ -53,7 +55,11 @@ export const WishCard = ({
         } else {
             navigate(location + '/' + wish.id)
         }
-    },[ isInput, selected ]);
+    },[ isInput,
+        selected,
+        location,
+        value?.length
+    ]);
 
     return (
         <div
@@ -62,7 +68,7 @@ export const WishCard = ({
             onClick={ handleCardClick }
         >
             <WishCover wish={ wish } withUserPic={ !isMobile && isInvitesSection } onCard/>
-            <WishMenu wish={ wish }/>
+            { !isInput && <WishMenu wish={ wish }/> }
             <div className='wishcard-content'>
                 { wish.title &&
                     <span className='title'>{ wish.title }</span>
@@ -76,4 +82,4 @@ export const WishCard = ({
             }
         </div>
     );
-}
+})

@@ -52,7 +52,8 @@ interface WithDropDownViewProps extends WithDropDownProps {
     setIsDropped(value: boolean): void;
     left: number | undefined;
     right: number | undefined;
-    top: number | undefined
+    top: number | undefined;
+    bottom: number | undefined;
 }
 
 export type WithDropDownRef = WidthAwared & {
@@ -120,7 +121,8 @@ const WithDropDownView = memo(({
     dropdownRef,
     left,
     right,
-    top
+    top,
+    bottom
 }:  WithDropDownViewProps
 ) => {
     return (
@@ -136,7 +138,7 @@ const WithDropDownView = memo(({
                     <div
                         ref={ dropdownRef }
                         className='dropdown'
-                        style={{ left, right, top }}
+                        style={{ left, right, top, bottom }}
                     >
                         { options.map( (option) => (
                             <Option {...{
@@ -158,6 +160,7 @@ export const WithDropDown = forwardRef((
 ) => {
     const [ isDropped, setIsDropped ] = useState(false);
     const [ top, setTop ] = useState<number | undefined>(undefined);
+    const [ bottom, setBottom ] = useState<number | undefined>(undefined);
     const [ left, setLeft ] = useState<number | undefined>(undefined);
     const [ right, setRight ] = useState<number | undefined>(undefined);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -197,8 +200,30 @@ export const WithDropDown = forwardRef((
             setRight(Math.max(window.innerWidth - rect.right, minPadding));
             setLeft(undefined)
         }
-        setTop(rect.bottom)
+        setTop(rect.bottom);
+        setBottom(undefined)
     },[]);
+
+    const secondaryAlign = () => {
+        const ddLeft = dropdownRef.current?.offsetLeft;
+        const ddWidth = dropdownRef.current?.offsetWidth;
+        const ddTop = dropdownRef.current?.offsetTop;
+        const ddHeight = dropdownRef.current?.offsetHeight;
+        if(!ddWidth || !ddLeft || !ddTop || !ddHeight) return
+
+        if(ddWidth + ddLeft > window.innerWidth) {
+            setLeft(undefined)
+            setRight(4)
+        }
+        if(ddHeight + ddTop > window.innerHeight) {
+            setBottom(4);
+            setTop(undefined)
+        }
+    }
+
+    useEffect(() => {
+        secondaryAlign()
+    });
 
     useEffect(() => {
         window.addEventListener('resize', closeDropDown);
@@ -219,7 +244,8 @@ export const WithDropDown = forwardRef((
             dropdownRef,
             left,
             right,
-            top
+            top,
+            bottom
         }}/>
     )
 })

@@ -53,8 +53,6 @@
 
 .wish-preloader {
     position: absolute;
-    height: 60%;
-    width: 60%;
     top: 50%;
     left: 50%;
     transform: translate(-50%,-50%);
@@ -93,12 +91,13 @@
 }
 
 .navbar-ellipsis {
-    height: 4rem;
+    // height: 4rem;
+    height: 100%;
     padding: 13px 16px;
     display: flex;
     flex-flow: row nowrap;
     gap: 6px;
-    align-items: flex-end;
+    align-items: center;
 
     .circle {
         height: 6px;

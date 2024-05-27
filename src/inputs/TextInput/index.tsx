@@ -4,6 +4,8 @@ import { Icon } from 'atoms/Icon'
 import { TextLabel } from 'atoms/TextLabel'
 
 import { useAppSelector } from 'store'
+import { askMobile } from 'store/responsivenessSlice'
+import { useEventListener } from 'hooks/useEventListener'
 
 import type { ReactNode,
               SyntheticEvent } from 'react'
@@ -33,7 +35,8 @@ interface TextInputProps<FV extends FieldValues> {
     rightAlignedComponent?: ReactNode;
     autoComplete?: string;
     placeholder?: string;
-    disabled?: boolean
+    disabled?: boolean;
+    rows?: number;
 }
 
 interface TextInputViewProps<FV extends FieldValues> extends TextInputProps<FV> {
@@ -61,9 +64,11 @@ const TextInputView = <FV extends FieldValues>({
     autoComplete,
     placeholder,
     disabled,
-    isNarrow
+    isNarrow,
+    rows,
 } : TextInputViewProps<FV>
 ) => {
+    const isMobile = askMobile();
     const id = generateId<BasicId>();
     const errorTypes = ({
        required: formState?.errors[name]?.type === 'required',
@@ -72,13 +77,13 @@ const TextInputView = <FV extends FieldValues>({
     });
 
     const errorMessage = errorTypes.required
-        ? `"${label}" — обязательное поле`
+        ? `Это обязательное поле`
         : errorTypes.maxLength
         ? `Введите не более ${maxLength} символов`
         : errorTypes.pattern && (patternType === 'number')
-        ? `В поле "${label}" допустимы только цифры`
+        ? `Тут только цифры`
         : errorTypes.pattern && (patternType === 'email')
-        ? 'Проверьте правильность написания почты'
+        ? 'Кажется, закралась ошибка'
         : null
 
     const shouldShowError = !!( warningMessage || errorMessage )
@@ -94,6 +99,17 @@ const TextInputView = <FV extends FieldValues>({
         if(isNarrow) result += ' narrow'
         return result
     }
+  
+    // TEXT AREA AUTORESIZE //
+    const textArea = document.querySelector<HTMLTextAreaElement>('textarea.auto-height');
+    function setHeight(e: InputEvent) {
+        const textareaRef = e.target as HTMLTextAreaElement;
+        if(textareaRef) {
+            textareaRef.style.height = 'auto';
+            textareaRef.style.height = `${ textareaRef.scrollHeight }px`;
+        }
+    }
+    useEventListener('input', setHeight, textArea);
 
     return (
         <div className={ getRootClasses() }>
@@ -115,11 +131,12 @@ const TextInputView = <FV extends FieldValues>({
                             onChange,
                             onBlur
                         })}
-                        className={ shouldShowError ? 'error' : undefined }
+                        className={(isMobile ? 'auto-height' : '') + (shouldShowError ? ' error' : '')}
                         autoComplete={ autoComplete || name || 'off' }
+                        rows={ rows }
                         {...{ id, placeholder, disabled, onKeyDown }}
                     />
-                    <Icon name='resizer' size={ 22 }/>
+                    { !isMobile && <Icon name='resizer' size={ 22 }/> }
                 </>
             :   <input
                     {...register(name as Path<FV>, {

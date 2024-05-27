@@ -142,7 +142,7 @@ export const BurgerCross = ({ onClick, reverse }: BurgerCrossProps) => {
     return (
         <div className='burger-cross icon' onClick={ onClick }>
             <svg width='44px' height='44px' viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d={ steps.at(-1) } stroke='rgba(0,0,0,.6)' stroke-linecap="round">
+                <path d={ steps.at(0) } stroke='rgba(0,0,0,.6)' stroke-linecap="round">
                     <animate
                         attributeName="d"
                         values={ (reverse ? steps.slice().reverse() : steps).join('; ') }

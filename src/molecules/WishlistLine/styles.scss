@@ -16,8 +16,9 @@
     }
 
     .flex-container {
+        position: relative;
         display: flex;
-        border-radius: 0 2rem 2rem 0;
+        border-radius: 2rem;
         overflow: hidden;
 
         .title {
@@ -26,7 +27,7 @@
             min-width: 2rem;
             max-width: 100%;
             background-color: $primaryLight2;
-            border-radius: 0 2rem 2rem 0;
+            border-radius: 2rem;
             position: relative;
             overflow: hidden;
 
@@ -61,7 +62,7 @@
   
     .time-info {
         height: 4rem;
-        margin-left: 1rem;
+        margin: 0 1rem;
         display: flex;
         flex-flow: row nowrap;
         align-items: center;

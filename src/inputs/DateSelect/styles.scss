@@ -2,12 +2,10 @@
 
 .date-select {
   display: flex;
-  flex-flow: row nowrap;
   flex: 1 1;
+  position: relative;
 
     .text-input {
-        position: relative;
-
         .icon-button {
             position: absolute;
             right: 0;
@@ -31,12 +29,20 @@
             line-height: 4rem;
         }
     }
+    .react-datepicker-popper {
+        left: unset !important;
+        transform: unset !important;
+    }
 
     .custom-calendar {
         border-radius: 2rem;
         border-color: $lightGray3;
         box-shadow: $flyingAbove;
         overflow: hidden;
+
+        .react-datepicker__day--keyboard-selected {
+            background-color: unset;
+        }
 
         .react-datepicker__month-container {
 
@@ -55,6 +61,7 @@
                         margin: 0;
                         font: $small;
                         color: $gray2;
+                        flex: 1;
                     }
                 }
             }
@@ -71,8 +78,9 @@
                         display: flex;
                         align-items: center;
                         justify-content: center;
-                        width: 30px;
-                        height: 30px;
+                        width: 40px;
+                        aspect-ratio: 1.2;
+                        flex: 1;
                         margin: 0;
                         padding-top: 3px;
                         border-radius: 0;
@@ -87,8 +95,8 @@
                     }
 
                     .react-datepicker__day--today {
-                        background-color: $primaryLight;
-                        color: black;
+                        background-color: $primaryLight2;
+                        color: $darkGray2;
                         font-weight: bold;
                     }
 

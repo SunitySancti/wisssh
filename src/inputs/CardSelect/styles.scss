@@ -6,9 +6,15 @@
     flex-flow: column;
     gap: 2rem;
     
-    .line-container > span {
-        font: $general;
-        display: flex;
-        align-items: center;
+    .line-container {
+        > span {
+            font: $general;
+            display: flex;
+            align-items: center;
+        }
+        .button-group {
+            display: flex;
+            flex-flow: row nowrap;
+        }
     }
 }
