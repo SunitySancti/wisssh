@@ -42,7 +42,6 @@ const CardSelectView = ({
     onChange
 } : CardSelectViewProps
 ) => {
-    console.log('Card Select')
     const isMobile = askMobile();
     return (
         <div className='card-select'>

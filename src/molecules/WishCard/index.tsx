@@ -26,7 +26,6 @@ export const WishCard = memo(({
     onChange
 } : WishCardProps
 ) => {
-    console.log('Wish Card', wish.title)
     // METHODS //
     const navigate = useNavigate();
     const { location,
@@ -68,7 +67,7 @@ export const WishCard = memo(({
             onClick={ handleCardClick }
         >
             <WishCover wish={ wish } withUserPic={ !isMobile && isInvitesSection } onCard/>
-            { !isInput && <WishMenu wish={ wish }/> }
+            { !isMobile && !isInput && <WishMenu wish={ wish }/> }
             <div className='wishcard-content'>
                 { wish.title &&
                     <span className='title'>{ wish.title }</span>

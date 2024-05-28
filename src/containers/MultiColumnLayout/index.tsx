@@ -22,7 +22,6 @@ export const MultiColumnLayout = memo(({
     ...cardProps
 } : MultiColumnLayoutProps
 ) => {
-    console.log('MCT')
     // STATE //
     const layoutRef = useRef<HTMLDivElement>(null);
     const { location } = getLocationConfig();

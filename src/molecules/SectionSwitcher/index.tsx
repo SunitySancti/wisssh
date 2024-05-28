@@ -30,9 +30,7 @@ interface SliderStyles {
 
 interface LogoGroupProps {
     firstSectionRef: RefObject<HTMLAnchorElement>;
-    secondSectionRef: RefObject<HTMLAnchorElement>;
-    isWishesSection: boolean;
-    isInvitesSection: boolean
+    secondSectionRef: RefObject<HTMLAnchorElement>
 }
 
 interface SectionSwitcherViewProps extends LogoGroupProps {
@@ -58,11 +56,12 @@ const useHandleLogoClick = (isDevMode: boolean) => {
 
 const LogoGroup = ({
     firstSectionRef,
-    secondSectionRef,
-    isWishesSection,
-    isInvitesSection
+    secondSectionRef
 } : LogoGroupProps
 ) => {
+    const { isWishesSection,
+            isInvitesSection,
+            isItemsMode } = getLocationConfig();
     // HANDLE LOGO CLICK //
     const handleLogoClick = useHandleLogoClick(__DEV_MODE__);
 
@@ -103,7 +102,12 @@ const LogoGroup = ({
                 }
                 : undefined
         }
-    },[ firstElem?.innerHTML, secondElem?.innerHTML ]);
+    },[ firstElem?.innerHTML,
+        secondElem?.innerHTML,
+        isWishesSection,
+        isInvitesSection,
+        isItemsMode
+    ]);
 
     // SLIDER DYNAMIC STYLING //
     const [leftSliderStyles, setLeftSliderStyles] = useState<SliderStyles | undefined>(slidersDefaultStyles('left'));
@@ -123,6 +127,7 @@ const LogoGroup = ({
         }
     },[ isWishesSection,
         isInvitesSection,
+        isItemsMode,
         firstElem?.innerHTML,
         secondElem?.innerHTML
     ]);
@@ -172,11 +177,11 @@ const SectionSwitcherView = ({
     secondSectionPath,
     firstSectionTitle,
     secondSectionTitle,
-    sectionMaxWidth,
-    isWishesSection,
-    isInvitesSection
+    sectionMaxWidth
 } : SectionSwitcherViewProps
 ) => {
+    const { isWishesSection,
+            isInvitesSection } = getLocationConfig();
     return (
         <div className='section-switcher'>
             <div
@@ -192,7 +197,7 @@ const SectionSwitcherView = ({
                 />
             </div>
 
-            <LogoGroup {...{ firstSectionRef, secondSectionRef, isWishesSection, isInvitesSection }}/>
+            <LogoGroup {...{ firstSectionRef, secondSectionRef }}/>
             
             <div
                 className='section-container'
@@ -265,9 +270,7 @@ export const SectionSwitcher = memo(() => {
             secondSectionPath,
             firstSectionTitle,
             secondSectionTitle,
-            sectionMaxWidth,
-            isWishesSection,
-            isInvitesSection
+            sectionMaxWidth
         }}/>
     )
 })

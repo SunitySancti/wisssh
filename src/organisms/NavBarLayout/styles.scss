@@ -7,6 +7,7 @@
     align-items: center;
     height: fit-content;
     transition: all ease-in-out .15s;
+    z-index: 2;
     
     .with-shadow {
         box-shadow: $scrollOverlay;

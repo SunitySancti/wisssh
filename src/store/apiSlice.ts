@@ -113,7 +113,7 @@ export const apiSlice = createApi({
     reducerPath: 'api',
     baseQuery: baseQueryWithReauth,
     refetchOnReconnect: true,
-    // refetchOnMountOrArgChange: 10,
+    // refetchOnMountOrArgChange: 10,   // in seconds, like polling but only at render moment
     tagTypes: ['Auth', 'User', 'Friends', 'UserWishes', 'FriendWishes', 'UserWishlists', 'Invites'],
     endpoints: builder => ({
 
