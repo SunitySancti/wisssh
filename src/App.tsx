@@ -26,7 +26,9 @@ import { getFriends,
          getUserWishes,
          getInvites,
          getFriendWishes,
-         getLocationConfig } from 'store/getters'
+         getLocationConfig,
+         useFriendWishesPolling,
+         useInvitesPolling } from 'store/getters'
 import { useAppDispatch } from 'store'
 import { usePrefetch } from 'store/apiSlice'
 import { responseWidth } from 'store/responsivenessSlice'
@@ -57,6 +59,9 @@ const DataFetchController = () => {
         if(!invitesHaveLoaded)          triggerInvites()
         if(!friendsHaveLoaded)          triggerFriends()
     }
+
+    useFriendWishesPolling();
+    useInvitesPolling();
 
     useEffect(() => {
         switch(section + '/' + mode) {

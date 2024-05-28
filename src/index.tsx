@@ -1,4 +1,3 @@
-// import React from 'react'
 import ReactDOM from 'react-dom/client'
 // import { persistStore } from 'redux-persist'
 // import { PersistGate } from 'redux-persist/integration/react'

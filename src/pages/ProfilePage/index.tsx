@@ -1,7 +1,11 @@
 import { useState,
          useEffect, 
-         useCallback } from 'react'
+         useCallback,
+         memo,
+         useImperativeHandle } from 'react'
 import { useForm } from 'react-hook-form'
+import { useOutletContext } from 'react-router'
+import { useDeepCompareMemo } from 'use-deep-compare'
 
 import './styles.scss'
 import { Button } from 'atoms/Button'
@@ -23,6 +27,7 @@ import type { FormState,
               SubmitHandler,
               UseFormRegister } from 'react-hook-form'
 import type { UserId } from 'typings'
+import type { OutletContextType } from 'organisms/NavBarLayout'
 
 
 interface LabelAlignment {
@@ -38,6 +43,7 @@ interface ProfileFormViewProps extends LabelAlignment {
     image: Blob | undefined;
     setImage: (blob?: Blob | undefined) => void;
     watchNewPassword: string | undefined;
+    isAbleToSumbit: boolean;
 }
 
 interface ProfileFormValues {
@@ -49,7 +55,7 @@ interface ProfileFormValues {
 }
 
 
-const ProfileFormView = ({
+const ProfileFormView = memo(({
     handleFormSubmit,
     register,
     formState,
@@ -58,9 +64,12 @@ const ProfileFormView = ({
     image,
     setImage,
     watchNewPassword,
-    labelWidth
+    labelWidth,
+    isAbleToSumbit
 } : ProfileFormViewProps
-) => (
+) => {
+    console.log('ProfileFormView')
+    return (
     <form onSubmit={ handleFormSubmit }>
         <DoubleColumnAdaptiveLayout
             firstColumn={
@@ -121,18 +130,14 @@ const ProfileFormView = ({
                             text={ isSubmitted ? 'Изменения сохранены' : 'Сохранить изменения'}
                             icon={ isSubmitted ? 'ok' : 'save' }
                             round
-                            disabled={ isSubmitted
-                                    || !formState.isValid
-                                    || formState.isSubmitting
-                                    || passwordsNotSame
-                            }
+                            disabled={ !isAbleToSumbit }
                         />
                     </LineContainer>
                 </>
             }
         />
     </form>
-);
+)});
 
 const ProfileForm = ({ labelWidth }: LabelAlignment) => {
     const dispatch = useAppDispatch();
@@ -156,6 +161,11 @@ const ProfileForm = ({ labelWidth }: LabelAlignment) => {
         mode: 'onBlur',
         defaultValues
     });
+
+    const memoizedFormState = useDeepCompareMemo(() => (
+        formState
+    ),[ formState ]);
+
     const [ isSubmitted, setIsSubmitted ] = useState(false);
 
     const watchName = watch('name');
@@ -238,23 +248,48 @@ const ProfileForm = ({ labelWidth }: LabelAlignment) => {
         }
         setIsSubmitted(true)
     }
+    const handleFormSubmit = useCallback(handleSubmit(onSubmit),[
+        handleSubmit,
+        updateProfile,
+        image,
+        postImage,
+        deleteImage,
+        setIsSubmitted
+    ]);
 
     useEffect(() => {
         if(!watchNewPassword) setValue('confirmPassword', '')
-    },[ watchNewPassword ])
+    },[ watchNewPassword ]);
+
+    // TRANSLATE SUBMIT FUNCTION TO NAVBAR //
+    const { submitRef, setIsAbleToSumbit } = useOutletContext<OutletContextType>();
+    const isAbleToSumbit = !isSubmitted && !passwordsNotSame && (formState.isDirty && formState.isValid || !formState.isDirty && isNewImage);
+
+    useImperativeHandle(submitRef, () => ({
+        submitProfile: handleFormSubmit
+    }));
+    useEffect(() => {
+        setIsAbleToSumbit(isAbleToSumbit)
+    },[ formState.isDirty,
+        formState.isValid,
+        isSubmitted,
+        isNewImage,
+        passwordsNotSame
+     ]);
 
     return (
         <ProfileFormView {...{
-            handleFormSubmit: handleSubmit(onSubmit),
+            handleFormSubmit,
             register,
-            formState,
+            formState: memoizedFormState,
             passwordsNotSame,
             isSubmitted,
             image,
             setImage: setNewImage,
             userName: user ? '@' + user.name : '',
             watchNewPassword,
-            labelWidth
+            labelWidth,
+            isAbleToSumbit
         }}/>
     )
 }

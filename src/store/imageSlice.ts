@@ -93,8 +93,17 @@ async function fetchImage(
         }
     })  .then(res => res.blob())
         .then(blob => blob?.size ? URL.createObjectURL(blob) : null)
-        .then(url => ({ data: { id: id as ImageId, url }, error: undefined }))
-        .catch(error => ({ data: undefined, error }))
+        .then(url => ({
+            data: {
+                id: id as ImageId,
+                url
+            },
+            error: undefined
+        }))
+        .catch(error => ({
+            data: undefined,
+            error
+        }))
 }
 
 async function fetchImageWithReauth(

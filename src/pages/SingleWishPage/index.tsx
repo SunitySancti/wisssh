@@ -1,5 +1,6 @@
 import { useEffect,
          useState,
+         memo,
          useMemo } from 'react'
 import { Link,
          Navigate } from 'react-router-dom'
@@ -152,7 +153,7 @@ interface SingleWishPageViewProps {
 }
 
 
-const SingleWishPageView = ({
+const SingleWishPageView = memo(({
     isLoading,
     wish,
     wishlists,
@@ -218,7 +219,7 @@ const SingleWishPageView = ({
                     replace
                 />
     )
-}
+});
 
 export const SingleWishPage = () => {
     const isMobile = askMobile();

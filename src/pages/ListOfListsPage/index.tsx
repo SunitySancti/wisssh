@@ -1,4 +1,5 @@
-import { useCallback } from 'react'
+import { memo,
+         useCallback } from 'react'
 import { useNavigate } from 'react-router'
 
 import './styles.scss'
@@ -52,7 +53,7 @@ const MappedEvents = ({
 }
 
 
-const ListOfListsPageView = ({
+const ListOfListsPageView = memo(({
     isLoading,
     isEmptyList,
     wishlists,
@@ -91,7 +92,7 @@ const ListOfListsPageView = ({
             }
         </div>
     )
-}
+});
 
 
 export const ListOfListsPage = () => {

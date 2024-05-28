@@ -9,6 +9,7 @@ import { useState,
 import { useForm } from 'react-hook-form'
 import { useNavigate,
          useOutletContext } from 'react-router-dom'
+import { useDeepCompareMemo } from 'use-deep-compare'
 
 
 import './styles.scss'
@@ -54,14 +55,6 @@ interface NewWishPageViewProps {
     register: UseFormRegister<WishDefaultValues>;
     control: Control<WishDefaultValues>;
     formState: FormState<WishDefaultValues>;
-    currencyOptions: {
-        value: string;
-        label: string
-    }[];
-    statusOptions: {
-        value: boolean;
-        label: string
-    }[];
     wishlistOptions: {
         value: WishlistId;
         label: string
@@ -105,15 +98,13 @@ const NewWishPageView = memo(({
     resetForm,
     cancelForm,
     register,
+    setImage,
+    setValue,
     control,
     formState,
-    currencyOptions,
-    statusOptions,
     wishlistOptions,
     image,
     imageInputRef,
-    setImage,
-    setValue,
     isSubmitButtonDisabled,
     isSubmitButtonLoading,
     firstColumnLimits,
@@ -137,6 +128,17 @@ const NewWishPageView = memo(({
         name: 'lastModifiedAt' as const,
         required: false
     }];
+    
+    const statusOptions = [
+        { value: false, label: 'Актуально' },
+        { value: true, label: 'Исполнено' }
+    ];
+
+    const currencyOptions = [
+        {value: 'rouble', label: '₽'},
+        {value: 'euro', label: '€'},
+        {value: 'dollar', label: '$'},
+    ];
 
     return (
         <div className='new-wish-page'>
@@ -299,6 +301,10 @@ export const NewWishPage = forwardRef(() => {
         defaultValues
     });
 
+    const memoizedFormState = useDeepCompareMemo(() => (
+        formState
+    ),[ formState ]);
+
     useEffect(() => {
         if(editingWish && isEditWish) {
             for (let [key, value] of Object.entries(editingWish)) {
@@ -310,20 +316,11 @@ export const NewWishPage = forwardRef(() => {
             }
         }
     },[ editingWish?.id, location ]);
-    
-    const statusOptions = useMemo(() => [
-        { value: false, label: 'Актуально' },
-        { value: true, label: 'Исполнено' }
-    ],[])
-    const currencyOptions = useMemo(() => [
-        {value: 'rouble', label: '₽'},
-        {value: 'euro', label: '€'},
-        {value: 'dollar', label: '$'},
-    ],[])
+
     const wishlistOptions = useMemo(() => userWishlists.map(list => ({
         value: list.id,
         label: list.title
-    })),[ userWishlists.length ])
+    })),[ userWishlists ])
 
     async function setId() {
         const id = await generateUniqueId<WishId>();
@@ -377,29 +374,34 @@ export const NewWishPage = forwardRef(() => {
     const onSubmit: SubmitHandler<WishDefaultValues> = async (data, e?: BaseSyntheticEvent) => { 
         e?.preventDefault();
 
-        if(formState.isValid) {
-            const { id, author, isCompleted } = data;
-            if(!id || !author) return
-            
-            postWish({ ...data, id, author });
+        const { id, author, isCompleted } = data;
+        if(!id || !author) return
+        
+        postWish({ ...data, id, author });
 
-            if(image && (isNewImage || isNewWish)) {
-                dispatch(postImage({
-                    id,
-                    file: image,
-                    drive: 'covers'
-                }))
-            }
-            if(!image && !isNewWish && isEditWish) {
-                dispatch(deleteImage({
-                    id,
-                    drive: 'covers'
-                }))
-            }
-            navigate(`/my-wishes/items/${ isCompleted ? 'completed' : 'actual'  }/${ id }`)
+        if(image && (isNewImage || isNewWish)) {
+            dispatch(postImage({
+                id,
+                file: image,
+                drive: 'covers'
+            }))
         }
+        if(!image && !isNewWish && isEditWish) {
+            dispatch(deleteImage({
+                id,
+                drive: 'covers'
+            }))
+        }
+        navigate(`/my-wishes/items/${ isCompleted ? 'completed' : 'actual'  }/${ id }`)
     }
-    const handleFormSubmit = handleSubmit(onSubmit);
+    const handleFormSubmit = useCallback(handleSubmit(onSubmit),[
+        handleSubmit,
+        postWish,
+        image,
+        postImage,
+        deleteImage,
+        navigate
+    ]);
 
     const cancelForm = useCallback((e: MouseEvent) => {
         e.preventDefault();
@@ -413,13 +415,18 @@ export const NewWishPage = forwardRef(() => {
     },[ defaultValues ]);
 
     // TRANSLATE SUBMIT FUNCTION TO NAVBAR //
-    const { wishSubmitRef, setIsAbleToSumbit } = useOutletContext<OutletContextType>();
-    useImperativeHandle(wishSubmitRef, () => ({
-        submit: handleFormSubmit
+    const { submitRef, setIsAbleToSumbit } = useOutletContext<OutletContextType>();
+    const isAbleToSumbit = formState.isDirty && formState.isValid || !formState.isDirty && isNewImage;
+
+    useImperativeHandle(submitRef, () => ({
+        submitWish: handleFormSubmit
     }));
     useEffect(() => {
-        setIsAbleToSumbit(formState.isValid)
-    },[ formState.isValid ]);
+        setIsAbleToSumbit(isAbleToSumbit)
+    },[ formState.isDirty,
+        formState.isValid,
+        isNewImage
+     ]);
     
     
     // ALIGNMENTS //
@@ -459,15 +466,13 @@ export const NewWishPage = forwardRef(() => {
             cancelForm,
             register,
             control,
-            formState,
-            currencyOptions,
-            statusOptions,
+            formState: memoizedFormState,
             wishlistOptions,
             image,
             imageInputRef,
             setImage: setNewImage,
             setValue,
-            isSubmitButtonDisabled: !formState.isValid,
+            isSubmitButtonDisabled: !isAbleToSumbit,
             isSubmitButtonLoading: formState.isSubmitting || awaitPostWish,
             firstColumnLimits,
             maxLabelWidth

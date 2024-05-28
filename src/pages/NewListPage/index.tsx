@@ -1,9 +1,12 @@
-import { useState,
+import { memo,
+         useState,
          useEffect,
-         useImperativeHandle } from 'react'
+         useImperativeHandle, 
+         useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate,
          useOutletContext } from 'react-router-dom'
+import { useDeepCompareMemo } from 'use-deep-compare'
 
 import './styles.scss'
 import { Button } from 'atoms/Button'
@@ -58,10 +61,11 @@ const defaultValues: WishlistDefaultValues = {
     title: '',
     description: '',
     wishes: [],
+    guests: [],
     date: formatDateToArray(new Date()),
 }
 
-const NewListPageView = ({
+const NewListPageView = memo(({
     handleFormSubmit,
     resetForm,
     cancelForm,
@@ -160,7 +164,7 @@ const NewListPageView = ({
             </form>
         </div>
     )
-}
+});
 
 export const NewListPage = () => {
     const navigate = useNavigate();
@@ -186,6 +190,10 @@ export const NewListPage = () => {
         mode: 'onChange',
         defaultValues
     });
+
+    const memoizedFormState = useDeepCompareMemo(() => (
+        formState
+    ),[ formState ]);
 
     useEffect(() => {
         if(editingWishlist && isEditWishlist) {
@@ -221,31 +229,35 @@ export const NewListPage = () => {
     // FORM SUBMITTING //
     const onSubmit: SubmitHandler<WishlistDefaultValues> = async (data, e?: BaseSyntheticEvent) => {
         e?.preventDefault();
-        if(formState.isValid) {
-            const { id, author, invitationCode } = data;
-            if(!id || !author || !invitationCode) return
-            postWishlist({ ...data, id, author, invitationCode });
-            navigate(`/my-wishes/lists/${ id }`)
-        }
+        const { id, author, invitationCode } = data;
+        if(!id || !author || !invitationCode) return
+        postWishlist({ ...data, id, author, invitationCode });
+        navigate(`/my-wishes/lists/${ id }`)
     }
-    const handleFormSubmit = handleSubmit(onSubmit);
+    const handleFormSubmit = useCallback(handleSubmit(onSubmit),[
+        handleSubmit,
+        postWishlist,
+        navigate
+    ]);
     
-    const cancelForm = (e: MouseEvent) => {
+    const cancelForm = useCallback((e: MouseEvent) => {
         e.preventDefault();
         navigate(-1);
-    }
-    const resetForm = (e: MouseEvent) => {
+    },[ navigate ])
+    const resetForm = useCallback((e: MouseEvent) => {
         e.preventDefault();
         reset(defaultValues);
-    }
+    },[ reset, defaultValues])
 
     // TRANSLATE SUBMIT FUNCTION TO NAVBAR //
-    const { wishlistSubmitRef, setIsAbleToSumbit } = useOutletContext<OutletContextType>();
-    useImperativeHandle(wishlistSubmitRef, () => ({
-        submit: handleFormSubmit
+    const { submitRef, setIsAbleToSumbit } = useOutletContext<OutletContextType>();
+    const isAbleToSumbit = formState.isValid;
+
+    useImperativeHandle(submitRef, () => ({
+        submitWishlist: handleFormSubmit
     }));
     useEffect(() => {
-        setIsAbleToSumbit(formState.isValid)
+        setIsAbleToSumbit(isAbleToSumbit)
     },[ formState.isValid ]);
     
 
@@ -281,9 +293,9 @@ export const NewListPage = () => {
             cancelForm,
             register,
             control,
-            formState,
+            formState: memoizedFormState,
             actualWishes,
-            isSubmitButtonDisabled: !formState.isValid,
+            isSubmitButtonDisabled: !isAbleToSumbit,
             isSubmitButtonLoading: formState.isSubmitting || awaitPostWishlist,
             isLandscape,
             maxLabelWidth

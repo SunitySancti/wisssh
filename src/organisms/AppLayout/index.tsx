@@ -30,7 +30,8 @@ import { askMobile } from 'store/responsivenessSlice'
 import type { RefObject,
               WheelEvent } from 'react'
 import type { QueueItem } from 'store/imageSlice'
-import type { WidthAwared } from 'typings'
+import type { WidthAwared,
+              UserId } from 'typings'
 
 
 interface AppHeaderViewProps {
@@ -39,6 +40,14 @@ interface AppHeaderViewProps {
     creationGroupRef: RefObject<WidthAwared>;
     userGroupRef: RefObject<WidthAwared>;
     groupsMaxWidth: number
+}
+
+interface AppHeaderMobileViewProps {
+    toggleMenu(): void;
+    isMenuOpen: boolean;
+    appHeaderHeight: number;
+    top: number;
+    userId: UserId | undefined;
 }
 
 
@@ -157,10 +166,14 @@ const AppHeader = () => {
 }
 
 
-const AppHeaderMobile = () => {
-    useRedirectController();
-    useFetchImagesController();
-
+const AppHeaderMobileView = memo(({
+    toggleMenu,
+    isMenuOpen,
+    appHeaderHeight,
+    top,
+    userId,
+} : AppHeaderMobileViewProps
+) => {
     const optionGroups = [[{
         icon: 'present' as const,
         text: 'Мои желания',
@@ -192,7 +205,58 @@ const AppHeaderMobile = () => {
         path: '/logout',
         id: 'logout',
     }]];
-    const Divider = () => <div className='divider'/>;
+    return (
+        <div className='app-header-mobile'
+            style={{ height: appHeaderHeight }}
+        >
+        <User id={ userId } picSize={ 5 } picOnly />
+
+        <div className='cutting-frame'
+                style={{ height: isMenuOpen ? '100vh' : appHeaderHeight }}
+        >
+            <div className='app-menu'
+                    style={{ top: isMenuOpen ? 0 : top }}
+            >
+                <div className='logo-icon'>
+                    <LogoIcon/>
+                    <div className='beta'>Beta</div>
+                </div>
+                <div className='upper space'/>
+                <div className='menu-options'>
+                    { optionGroups.map((group, index) => (
+                        <Fragment key={ 'group' + index }>
+                            { !!index &&
+                                <div className='divider'/>
+                            }
+                            { group.map(({ icon, text, path, id }, index) => (
+                                <Link
+                                    className='app-menu-option'
+                                    id={ id }
+                                    to={ path }
+                                    onClick={ toggleMenu }
+                                    children={<>
+                                        <Icon name={ icon }/>
+                                        <span>{ text }</span>
+                                    </>}
+                                    key={ 'option' + index }
+                                />
+                            )) }
+                        </Fragment>
+                    ))}
+                </div>
+                <div className='lower space'/>
+            </div>
+        </div>
+
+        <BurgerCross reverse={ !isMenuOpen } onClick={ toggleMenu } />
+        </div>
+    )
+})
+
+
+const AppHeaderMobile = () => {
+    useRedirectController();
+    useFetchImagesController();
 
     const appHeaderHeight = 66;
 
@@ -212,55 +276,20 @@ const AppHeaderMobile = () => {
             : 0
     },[ isMenuOpen ]);
     
-    const toggleMenu = () => {
+    const toggleMenu = useCallback(() => {
         setIsMenuOpen(!isMenuOpen);
         const animation = document.getElementById('burger-to-cross') as unknown as SVGAnimateElement | null
         animation?.beginElement()
-    }
+    },[ isMenuOpen ]);
     
     return (
-        <div className='app-header-mobile'
-             style={{ height: appHeaderHeight }}
-        >
-            <User id={ user?.id } picSize={ 5 } picOnly />
-
-            <div className='cutting-frame'
-                 style={{ height: isMenuOpen ? '100vh' : appHeaderHeight }}
-            >
-                <div className='app-menu'
-                     style={{ top: isMenuOpen ? 0 : top }}
-                >
-                    <div className='logo-icon'>
-                        <LogoIcon/>
-                        <div className='beta'>Beta</div>
-                    </div>
-                    <div className='upper space'/>
-                    <div className='menu-options'>
-                        { optionGroups.map((group, index) => (
-                            <Fragment key={ 'group' + index }>
-                                { !!index && <Divider/> }
-                                { group.map(({ icon, text, path, id }, index) => (
-                                    <Link
-                                        className='app-menu-option'
-                                        id={ id }
-                                        to={ path }
-                                        onClick={ toggleMenu }
-                                        children={<>
-                                            <Icon name={ icon }/>
-                                            <span>{ text }</span>
-                                        </>}
-                                        key={ 'option' + index }
-                                    />
-                                )) }
-                            </Fragment>
-                        ))}
-                    </div>
-                    <div className='lower space'/>
-                </div>
-            </div>
-
-            <BurgerCross reverse={ !isMenuOpen } onClick={ toggleMenu } />
-        </div>
+        <AppHeaderMobileView {...{
+            toggleMenu,
+            isMenuOpen,
+            appHeaderHeight,
+            top,
+            userId: user?.id
+        }}/>
     )
 }
 

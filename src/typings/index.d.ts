@@ -70,6 +70,7 @@ export interface WishlistDefaultValues extends FieldValues {
     title: string;
     description: string;
     wishes: WishId[];
+    guests: UserId[];
     date: DateArray;
     id?: WishlistId;
     author?: UserId;

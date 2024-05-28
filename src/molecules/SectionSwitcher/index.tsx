@@ -15,7 +15,6 @@ import { useAppSelector } from 'store'
 import { getLocationConfig } from 'store/getters'
 
 import { __API_URL__ } from 'environment'
-const __DEV_MODE__ = import.meta.env.DEV
 
 import type { RefObject } from 'react'
 
@@ -42,28 +41,15 @@ interface SectionSwitcherViewProps extends LogoGroupProps {
 }
 
 
-const useHandleLogoClick = (isDevMode: boolean) => {
-    const navigate = useNavigate();
-    const state = isDevMode && useAppSelector(state => state);
-
-    return isDevMode
-        ? async () => {
-            // await fetch(__API_URL__ + '/consistency/update')
-            console.log(state)
-        }
-        : () => navigate('/my-wishes/items/actual')
-}
-
 const LogoGroup = ({
     firstSectionRef,
     secondSectionRef
 } : LogoGroupProps
 ) => {
+    const navigate = useNavigate();
     const { isWishesSection,
             isInvitesSection,
             isItemsMode } = getLocationConfig();
-    // HANDLE LOGO CLICK //
-    const handleLogoClick = useHandleLogoClick(__DEV_MODE__);
 
     // SLIDER DEFAULT STYLES //
     const slidersDefaultStyles = (side: 'left' | 'right') => {
@@ -149,7 +135,7 @@ const LogoGroup = ({
     return (
         <button
             className='logo-button'
-            onClick={ handleLogoClick }
+            onClick={ () => navigate('/my-wishes/items/actual') }
         >
             <div className='sliders-container'>
                 <div
@@ -213,7 +199,7 @@ const SectionSwitcherView = ({
             </div>
         </div>
     )
-}
+};
 
 export const SectionSwitcher = memo(() => {
     const { isWishesSection,

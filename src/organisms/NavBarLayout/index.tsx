@@ -2,24 +2,15 @@ import { useRef,
          useState,
          forwardRef,
          useImperativeHandle,
-         memo, 
-         useCallback } from 'react'
+         memo } from 'react'
 import { Outlet } from 'react-router'
 
 import './styles.scss'
-import { Button } from 'atoms/Button'
-import { WithTooltip } from 'atoms/WithTooltip'
 import { BreadCrumbs } from 'molecules/BreadCrumbs'
 import { ModeToggle } from 'molecules/ModeToggle'
 import { ScrollBox } from 'containers/ScrollBox'
 
-import { getCurrentUser,
-         getFriends,
-         getUserWishlists,
-         getUserWishes,
-         getInvites,
-         getFriendWishes,
-         getLocationConfig } from 'store/getters'
+import { getLocationConfig } from 'store/getters'
 import { useAppSelector } from 'store'
 
 import type { RefObject,
@@ -33,87 +24,84 @@ interface NavBarRef {
     toggleNavBarShadow(): void
 }
 
-export interface SubmitRef {
-    submit?(): void;
-    isValid?: boolean
+interface SubmitRef {
+    submitWish?(): void;
+    submitWishlist?(): void;
+    submitProfile?(): void
 }
 
-interface SubmitRefs {
-    wishSubmitRef: RefObject<SubmitRef>;
-    wishlistSubmitRef: RefObject<SubmitRef>;
+export interface WithSubmitRef {
+    submitRef: RefObject<SubmitRef>;
 }
 
-export interface OutletContextType extends SubmitRefs {
+export interface OutletContextType extends WithSubmitRef {
     setIsAbleToSumbit: Dispatch<SetStateAction<boolean>>;
 }
 
-interface NavBarViewProps extends SubmitRefs {
+interface NavBarViewProps extends WithSubmitRef {
     shouldDropShadow: boolean;
     isAbleToSumbit: boolean
 }
 
-interface NavBarProps extends SubmitRefs {
+interface NavBarProps extends WithSubmitRef {
     workSpaceRef: RefObject<HTMLDivElement>;
     isAbleToSumbit: boolean
 }
 
-interface WorkSpaceProps {
+interface WorkSpaceProps extends WithSubmitRef {
     isNarrow: boolean;
     isMobile: boolean;
     sidePadding: number;
     workSpaceRef: RefObject<HTMLDivElement>;
     navBarRef: RefObject<NavBarRef>;
-    wishSubmitRef: RefObject<SubmitRef>;
-    wishlistSubmitRef: RefObject<SubmitRef>;
     setIsAbleToSumbit: Dispatch<SetStateAction<boolean>>;
 }
 
 
-const RefreshButton = memo(() => {
-    const { refreshUser,
-            fetchingUser } = getCurrentUser();
-    const { refreshFriends,
-            fetchingFriends } = getFriends();
-    const { refreshUserWishes,
-            fetchingUserWishes } = getUserWishes();        
-    const { refreshUserWishlists,
-            fetchingUserWishlists } = getUserWishlists();            
-    const { refreshFriendWishes,
-            fetchingFriendWishes } = getFriendWishes();                
-    const { refreshInvites,
-            fetchingInvites } = getInvites();
+// const RefreshButton = memo(() => {
+//     const { refreshUser,
+//             fetchingUser } = getCurrentUser();
+//     const { refreshFriends,
+//             fetchingFriends } = getFriends();
+//     const { refreshUserWishes,
+//             fetchingUserWishes } = getUserWishes();        
+//     const { refreshUserWishlists,
+//             fetchingUserWishlists } = getUserWishlists();            
+//     const { refreshFriendWishes,
+//             fetchingFriendWishes } = getFriendWishes();                
+//     const { refreshInvites,
+//             fetchingInvites } = getInvites();
      
-    const refreshData = useCallback(() => {
-        refreshUser();
-        refreshFriends();
-        refreshUserWishes();
-        refreshUserWishlists();
-        refreshFriendWishes();
-        refreshInvites();
-    },[]);
-    const isLoading = fetchingUser || fetchingFriends || fetchingUserWishes || fetchingUserWishlists || fetchingFriendWishes || fetchingInvites;
+//     const refreshData = useCallback(() => {
+//         refreshUser();
+//         refreshFriends();
+//         refreshUserWishes();
+//         refreshUserWishlists();
+//         refreshFriendWishes();
+//         refreshInvites();
+//     },[]);
+//     const isLoading = fetchingUser || fetchingFriends || fetchingUserWishes || fetchingUserWishlists || fetchingFriendWishes || fetchingInvites;
 
-    return (
-        <WithTooltip
-            trigger={
-                <Button
-                    icon='refresh'
-                    kind='clear'
-                    onClick={ refreshData }
-                    isLoading={ isLoading }
-                    spinnerSize={ 1.5 }
-                />
-            }
-            text='Обновить данные'
-        />
-    )
-});
+//     return (
+//         <WithTooltip
+//             trigger={
+//                 <Button
+//                     icon='refresh'
+//                     kind='clear'
+//                     onClick={ refreshData }
+//                     isLoading={ isLoading }
+//                     spinnerSize={ 1.5 }
+//                 />
+//             }
+//             text='Обновить данные'
+//         />
+//     )
+// });
 
 
 const NavBarView = ({
     shouldDropShadow,
-    wishSubmitRef,
-    wishlistSubmitRef,
+    submitRef,
     isAbleToSumbit
 } : NavBarViewProps) => {
     const isMobile = askMobile();
@@ -124,14 +112,13 @@ const NavBarView = ({
                 ?   <BreadCrumbs {...{
                         shouldDropShadow,
                         isMobile,
-                        wishSubmitRef,
-                        wishlistSubmitRef,
+                        submitRef,
                         isAbleToSumbit
                     }}/>            
                 :   <ScrollBox {...{ shouldDropShadow }}>
                         { !isProfileSection && <ModeToggle/> }
-                        <BreadCrumbs {...{ wishSubmitRef, wishlistSubmitRef, isAbleToSumbit }}/>
-                        <RefreshButton/>
+                        <BreadCrumbs {...{ submitRef, isAbleToSumbit }}/>
+                        {/* <RefreshButton/> */}
                     </ScrollBox>
             }
         </div>
@@ -141,8 +128,7 @@ const NavBarView = ({
 
 const NavBar = forwardRef(({
     workSpaceRef,
-    wishSubmitRef,
-    wishlistSubmitRef,
+    submitRef,
     isAbleToSumbit
 } : NavBarProps,
     ref: ForwardedRef<NavBarRef>
@@ -155,8 +141,7 @@ const NavBar = forwardRef(({
     
     return <NavBarView {...{
         shouldDropShadow,
-        wishSubmitRef,
-        wishlistSubmitRef,
+        submitRef,
         isAbleToSumbit
     }}/>
 });
@@ -167,8 +152,7 @@ const WorkSpace = memo(({
     sidePadding,
     workSpaceRef,
     navBarRef,
-    wishSubmitRef,
-    wishlistSubmitRef,
+    submitRef,
     setIsAbleToSumbit
 } : WorkSpaceProps
 ) => (
@@ -184,7 +168,7 @@ const WorkSpace = memo(({
             }
         }
     >
-        <Outlet context={{ wishSubmitRef, wishlistSubmitRef, setIsAbleToSumbit } satisfies OutletContextType}/>
+        <Outlet context={{ submitRef, setIsAbleToSumbit } satisfies OutletContextType}/>
     </div>
 ));
 
@@ -192,8 +176,7 @@ const WorkSpace = memo(({
 export const NavBarLayout = memo(() => {
     const workSpaceRef = useRef<HTMLDivElement>(null);
     const navBarRef = useRef<NavBarRef>(null);
-    const wishSubmitRef = useRef<SubmitRef>(null);
-    const wishlistSubmitRef = useRef<SubmitRef>(null);
+    const submitRef = useRef<SubmitRef>(null);
 
     const [ isAbleToSumbit, setIsAbleToSumbit ] = useState(false);
 
@@ -205,8 +188,7 @@ export const NavBarLayout = memo(() => {
         <>
             <NavBar {...{
                 workSpaceRef,
-                wishSubmitRef,
-                wishlistSubmitRef,
+                submitRef,
                 isAbleToSumbit,
                 ref: navBarRef
             }}/>
@@ -216,8 +198,7 @@ export const NavBarLayout = memo(() => {
                 sidePadding,
                 workSpaceRef,
                 navBarRef,
-                wishSubmitRef,
-                wishlistSubmitRef,
+                submitRef,
                 setIsAbleToSumbit
             }}/>
         </>

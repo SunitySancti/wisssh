@@ -27,6 +27,7 @@ import { usePostWishMutation,
          useUnreserveWishMutation } from 'store/apiSlice'
 import { copyWishCover } from 'store/imageSlice'
 import { generateUniqueId } from 'utils'
+import { askMobile } from 'store/responsivenessSlice'
             
 import type { SyntheticEvent,
               RefObject } from 'react'
@@ -37,7 +38,6 @@ import type { ModalRef,
               ModalProps } from 'atoms/Modal'
 import type { DropdownOption } from 'atoms/WithDropDown'
 import type { ButtonProps } from 'atoms/Button'
-import { askMobile } from 'store/responsivenessSlice'
 
 
 interface StatusBarProps {
@@ -316,7 +316,7 @@ const WishMenuView = memo(({
     )
 });
 
-export const WishMenu = ({
+export const WishMenu = memo(({
     wish
 } : WishMenuProps
 ) => {
@@ -555,4 +555,4 @@ export const WishMenu = ({
             uncompleteModalProps
         }}/>
     )
-}
+});

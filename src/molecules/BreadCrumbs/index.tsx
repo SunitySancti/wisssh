@@ -1,7 +1,8 @@
 import { useEffect,
          memo,
          useState, 
-         useRef } from 'react'
+         useRef, 
+         useCallback } from 'react'
 import { NavLink,
          Link } from 'react-router-dom'
 
@@ -22,13 +23,14 @@ import { useOverflowDetector } from 'hooks/useOverflowDetector'
 
 import type { Wish,
               Wishlist } from 'typings'
-import type { SubmitRef } from 'organisms/NavBarLayout'
-import type { ReactNode, RefObject } from 'react'
+import type { WithSubmitRef } from 'organisms/NavBarLayout'
+import type { ReactNode } from 'react'
 import { askMobile } from 'store/responsivenessSlice'
 
 
 interface SliderProps {
-    location: string
+    location: string;
+    currentTab: HTMLAnchorElement;
 }
 
 interface TabCoords {
@@ -62,9 +64,7 @@ interface PlusProps {
     isWishCreating?: boolean
 }
 
-interface BreadCrumbsProps {
-    wishSubmitRef: RefObject<SubmitRef>;
-    wishlistSubmitRef: RefObject<SubmitRef>;
+interface BreadCrumbsProps extends WithSubmitRef {
     isMobile?: boolean;
     shouldDropShadow?: boolean;
     isAbleToSumbit: boolean
@@ -87,11 +87,10 @@ interface CrumbsProps {
 }
 
 
-const Slider = ({ location }: SliderProps) => {
+const Slider = memo(({ location, currentTab }: SliderProps) => {
     const sliderPadding = 0;
     const [sliderStyles, setSliderStyles] = useState<SliderStyles | undefined>(undefined);
     const [lastActiveTab, setLastActiveTab] = useState<TabCoords | undefined>(undefined);
-    const currentTab = document.querySelector<HTMLAnchorElement>('.nav-elem.option.active');
 
     const startSliderMove = () => {
         const slider = document.querySelector<HTMLDivElement>('.bc-slider');
@@ -150,7 +149,7 @@ const Slider = ({ location }: SliderProps) => {
     },[ location, currentTab?.innerHTML ]);
 
     return <div className='bc-slider' style={ sliderStyles }/>
-}
+});
 
 const ScrollContainer = ({ children }: { children: ReactNode }) => {
     const ref = useRef(null);
@@ -400,8 +399,7 @@ const Crumbs = memo(({
 export const BreadCrumbs = memo(({
     isMobile,
     shouldDropShadow,
-    wishSubmitRef,
-    wishlistSubmitRef,
+    submitRef,
     isAbleToSumbit
 } : BreadCrumbsProps
 ) => {
@@ -433,15 +431,24 @@ export const BreadCrumbs = memo(({
         />
     });
 
-    const handleSubmit = () => {
-        if((isNewWish || isEditWish) && wishSubmitRef.current?.submit) {
-            wishSubmitRef.current.submit()
-        } else if((isNewWishlist || isEditWishlist) && wishlistSubmitRef.current?.submit) {
-            wishlistSubmitRef.current.submit()
+    const handleSubmit = useCallback(() => {
+        if((isNewWish || isEditWish) && submitRef.current?.submitWish) {
+            submitRef.current.submitWish()
+        } else if((isNewWishlist || isEditWishlist) && submitRef.current?.submitWishlist) {
+            submitRef.current.submitWishlist()
+        } else if(isProfileSection && submitRef.current?.submitProfile){
+            submitRef.current.submitProfile()
         } else {
             console.log('missed submit function')
         }
-    }
+    },[ isNewWish,
+        isEditWish,
+        isNewWishlist,
+        isEditWishlist,
+        isProfileSection
+    ]);
+
+    const currentTab = document.querySelector<HTMLAnchorElement>('.nav-elem.option.active');
 
     return (
         <div className={ 'bread-crumbs ' + (isCrumbs ? 'crumbs' : 'tabs') + (shouldDropShadow ? ' with-shadow' : '')}>
@@ -449,7 +456,9 @@ export const BreadCrumbs = memo(({
             { isMobile && isCrumbs && <Back/> }
 
             <div className='bread-box'>
-                <Slider {...{ location }}/>
+                { currentTab &&
+                    <Slider {...{ location, currentTab }}/>
+                }
                 { isCrumbs // true in /lists/ mode and in mobile version of wish pages and wish edit pages
                     ? <Crumbs {...{
                         isMobile,
@@ -479,7 +488,7 @@ export const BreadCrumbs = memo(({
             { isMobile && (location === '/my-wishes/lists') &&
                 <Plus isMobile/>
             }
-            { isMobile && (isNewWish || isEditWish || isNewWishlist || isEditWishlist) &&
+            { isMobile && (isNewWish || isEditWish || isNewWishlist || isEditWishlist || isProfileSection) &&
                 <Button
                     onClick={ handleSubmit }
                     disabled={ !isAbleToSumbit }

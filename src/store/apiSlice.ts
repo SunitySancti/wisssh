@@ -113,7 +113,7 @@ export const apiSlice = createApi({
     reducerPath: 'api',
     baseQuery: baseQueryWithReauth,
     refetchOnReconnect: true,
-    // refetchOnMountOrArgChange: 10,   // in seconds, like polling but only at render moment
+    // refetchOnMountOrArgChange: 3,   // in seconds, like polling but only at render moment
     tagTypes: ['Auth', 'User', 'Friends', 'UserWishes', 'FriendWishes', 'UserWishlists', 'Invites'],
     endpoints: builder => ({
 
@@ -583,16 +583,20 @@ export const {
     useAcceptInvitationMutation,
     useDeleteInvitationMutation,
 
-    useGetAllUserNamesQuery,
-    useGetCurrentUserQuery,
-    useGetFriendsQuery,
+    useGetAllUserNamesQuery,        // must never be cached
+    useGetCurrentUserQuery,         // may be changed without user action
+                                    // (another user delete wishlist current user invited in/ delete wish reserved by user)
+    useGetFriendsQuery,             // may be changed without user action
+                                    // (another user delete wishlist current user invited in so list of friends become less)
     
-    useGetUserWishesQuery,
-    useGetFriendWishesQuery,
+    useGetUserWishesQuery,          // "reservedBy" prop only may be changed by another user, doesn't matter
+                                    // "isCompleted" prop may be changed by date (really may?)
+    useGetFriendWishesQuery,        // may be changed without user action
+                                    // (add wishes in/ remove wishes from wishlist, update wish)
     
-    useGetUserWishlistsQuery,
-    useLazyGetUserWishlistsQuery,
-    useGetInvitesQuery,
+    useGetUserWishlistsQuery,       // may be changed only by user
+    useGetInvitesQuery,             // may be changed by another user
+                                    // (delete wishlist user invited in or wish reserved by user)
 
     usePrefetch,
 } = apiSlice

@@ -1,5 +1,8 @@
+import { useEffect } from 'react'
 import { useLocation,
          useParams } from 'react-router-dom'
+import { useDeepCompareMemo } from 'use-deep-compare'
+
 import { useGetCurrentUserQuery,
          useGetAllUserNamesQuery,
          useGetFriendsQuery,
@@ -13,6 +16,8 @@ import type { UserId,
               WishlistId,
               InvitationCode } from 'typings';
 
+// It needs to do additional render optimizing if you want to set polling to every single endpoint
+const pollingInterval = undefined;
 
 // USERS //
 
@@ -22,9 +27,13 @@ const getCurrentUser = () => {
             isSuccess:          userHasLoaded,
             refetch:            refreshUser,
             isFetching:         fetchingUser,
-            fulfilledTimeStamp: userTimeStamp } = useGetCurrentUserQuery();
+            fulfilledTimeStamp: userTimeStamp } = useGetCurrentUserQuery(undefined,{ pollingInterval });
+
+    const memoizedUser = useDeepCompareMemo(() => (
+        user
+    ),[ user ]);
             
-    return { user, awaitingUser, userHasLoaded, refreshUser, fetchingUser, userTimeStamp }
+    return { user: memoizedUser, awaitingUser, userHasLoaded, refreshUser, fetchingUser, userTimeStamp }
 }
 
 const getFriends = () => {
@@ -35,16 +44,23 @@ const getFriends = () => {
             isError:            loadingFriendsWasCrashed,
             refetch:            refreshFriends,
             isFetching:         fetchingFriends,
-            fulfilledTimeStamp: friendsTimeStamp } = useGetFriendsQuery();
+            fulfilledTimeStamp: friendsTimeStamp } = useGetFriendsQuery(undefined,{ pollingInterval });
 
-    return { friends: friends || [],
+    const memoizedFriends = useDeepCompareMemo(() => (
+        friends || []
+    ),[ friends ]);
+
+    return { friends: memoizedFriends,
              friendsError, awaitingFriends, friendsHaveLoaded, loadingFriendsWasCrashed, refreshFriends, fetchingFriends, friendsTimeStamp }
 }
 
 const getAllRelevantUsers = () => {
-    const { data: user } = useGetCurrentUserQuery();
-    const { data: friends } = useGetFriendsQuery();
-    return user ? (friends || []).concat(user) : friends || []
+    const { user } = getCurrentUser();
+    const { friends } = getFriends();
+
+    return useDeepCompareMemo(() => (
+        user ? friends.concat(user) : friends
+    ),[ user, friends ]);
 }
 
 const getUserById = (id?: UserId) => {
@@ -52,7 +68,10 @@ const getUserById = (id?: UserId) => {
 }
 
 const getUsersByIdList = (ids?: UserId[]) => {
-    return getAllRelevantUsers().filter(user => ids?.includes(user.id))
+    const allUsers = getAllRelevantUsers();
+    return useDeepCompareMemo(() => (
+        allUsers.filter(user => ids?.includes(user.id))
+    ),[ allUsers, ids ]);
 }
 
 const getAllUserNames = () => {
@@ -63,8 +82,8 @@ const getAllUserNames = () => {
             isError:            loadingAllUserNamesWasCrashed,
             refetch:            refreshAllUserNames,
             isFetching:         fetchingAllUserNames,
-            fulfilledTimeStamp: allUserNamesTimeStamp } = useGetAllUserNamesQuery();
-
+            fulfilledTimeStamp: allUserNamesTimeStamp } = useGetAllUserNamesQuery(undefined,{ pollingInterval });
+            
     return { allUserNames: allUserNames || [],
              allUserNamesError, awaitingAllUserNames, allUserNamesHaveLoaded, loadingAllUserNamesWasCrashed, refreshAllUserNames, fetchingAllUserNames, allUserNamesTimeStamp }
 }
@@ -80,9 +99,13 @@ const getUserWishlists = () => {
             isError:            loadingUserWishlistsWasCrashed,
             refetch:            refreshUserWishlists,
             isFetching:         fetchingUserWishlists,
-            fulfilledTimeStamp: userWishlistsTimeStamp } = useGetUserWishlistsQuery();
+            fulfilledTimeStamp: userWishlistsTimeStamp } = useGetUserWishlistsQuery(undefined,{ pollingInterval });
 
-    return { userWishlists: userWishlists || [],
+    const memoizedWishlists = useDeepCompareMemo(() => (
+        userWishlists || []
+    ),[ userWishlists ]);
+
+    return { userWishlists: memoizedWishlists,
              userWishlistsError, awaitingUserWishlists, userWishlistsHaveLoaded, loadingUserWishlistsWasCrashed, refreshUserWishlists, fetchingUserWishlists, userWishlistsTimeStamp }
 }
 
@@ -94,16 +117,23 @@ const getInvites = () => {
             isError:            loadingInvitesWasCrashed,
             refetch:            refreshInvites,
             isFetching:         fetchingInvites,
-            fulfilledTimeStamp: invitesTimeStamp } = useGetInvitesQuery();
+            fulfilledTimeStamp: invitesTimeStamp } = useGetInvitesQuery(undefined,{ pollingInterval });
 
-    return { invites: invites || [],
+    const memoizedInvites = useDeepCompareMemo(() => (
+        invites || []
+    ),[ invites ]);
+
+    return { invites: memoizedInvites,
              invitesError, awaitingInvites, invitesHaveLoaded, loadingInvitesWasCrashed, refreshInvites, fetchingInvites, invitesTimeStamp }
 }
 
 const getAllRelevantWishlists = () => {
-    const { data: userWishlists } = useGetUserWishlistsQuery();
-    const { data: invites } = useGetInvitesQuery();
-    return (userWishlists || []).concat(invites || [])
+    const { userWishlists } = getUserWishlists();
+    const { invites } = getInvites();
+
+    return useDeepCompareMemo(() => (
+        userWishlists.concat(invites) || []
+    ),[ userWishlists, invites ]);
 }
 
 const getWishlistById = (id?: WishlistId) => {
@@ -111,7 +141,22 @@ const getWishlistById = (id?: WishlistId) => {
 }
 
 const getWishlistsByIdList = (ids?: WishlistId[]) => {
-    return getAllRelevantWishlists().filter(wishlist => ids?.includes(wishlist.id))
+    const allWishlists = getAllRelevantWishlists();
+
+    return useDeepCompareMemo(() => (
+        allWishlists.filter(wishlist => ids?.includes(wishlist.id))
+    ),[ allWishlists, ids ]);
+}
+
+const useInvitesPolling = (ms?: number) => {
+    // POLLING WISHES OF FRIENDS TO CATCH STATUS CHANGING //
+    const { refreshInvites } = getInvites();
+    useEffect(() => {
+        const intervalId = setInterval(() => {
+            refreshInvites();
+        }, ms || 3000);
+        return () => clearInterval(intervalId);
+    },[]);
 }
 
 
@@ -125,9 +170,13 @@ const getUserWishes = () => {
             isError:            loadingUserWishesWasCrashed,
             refetch:            refreshUserWishes,
             isFetching:         fetchingUserWishes,
-            fulfilledTimeStamp: userWishesTimeStamp } = useGetUserWishesQuery();
+            fulfilledTimeStamp: userWishesTimeStamp } = useGetUserWishesQuery(undefined,{ pollingInterval });
 
-    return { userWishes: userWishes || [],
+    const memoizedWishes = useDeepCompareMemo(() => (
+        userWishes || []
+    ),[ userWishes ]);
+
+    return { userWishes: memoizedWishes,
              userWishesError, awaitingUserWishes, userWishesHaveLoaded, loadingUserWishesWasCrashed, refreshUserWishes, fetchingUserWishes, userWishesTimeStamp }
 }
 
@@ -139,16 +188,23 @@ const getFriendWishes = () => {
             isError:            loadingFriendWishesWasCrashed,
             refetch:            refreshFriendWishes,
             isFetching:         fetchingFriendWishes,
-            fulfilledTimeStamp: friendWishesTimeStamp } = useGetFriendWishesQuery();
+            fulfilledTimeStamp: friendWishesTimeStamp } = useGetFriendWishesQuery(undefined,{ pollingInterval });
 
-    return { friendWishes: friendWishes || [],
+    const memoizedWishes = useDeepCompareMemo(() => (
+        friendWishes || []
+    ),[ friendWishes ]);
+
+    return { friendWishes: memoizedWishes,
              friendWishesError, awaitingFriendWishes, friendWishesHaveLoaded, loadingFriendWishesWasCrashed, refreshFriendWishes, fetchingFriendWishes, friendWishesTimeStamp }
 }
 
 const getAllRelevantWishes = () => {
-    const { data: userWishes } = useGetUserWishesQuery();
-    const { data: friendWishes } = useGetFriendWishesQuery();
-    return (userWishes || []).concat(friendWishes || [])
+    const { userWishes } = getUserWishes();
+    const { friendWishes } = getFriendWishes();
+
+    return useDeepCompareMemo(() => (
+        userWishes.concat(friendWishes) || []
+    ),[ userWishes, friendWishes ])
 }
 
 const getWishById = (id?: WishId) => {
@@ -156,17 +212,34 @@ const getWishById = (id?: WishId) => {
 }
 
 const getWishesByIdList = (ids?: WishId[]) => {
-    return getAllRelevantWishes().filter(wish => ids?.includes(wish.id))
+    const allWishes = getAllRelevantWishes();
+    return useDeepCompareMemo(() => (
+        allWishes.filter(wish => ids?.includes(wish.id))
+    ),[ allWishes, ids ]);
 }
 
 const getActualWishes = () => {
-    const actualWishes = getUserWishes().userWishes.filter(wish => !wish.isCompleted);
+    const { userWishes } = getUserWishes();
+    const actualWishes =  useDeepCompareMemo(() => (
+        userWishes.filter(wish => !wish.isCompleted)
+    ),[ userWishes ]);
     return ({ actualWishes })
 }
 
 const getWishesByWishlistId = (id?: WishlistId) => {
     const wishlist = getWishlistById(id);
     return getWishesByIdList(wishlist?.wishes)
+}
+
+const useFriendWishesPolling = (ms?: number) => {
+    // POLLING WISHES OF FRIENDS TO CATCH STATUS CHANGING //
+    const { refreshFriendWishes } = getFriendWishes();
+    useEffect(() => {
+        const intervalId = setInterval(() => {
+            refreshFriendWishes();
+        }, ms || 3000);
+        return () => clearInterval(intervalId);
+    },[]);
 }
 
 
@@ -303,11 +376,13 @@ export {
     getWishesByIdList,
     getActualWishes,
     getWishesByWishlistId,
+    useFriendWishesPolling,
 
     getUserWishlists,
     getInvites,
     getWishlistById,
     getWishlistsByIdList,
+    useInvitesPolling,
 
     getLoadingStatus,
     getLocationConfig
