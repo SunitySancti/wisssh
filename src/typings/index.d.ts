@@ -37,7 +37,8 @@ export interface User {
     invites: WishlistId[];
     imageExtension: 'png' | 'jpg' | null;
     signedAt: Timestamp;
-    lastActivityAt: Timestamp
+    lastActivityAt: Timestamp;
+    lastImageUpdate?: Timestamp
 }
 
 export interface WishDefaultValues {
@@ -56,7 +57,8 @@ export interface WishDefaultValues {
     createdAt: Timestamp | null;
     id?: WishId;
     author?: UserId;
-    lastModifiedAt?: Timestamp
+    lastModifiedAt?: Timestamp;
+    lastImageUpdate?: Timestamp
 }
 
 export interface Wish extends WishDefaultValues {

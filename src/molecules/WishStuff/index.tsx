@@ -65,7 +65,7 @@ interface WishCoverProps {
 }
 
 interface WishCoverViewProps extends WishCoverProps {
-    imageURL: string | null;
+    imageURL: string | undefined;
     isLoading: boolean
 }
 
@@ -203,10 +203,12 @@ const WishCoverView = memo(({
 } : WishCoverViewProps
 ) => (
     <div
-        className='wish-cover'
+        className={ 'wish-cover' + (wish.imageExtension ? '' : ' no-image') }
         style={ wish.imageExtension
             ? { aspectRatio: (wish?.imageAR || 1) + '' }
-            : { height: '3.5rem' }
+            : onCard
+            ? { height: '3.5rem' }
+            : undefined
         }
     >
         <StarRating readOnly rating={ wish?.stars }/>
@@ -224,15 +226,17 @@ const WishCoverView = memo(({
         }
         { imageURL
             ? <img src={ imageURL }/>
-            : wish.imageExtension &&
+            : (!onCard || wish?.imageExtension) && 
                 <WishPreloader {...{ isLoading }}/>
         }
     </div>
 ));
 
 export const WishCover = (props : WishCoverProps) => {
-    const imageURL = useAppSelector(state => state.images?.imageURLs[props.wish?.id]);
+    const imageURL = useAppSelector(state => state.images?.imageURLs[props.wish?.id]?.url);
     const isLoading = useAppSelector(state => state.images?.loading[props.wish?.id]);
+
+    console.log({imageAR: props.wish.imageAR})
     
     return <WishCoverView {...{...props, imageURL, isLoading }}/>
 }

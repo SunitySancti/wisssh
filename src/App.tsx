@@ -3,7 +3,6 @@ import { Navigate,
          Routes,
          Route, 
          useNavigate} from 'react-router-dom'
-
 import './App.scss'
 import './responsiveness.scss'
 import { AppLayout } from 'organisms/AppLayout'
@@ -62,6 +61,7 @@ const DataFetchController = () => {
 
     useFriendWishesPolling();
     useInvitesPolling();
+
 
     useEffect(() => {
         switch(section + '/' + mode) {

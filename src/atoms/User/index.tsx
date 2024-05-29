@@ -35,7 +35,7 @@ interface UserProps extends optionalUserParameters {
 
 interface UserViewProps extends optionalUserParameters {
     name?: string;
-    imageURL?: string | null;
+    imageURL?: string | undefined;
     isLoading?: boolean;
 }
 
@@ -105,12 +105,12 @@ export const User = ({
 ) => {
     const dispatch = useAppDispatch();
     const user = getUserById(id);
-    const imageURL = useAppSelector(state => id ? state.images.imageURLs[id] : undefined);
+    const { url: imageURL } = useAppSelector(state => id ? state.images.imageURLs[id] : undefined) || {};
     const isLoading = useAppSelector(state => id ? state.images.loading[id] : undefined);
 
     useEffect(() => {
-        if(id && user?.imageExtension) dispatch(promoteImages(id))
-    },[ id, user?.imageExtension ]);
+        if(id && user?.imageExtension && !imageURL) dispatch(promoteImages(id))
+    },[ id, user?.imageExtension, imageURL ]);
 
     return user &&
         <UserView {...{...optionalParams, name: user?.name, imageURL, isLoading }} />

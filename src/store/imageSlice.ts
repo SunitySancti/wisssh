@@ -17,7 +17,8 @@ import type { RootState,
 interface GetImageData {
     data?: {
         id: ImageId;
-        url: ImageURL | null
+        url: ImageURL;
+        timestamp: number
     };
     error?: any
 }
@@ -56,6 +57,17 @@ export interface QueueItem {
     type: 'avatar' | 'cover'
 }
 
+type ImageId = string & { length: 6 }
+type ImageURL = string
+
+interface ImageURLs {
+    [key: ImageId]: {
+        url: ImageURL;
+        timestamp: number
+    } | null
+    // undefined?: null
+}
+
 interface ImageState {
     imageURLs: ImageURLs;
     backupURLs: ImageURLs;
@@ -89,17 +101,24 @@ async function fetchImage(
 
     return await fetch(endpoint,{
         'headers': {
-            'Authorization': token
+            'Authorization': token,
+            'Content-Type': 'application/json'
         }
-    })  .then(res => res.blob())
-        .then(blob => blob?.size ? URL.createObjectURL(blob) : null)
-        .then(url => ({
-            data: {
-                id: id as ImageId,
-                url
-            },
-            error: undefined
-        }))
+    })  .then(res => res.json())
+        .then(data => {
+            const { buffer, type, timestamp } = data;
+            const uint8Array = new Uint8Array(buffer.data);
+            const blob = new Blob([ uint8Array ], { type });
+            const url = URL.createObjectURL(blob);
+            return ({
+                data: {
+                    id: id as ImageId,
+                    url,
+                    timestamp
+                },
+                error: undefined
+            })
+        })
         .catch(error => ({
             data: undefined,
             error
@@ -241,13 +260,6 @@ export const copyWishCover = createAsyncThunk<
     }
 );
 
-type ImageId = string & { length: 6 }
-type ImageURL = string
-
-interface ImageURLs {
-    [key: ImageId]: ImageURL | null
-    undefined?: null;
-}
 
 const imageSlice = createSlice({
     name: 'images',
@@ -255,8 +267,8 @@ const imageSlice = createSlice({
     reducers: {
         resetImageStore(state) {
             const currentState = current(state);
-            const URLs = Object.values(currentState.imageURLs)
-                 .concat(Object.values(currentState.backupURLs));
+            const URLs = Object.values(currentState.imageURLs).map(obj => obj?.url)
+                 .concat(Object.values(currentState.backupURLs).map(obj => obj?.url));
             
             for(const url of URLs) {
                 if(url) URL.revokeObjectURL(url)
@@ -304,9 +316,11 @@ const imageSlice = createSlice({
         });
         builder.addCase(getImage.fulfilled, (state, action) => {
             if(!action.payload.data) return state
-            const { id, url } = action.payload.data
+            const { id, url, timestamp } = action.payload.data
 
-            state.imageURLs[id] = url;
+            state.imageURLs[id] = url
+                ? { url, timestamp }
+                : null
             delete state.loading[id];
         });
         builder.addCase(getImage.rejected, (state, action) => {
@@ -318,14 +332,18 @@ const imageSlice = createSlice({
         builder.addCase(postImage.pending, (state, action) => {
             const { id, file } = action.meta.arg;
             state.backupURLs[id] = state.imageURLs[id] || null;
-            state.imageURLs[id] = URL.createObjectURL(file);
+    
+            state.imageURLs[id] = {
+                url: URL.createObjectURL(file),
+                timestamp: Date.now()
+            };
         });
         builder.addCase(postImage.fulfilled, (state, action) => {
             if(!action.payload.data) return state
             const { id } = action.meta.arg;
             const backupURL = current(state).backupURLs[id]
             if(backupURL) {
-                URL.revokeObjectURL(backupURL)
+                URL.revokeObjectURL(backupURL.url)
             }
             delete state.backupURLs[id]
         });
@@ -347,7 +365,7 @@ const imageSlice = createSlice({
             const { id } = action.meta.arg;
             const backupURL = current(state).backupURLs[id]
             if(backupURL) {
-                URL.revokeObjectURL(backupURL)
+                URL.revokeObjectURL(backupURL.url)
             }
             delete state.backupURLs[id]
         });
@@ -382,7 +400,7 @@ const imageSlice = createSlice({
                     const currentImageIds = Object.keys(currentState.imageURLs) as ImageId[];
                     const currentBackupIds = Object.keys(currentState.backupURLs) as ImageId[];
                     const currentLoadingIds = Object.keys(currentState.loading) as ImageId[];
-                    const idList = [...currentQueueIds, ...currentPriorIds, ...currentImageIds, ...currentBackupIds, ...currentLoadingIds]
+                    const idList = [...currentQueueIds, ...currentPriorIds, ...currentImageIds, ...currentBackupIds, ...currentLoadingIds];
 
                     if(!(payload instanceof Array)) {
                         payload = [ payload ]
@@ -395,6 +413,19 @@ const imageSlice = createSlice({
                             
                             if(!idList.includes(id) && ext) {
                                 state.queue.push({ id, ext, type })
+                            }
+
+                            const unitTS = unit.lastImageUpdate || 0;
+                            const imageTS = currentState.imageURLs[id]?.timestamp || 0
+
+                            // we need to renew image data: fetch or delete url
+                            if((unitTS > imageTS) && ext) {
+                                if(ext) {
+                                    state.queue.push({ id, ext, type })
+                                } else {
+                                    delete state.imageURLs[id];
+                                    delete state.backupURLs[id]
+                                }
                             }
                         }
                     })

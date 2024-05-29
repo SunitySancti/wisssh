@@ -349,7 +349,7 @@ export const NewWishPage = forwardRef(() => {
 
     const [ image, setImage ] = useState<Blob | undefined>(undefined);
     const [ isNewImage, setIsNewImage ] = useState(false);
-    const currentImageURL = useAppSelector(state => state.images.imageURLs[editingWish?.id || 'undefined']);
+    const { url: currentImageURL } = useAppSelector(state => editingWish?.id ? state.images.imageURLs[editingWish?.id] : undefined) || {};
     
     const setNewImage = useCallback((blob?: Blob) => {
         setImage(blob);

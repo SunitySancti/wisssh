@@ -166,6 +166,7 @@ const SingleWishPageView = memo(({
             mode,
             tab } = getLocationConfig();
     const isMobile = askMobile();
+    console.log({ wish })
 
     return ( isLoading
         ?   <div className='wish-page'>

@@ -197,7 +197,7 @@ const ProfileForm = ({ labelWidth }: LabelAlignment) => {
     // IMAGE SETTINGS //
     const [ image, setImage ] = useState<Blob | undefined>(undefined);
     const [ isNewImage, setIsNewImage ] = useState(false);
-    const currentImageURL = useAppSelector(state => state.images.imageURLs[user?.id || 'undefined']);
+    const { url: currentImageURL } = useAppSelector(state => user?.id ? state.images.imageURLs[user.id] : undefined) || {};
     
     const setNewImage = useCallback((blob?: Blob) => {
         setImage(blob);

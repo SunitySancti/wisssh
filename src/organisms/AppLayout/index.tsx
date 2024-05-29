@@ -105,16 +105,21 @@ function useFetchImagesController() {
     const isLoading = useAppSelector(state => Boolean(Object.keys(state.images.loading).length));
 
     useEffect(() => {
-        if(!isLoading) {
-            const part: QueueItem[] = [];
-            if(prior instanceof Array && prior.length) {
-                part.push(...prior.slice(0,8))
-            } else if(queue instanceof Array && queue.length) {
-                part.push(...queue.slice(0,8))
-            }
-
-            part.forEach(item => dispatch(getImage(item)))
+        if(isLoading) {
+            return
         }
+        const partLength = 8;
+        const part: QueueItem[] = [];
+        
+        if(prior instanceof Array && prior.length) {
+            part.push(...prior.slice(0, partLength))
+        } else if(queue instanceof Array && queue.length) {
+            part.push(...queue.slice(0, partLength))
+        }
+
+        part.forEach(item => {
+            dispatch(getImage(item))
+        })
     },[ queue, prior, isLoading ]);
 }
 
