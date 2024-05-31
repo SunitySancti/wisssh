@@ -3,7 +3,9 @@ import { useRef,
          forwardRef,
          useImperativeHandle,
          memo } from 'react'
-import { Outlet } from 'react-router'
+import { Outlet,
+         useNavigate } from 'react-router'
+import { useSwipeable } from 'react-swipeable'
 
 import './styles.scss'
 import { BreadCrumbs } from 'molecules/BreadCrumbs'
@@ -16,7 +18,9 @@ import { useAppSelector } from 'store'
 import type { RefObject,
               ForwardedRef,
               Dispatch,
-              SetStateAction } from 'react'
+              SetStateAction, 
+              ReactNode } from 'react'
+import type { SwipeEventData } from 'react-swipeable'
 
 
 interface NavBarRef {
@@ -56,6 +60,9 @@ interface WorkSpaceProps extends WithSubmitRef {
     workSpaceRef: RefObject<HTMLDivElement>;
     navBarRef: RefObject<NavBarRef>;
     setIsAbleToSumbit: Dispatch<SetStateAction<boolean>>;
+    swipeHandlers?: ReturnType<typeof useSwipeable>;
+    swipeContainerLeft?: number;
+    swipeContainerOpacity?: number
 }
 
 
@@ -118,7 +125,7 @@ const NavBarView = ({
                     }}/>            
                 :   <ScrollBox {...{ shouldDropShadow }}>
                         { !isProfileSection && <ModeToggle/> }
-                        <BreadCrumbs {...{ submitRef, isAbleToSumbit }}/>
+                        <BreadCrumbs {...{ submitRef, isAbleToSumbit, isMobile }}/>
                         {/* <RefreshButton/> */}
                     </ScrollBox>
             }
@@ -149,6 +156,102 @@ const NavBar = forwardRef(({
     }}/>
 });
 
+
+const SwipeContainer = ({ children }: { children: ReactNode }) => {
+    const navigate = useNavigate();
+    const { location } = getLocationConfig();
+    const containerRef = useRef<HTMLDivElement | null>(null);
+
+    const resetStyles = () => {
+        if(containerRef.current) {
+            containerRef.current.style.left = '0px'
+            containerRef.current.style.opacity = '1'
+        }
+    }
+
+    const isSwipableLeft = [
+        '/my-wishes/items/actual',
+        '/my-wishes/items/completed',
+        '/my-invites/items/reserved',
+        '/my-invites/items/completed',
+    ].includes(location);
+
+    const isSwipableRight = [
+        '/my-wishes/items/completed',
+        '/my-wishes/items/all',
+        '/my-invites/items/completed',
+        '/my-invites/items/all',
+    ].includes(location);
+
+    const triggerX = window.innerWidth / 3
+
+    const onSwipedLeft = ({ absX }: SwipeEventData) => {
+        if(absX > triggerX) {
+            switch(location) {
+                case '/my-wishes/items/actual':
+                    navigate('/my-wishes/items/completed')
+                    break
+                case '/my-wishes/items/completed':
+                    navigate('/my-wishes/items/all')
+                    break
+                case '/my-invites/items/reserved':
+                    navigate('/my-invites/items/completed')
+                    break
+                case '/my-invites/items/completed':
+                    navigate('/my-invites/items/all')
+            }
+        }
+        resetStyles()
+    };
+
+    const onSwipedRight = ({ absX }: SwipeEventData) => {
+        if(absX > triggerX) {
+            switch(location) {
+                case '/my-wishes/items/completed':
+                    navigate('/my-wishes/items/actual')
+                    break
+                case '/my-wishes/items/all':
+                    navigate('/my-wishes/items/completed')
+                    break
+                case '/my-invites/items/completed':
+                    navigate('/my-invites/items/reserved')
+                    break
+                case '/my-invites/items/all':
+                    navigate('/my-invites/items/completed')
+            }
+        }
+        resetStyles()
+    };
+
+    const onSwiping = ({ dir, deltaX, absX }: SwipeEventData) => {
+        const correctLeftSwipe = (dir === 'Left') && isSwipableLeft;
+        const correctRightSwipe = (dir === 'Right') && isSwipableRight;
+        
+        if(containerRef.current && (correctLeftSwipe || correctRightSwipe)) {
+            containerRef.current.style.left = deltaX.toFixed() + 'px'
+            containerRef.current.style.opacity = (1 - Math.min((absX / triggerX), 0.9)) + ''
+        }
+    };
+
+
+    const swipeHandlers = useSwipeable({ onSwipedLeft, onSwipedRight, onSwiping, delta: 30 });
+
+    const refPassthrough = (el: HTMLDivElement) => {
+        swipeHandlers.ref(el);
+        containerRef.current = el;
+    }
+
+    return (
+        <div {...{
+            className: 'swipe-container',
+            children,
+            ...swipeHandlers,
+            ref:refPassthrough
+        }}/>
+    )
+}
+
+
 const WorkSpace = memo(({ 
     isNarrow,
     isMobile,
@@ -171,12 +274,17 @@ const WorkSpace = memo(({
             }
         }
     >
-        <Outlet context={{ submitRef, setIsAbleToSumbit } satisfies OutletContextType}/>
+        { isMobile
+            ? <SwipeContainer>
+                <Outlet context={{ submitRef, setIsAbleToSumbit } satisfies OutletContextType}/>
+            </SwipeContainer>
+            :   <Outlet context={{ submitRef, setIsAbleToSumbit } satisfies OutletContextType}/>
+        }
     </div>
 ));
 
 
-export const NavBarLayout = memo(() => {
+export const NavBarLayout = () => {
     const workSpaceRef = useRef<HTMLDivElement>(null);
     const navBarRef = useRef<NavBarRef>(null);
     const submitRef = useRef<SubmitRef>(null);
@@ -207,4 +315,4 @@ export const NavBarLayout = memo(() => {
             }}/>
         </>
     )
-})
+}
