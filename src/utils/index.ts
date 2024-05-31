@@ -3,6 +3,8 @@ import { __API_URL__ } from 'environment'
 import type { DateArray, 
               Wishlist } from 'typings'
 
+const __DEV_MODE__ = import.meta.env.DEV
+
 
 export function delay(duration: number) {  // duration in milliseconds
     return new Promise((resolve) => setTimeout(resolve, duration));
@@ -32,7 +34,10 @@ export async function generateUniqueId<IdType>(length = 6) {
     const allIds = await fetch(__API_URL__ + '/ids/all')
                         .then(checkStatus)
                         .then(json)
-                        .catch(err => console.error(err));
+                        .catch(err => {
+                            if(__DEV_MODE__) {
+                                console.error(err)
+                        }});
     let uniqueId;
     while (!uniqueId || allIds.includes(uniqueId)) {
         uniqueId = ''

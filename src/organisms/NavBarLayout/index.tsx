@@ -17,7 +17,6 @@ import type { RefObject,
               ForwardedRef,
               Dispatch,
               SetStateAction } from 'react'
-import { askMobile } from 'store/responsivenessSlice'
 
 
 interface NavBarRef {
@@ -40,12 +39,14 @@ export interface OutletContextType extends WithSubmitRef {
 
 interface NavBarViewProps extends WithSubmitRef {
     shouldDropShadow: boolean;
-    isAbleToSumbit: boolean
+    isAbleToSumbit: boolean;
+    isMobile: boolean;
 }
 
 interface NavBarProps extends WithSubmitRef {
     workSpaceRef: RefObject<HTMLDivElement>;
-    isAbleToSumbit: boolean
+    isAbleToSumbit: boolean;
+    isMobile: boolean;
 }
 
 interface WorkSpaceProps extends WithSubmitRef {
@@ -102,9 +103,9 @@ interface WorkSpaceProps extends WithSubmitRef {
 const NavBarView = ({
     shouldDropShadow,
     submitRef,
-    isAbleToSumbit
+    isAbleToSumbit,
+    isMobile
 } : NavBarViewProps) => {
-    const isMobile = askMobile();
     const { isProfileSection } = getLocationConfig();
     return (
         <div className='navbar'>
@@ -127,6 +128,7 @@ const NavBarView = ({
 
 
 const NavBar = forwardRef(({
+    isMobile,
     workSpaceRef,
     submitRef,
     isAbleToSumbit
@@ -142,7 +144,8 @@ const NavBar = forwardRef(({
     return <NavBarView {...{
         shouldDropShadow,
         submitRef,
-        isAbleToSumbit
+        isAbleToSumbit,
+        isMobile
     }}/>
 });
 
@@ -180,13 +183,14 @@ export const NavBarLayout = memo(() => {
 
     const [ isAbleToSumbit, setIsAbleToSumbit ] = useState(false);
 
-    const isMobile = askMobile();
     const { isNarrow,
+            isMobile,
             sidePadding } = useAppSelector(state => state.responsiveness);
 
     return (
         <>
             <NavBar {...{
+                isMobile,
                 workSpaceRef,
                 submitRef,
                 isAbleToSumbit,

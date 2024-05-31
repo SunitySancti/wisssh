@@ -7,13 +7,14 @@ import { WishCard } from 'molecules/WishCard'
 import { MultiColumnLayout } from 'containers/MultiColumnLayout'
 import { LineContainer } from 'containers/LineContainer'
 
+import { useAppSelector } from 'store'
+
 import type { MouseEvent } from 'react'
 import type { Control,
               FieldValues,
               Path } from 'react-hook-form'
 import type { Wish,
               WishId } from 'typings'
-import { askMobile } from 'store/responsivenessSlice'
  
 
 interface CardSelectProps<FV extends FieldValues> {
@@ -32,17 +33,18 @@ interface CardSelectControllerRenderProps {
 interface CardSelectViewProps {
     options: Wish[];
     value: WishId[];
-    onChange: (newValue: WishId[]) => void
+    onChange: (newValue: WishId[]) => void;
+    isMobile: boolean
 }
 
 
 const CardSelectView = ({
     options,
     value,
-    onChange
+    onChange,
+    isMobile
 } : CardSelectViewProps
 ) => {
-    const isMobile = askMobile();
     return (
         <div className='card-select'>
             <LineContainer>
@@ -98,12 +100,13 @@ export const CardSelect = <FV extends FieldValues>({
     options
 } : CardSelectProps<FV>
 ) => {
+    const isMobile = useAppSelector(state => state.responsiveness.isMobile);
     return ( options && options?.length
         ?   <Controller
                 control={ control }
                 name={ name as Path<FV> }
                 render={({ field: { value, onChange }}: CardSelectControllerRenderProps) => (
-                    <CardSelectView {...{ options, value, onChange }}/>
+                    <CardSelectView {...{ options, value, onChange, isMobile }}/>
                 )}
             />
         :   <Plug position='newListNoWishes'/>

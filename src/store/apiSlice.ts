@@ -83,6 +83,7 @@ const baseQueryWithReauth: BaseQueryFn<
     FetchBaseQueryError
 > = async (args, thunkApi, extraOptions) => {
     await mutex.waitForUnlock();
+
     let result = await baseQuery(args, thunkApi, extraOptions);
 
     if(result.error) {
@@ -352,6 +353,41 @@ export const apiSlice = createApi({
                 queryFulfilled.catch(updateWishes.undo)
             }
         }),
+        removeWishFromWishlist: builder.mutation<void, { wishId: WishId, wishlistId: WishlistId }>({
+            query: ({ wishId, wishlistId }) => ({
+                url: `wishlists/remove-wish/${ wishlistId }/${ wishId }`,
+                method: 'POST'
+            }),
+            async onQueryStarted({ wishId, wishlistId },{ dispatch, queryFulfilled }) {
+
+                const updateWishlist = dispatch(
+                    apiSlice.util.updateQueryData('getUserWishlists', undefined, (draftWishlists) => {
+                        const wishlist = draftWishlists.find(wishlist => wishlist.id === wishlistId);
+                        if(wishlist) {
+                            const wishIndex = wishlist.wishes.indexOf(wishId);
+                            if(wishIndex >= 0) {
+                                wishlist.wishes.splice(wishIndex, 1);
+                            }
+                        }
+                    })
+                );
+                const updateWish = dispatch(
+                    apiSlice.util.updateQueryData('getUserWishes', undefined, (draftWishes) => {
+                        const wish = draftWishes.find(wish => wish.id === wishId);
+                        if(wish?.inWishlists.includes(wishlistId)) {
+                            const wishlistIndex = wish.inWishlists.indexOf(wishlistId);
+
+                            wish.inWishlists.splice(wishlistIndex, 1);
+                        }
+                    })
+                )
+
+                queryFulfilled.catch(() => {
+                    updateWishlist.undo();
+                    updateWish.undo()
+                })
+            }
+        }),
 
 
         postWishlist: builder.mutation<Wishlist, Wishlist>({
@@ -384,7 +420,7 @@ export const apiSlice = createApi({
                 const removedWishesIds = existedWishlist?.wishes.filter(wishId => !newWishlist.wishes.includes(wishId)) || [];
 
                 addedWishesIds.forEach(wishId => {
-                    const updateWishlist = dispatch(
+                    const updateWish = dispatch(
                         apiSlice.util.updateQueryData('getUserWishes', undefined, (draftWishes) => {
                             const existedDraft = draftWishes.find(wish => wish.id === wishId);
                             if(existedDraft && !existedDraft.inWishlists.includes(newWishlist.id)) {
@@ -393,11 +429,11 @@ export const apiSlice = createApi({
                             }
                         })
                     );
-                    undoFunctions.push(updateWishlist.undo)
+                    undoFunctions.push(updateWish.undo)
                 });
 
                 removedWishesIds.forEach(wishId => {
-                    const updateWishlist = dispatch(
+                    const updateWish = dispatch(
                         apiSlice.util.updateQueryData('getUserWishes', undefined, (draftWishes) => {
                             const existedDraft = draftWishes.find(wish => wish.id === wishId);
                             if(existedDraft && existedDraft.inWishlists.includes(existedWishlist!.id)) {
@@ -407,7 +443,7 @@ export const apiSlice = createApi({
                             }
                         })
                     )
-                    undoFunctions.push(updateWishlist.undo)
+                    undoFunctions.push(updateWish.undo)
                 });
                 
                 queryFulfilled.catch(() => { undoFunctions.forEach(undo => undo()) })
@@ -577,6 +613,7 @@ export const {
     useUncompleteWishMutation,
     useReserveWishMutation,
     useUnreserveWishMutation,
+    useRemoveWishFromWishlistMutation,
 
     usePostWishlistMutation,
     useDeleteWishlistMutation,

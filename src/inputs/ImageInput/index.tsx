@@ -11,7 +11,7 @@ import { Icon,
          UserPlaceholder } from 'atoms/Icon'
 import { Button } from 'atoms/Button'
 
-import { askMobile } from 'store/responsivenessSlice'
+import { useAppSelector } from 'store'
 
 import type { RefObject,
               SyntheticEvent } from 'react'
@@ -44,6 +44,7 @@ interface ImageInputViewProps<FV extends FieldValues> {
     imageURL?: string;
     isUser?: boolean;
     ignoreHover: boolean;
+    isMobile: boolean;
     setIgnoreHover(b: boolean): void;
     setAspectRatio(e: SyntheticEvent): void;
     deleteImage(e: SyntheticEvent): void
@@ -71,7 +72,7 @@ export function compressAndDoSomething(
     img.src = blobURL;
     img.onerror = function () {
         URL.revokeObjectURL(img.src);
-        console.log("Image compression failed");
+        console.log("Image compression failed. Try again");
     };
     img.onload = function () {
         URL.revokeObjectURL(img.src);
@@ -134,12 +135,12 @@ const ImageInputView = <FV extends FieldValues>({
     imgRef,
     isUser,
     ignoreHover,
+    isMobile,
     setIgnoreHover,
     setAspectRatio,
-    deleteImage
+    deleteImage,
 } : ImageInputViewProps<FV>
 ) => {
-    const isMobile = askMobile();
     const classes = useMemo(() => {
         let result = isUser ? 'image-input user-avatar' : 'image-input wish-cover';
         if(isDragAccept) result += ' droppable';
@@ -211,6 +212,7 @@ export const ImageInput = <FV extends FieldValues>({
     const imgRef = useRef<HTMLImageElement>(null);
     const [ignoreHover, setIgnoreHover] = useState(false);
     const [imageURL, setImageURL] = useState<string | undefined>(undefined);
+    const isMobile = useAppSelector(state => state.responsiveness.isMobile);
     
     useEffect(() => {
         if(imageURL) {
@@ -278,7 +280,8 @@ export const ImageInput = <FV extends FieldValues>({
             deleteImage,
             ignoreHover,
             setIgnoreHover,
-            isUser
+            isUser,
+            isMobile
         }}/>
     )
 }

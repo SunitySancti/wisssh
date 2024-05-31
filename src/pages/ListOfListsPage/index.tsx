@@ -1,5 +1,4 @@
-import { memo,
-         useCallback } from 'react'
+import { memo } from 'react'
 import { useNavigate } from 'react-router'
 
 import './styles.scss'
@@ -39,9 +38,9 @@ const MappedEvents = ({
     
     return wishlists.map((item, index) => {
 
-        const handleClick = useCallback(() => {
+        const handleClick = () => {
             navigate(location + '/' + item?.id)
-        },[ location ])
+        }
 
         return (
             <WishlistLine

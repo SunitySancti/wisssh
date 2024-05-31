@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
-import   useDeepCompareEffect from 'use-deep-compare-effect'
+import { useDeepCompareMemo,
+         useDeepCompareEffect } from 'use-deep-compare'
 
 import { MultiColumnLayout } from 'containers/MultiColumnLayout'
 import { WishCard } from 'molecules/WishCard'
@@ -56,7 +57,7 @@ export const WishesPage = () => {
     const { friendWishes } = getFriendWishes();
     const { awaitingWishes: isLoading } = getLoadingStatus();
 
-    const wishes = useMemo(() => {
+    const wishes = useDeepCompareMemo(() => {
         const allWishes = isWishesSection  ? userWishes
                         : isInvitesSection ? friendWishes : [];
 
@@ -77,8 +78,8 @@ export const WishesPage = () => {
         }
     },[ section,
         tab,
-        userWishes.length,
-        friendWishes.length,
+        userWishes,
+        friendWishes,
     ]);
 
     const noWishesMessage = useMemo(() => {

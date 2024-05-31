@@ -4,10 +4,11 @@ import { useEffect,
          memo } from 'react'
 
 import { getLocationConfig } from 'store/getters';
-import { askMobile } from 'store/responsivenessSlice'
+import { useAppSelector } from 'store'
 
 import type { FC } from 'react'
 import type { Wish } from 'typings'
+import { useDeepCompareEffect } from 'use-deep-compare';
 
 interface MultiColumnLayoutProps {
     Card: FC<{ data: Wish }>;
@@ -31,9 +32,9 @@ export const MultiColumnLayout = memo(({
     const [ itemsRest, setItemsRest ] = useState<Wish[]>([]);
     const [ columnedData, setColumnedData ] = useState<Wish[][]>([]);
     const [ opacity, setOpacity ] = useState(0.5);
-
+    
     // RESPONSIVENESS //
-    const isMobile = askMobile();
+    const isMobile = useAppSelector(state => state.responsiveness.isMobile);
     const isOneColumn = isMobile && data.length <= 2;
     const isTwoColumns = isMobile && !isOneColumn;
 
@@ -112,12 +113,9 @@ export const MultiColumnLayout = memo(({
     }
 
     // LIFE CYCLE //
-    useEffect(() => {
+    useDeepCompareEffect(() => {
         resetState();
-    },[ location,
-        // if uncomment this it will cause blink rerender in card select
-        // data
-    ]);
+    },[ location, data ]);
 
     useEffect(() => {
         updateColumnsQty(); 

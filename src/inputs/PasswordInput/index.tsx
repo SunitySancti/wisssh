@@ -6,6 +6,7 @@ import { Icon } from 'atoms/Icon'
 
 import type { FieldValues,
               UseFormRegister } from 'react-hook-form'
+import { useAppSelector } from 'store'
 
 
 interface PasswordInputProps<FV extends FieldValues> {
@@ -17,19 +18,20 @@ interface PasswordInputProps<FV extends FieldValues> {
     labelWidth?: number;
     warningMessage?: string;
     required?: boolean;
-    disabled?: boolean
+    disabled?: boolean;
 }
 
 interface PasswordInputViewProps<FV extends FieldValues> extends PasswordInputProps<FV> {
-    setType(type: 'password' | 'text'): void
-    type: 'password' | 'text';
+    setIsPasswordVisible(b: boolean): void;
+    isPasswordVisible: boolean;
+    isMobile: boolean;
 }
 
 
 const PasswordInputView = <FV extends FieldValues>({
     register,
-    setType,
-    type,
+    setIsPasswordVisible,
+    isPasswordVisible,
     name,
     label,
     className,
@@ -37,7 +39,8 @@ const PasswordInputView = <FV extends FieldValues>({
     labelWidth,
     warningMessage,
     required,
-    disabled
+    disabled,
+    isMobile
 } : PasswordInputViewProps<FV>
 ) => (
     <div className={ 'password-input ' + (className || '') }>
@@ -46,7 +49,7 @@ const PasswordInputView = <FV extends FieldValues>({
             label: label || 'Password',
             autoComplete: autoComplete || name || "password",
             register,
-            type,
+            type: isPasswordVisible ? 'text' : 'password',
             labelWidth,
             warningMessage,
             required,
@@ -55,8 +58,9 @@ const PasswordInputView = <FV extends FieldValues>({
         />
         <Icon
             name='lookPass'
-            onMouseOver={ () => setType('text') }
-            onMouseOut={ () => setType('password') }
+            onClick={ isMobile ? () => setIsPasswordVisible(!isPasswordVisible) : undefined }
+            onMouseOver={ isMobile ? undefined : () => setIsPasswordVisible(true) }
+            onMouseOut={ isMobile ? undefined : () => setIsPasswordVisible(false) }
         />
     </div>
 );
@@ -64,6 +68,8 @@ const PasswordInputView = <FV extends FieldValues>({
 export const PasswordInput = <FV extends FieldValues>(
     props : PasswordInputProps<FV>
 ) => {
-    const [type, setType] = useState<'password' | 'text'>('password');
-    return <PasswordInputView {...{ ...props, type, setType }}/>
+    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+    const isMobile = useAppSelector(state => state.responsiveness.isMobile);
+
+    return <PasswordInputView {...{ ...props, isPasswordVisible, setIsPasswordVisible, isMobile }}/>
 }

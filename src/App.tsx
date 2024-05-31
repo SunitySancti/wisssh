@@ -15,7 +15,6 @@ import { NewWishPage } from 'pages/NewWishPage'
 import { NewListPage } from 'pages/NewListPage'
 import { LoginPage } from 'pages/LoginPage'
 import { LogoutPage } from 'pages/LogoutPage'
-import { RedirectPage } from 'pages/RedirectPage'
 import { ProfilePage } from 'pages/ProfilePage'
 import { InvitationAcceptancePage } from 'pages/InvitationAcceptancePage'
 
@@ -52,11 +51,11 @@ const DataFetchController = () => {
     const { invitesHaveLoaded } = getInvites();
 
     const fetchRest = () => {
-        if(!userWishesHaveLoaded)       triggerUserWishes()
-        if(!userWishlistsHaveLoaded)    triggerUserWishlists()
-        if(!friendWishesHaveLoaded)     triggerFriendWishes()
-        if(!invitesHaveLoaded)          triggerInvites()
-        if(!friendsHaveLoaded)          triggerFriends()
+        if(!userWishesHaveLoaded)       triggerUserWishes();
+        if(!userWishlistsHaveLoaded)    triggerUserWishlists();
+        if(!friendWishesHaveLoaded)     triggerFriendWishes();
+        if(!invitesHaveLoaded)          triggerInvites();
+        if(!friendsHaveLoaded)          triggerFriends();
     }
 
     useFriendWishesPolling();
@@ -166,7 +165,6 @@ const App = () => (
 
             <Route path='/login/:encodedEmail?' element={ <LoginPage/> }/>
             <Route path='/logout' element={ <LogoutPage/> }/>
-            <Route path='/redirect' element={ <RedirectPage/> }/>
             <Route path='*' element={ <Navigate to='/my-wishes/items/actual' replace/> }/>
         </Routes>
     </>

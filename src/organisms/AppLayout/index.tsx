@@ -25,9 +25,9 @@ import { getLocationConfig,
          getCurrentUser } from 'store/getters'
 import { useAppDispatch,
          useAppSelector } from 'store'
-import { askMobile } from 'store/responsivenessSlice'
 
 import type { RefObject,
+              SyntheticEvent,
               WheelEvent } from 'react'
 import type { QueueItem } from 'store/imageSlice'
 import type { WidthAwared,
@@ -43,7 +43,7 @@ interface AppHeaderViewProps {
 }
 
 interface AppHeaderMobileViewProps {
-    toggleMenu(): void;
+    toggleMenu(e: SyntheticEvent): void;
     isMenuOpen: boolean;
     appHeaderHeight: number;
     top: number;
@@ -90,10 +90,11 @@ function useRedirectController() {
     // REDIRECTING TO LOGIN PAGE //
     const navigate = useNavigate();
     const token = useAppSelector(state => state.auth.token);
+    const { location } = getLocationConfig();
 
     useEffect(() => {
         if(!token) {
-            navigate('/login',{ state:{ redirectedFrom: location }})
+            navigate('/login',{ state: location })
         }
     },[ token ]);
 }
@@ -269,23 +270,23 @@ const AppHeaderMobile = () => {
             mode } = getLocationConfig();
     const { user } = getCurrentUser();
 
-    const optionId = mode ? section + '/' + mode : section!;
-
     const [ isMenuOpen, setIsMenuOpen ] = useState(false);
-
-    const top = useMemo(() => {
-        const targetOption = document.getElementById(optionId) as HTMLAnchorElement | null;
-        const rect = targetOption?.getBoundingClientRect()
-        return rect
-            ? (appHeaderHeight - rect.height) / 2 - rect.top
-            : 0
-    },[ isMenuOpen ]);
     
     const toggleMenu = useCallback(() => {
         setIsMenuOpen(!isMenuOpen);
         const animation = document.getElementById('burger-to-cross') as unknown as SVGAnimateElement | null
         animation?.beginElement()
     },[ isMenuOpen ]);
+
+    const optionId = mode ? section + '/' + mode : section || '';
+    const targetOption = document.getElementById(optionId) as HTMLAnchorElement | null;
+    
+    const top = useMemo(() => {
+        const rect = targetOption?.getBoundingClientRect()
+        return rect
+            ? (appHeaderHeight - rect.height) / 2 - rect.top
+            : 0
+    },[ isMenuOpen, targetOption ]);
     
     return (
         <AppHeaderMobileView {...{
@@ -300,8 +301,8 @@ const AppHeaderMobile = () => {
 
 export const AppLayout = () => {
     // RESPONSIVENESS //
-    const { isNarrow } = useAppSelector(state => state.responsiveness);
-    const isMobile = askMobile()
+    const { isNarrow,
+            isMobile } = useAppSelector(state => state.responsiveness);
     
     return (
         <div className={'app-layout' + (isNarrow ? ' narrow' : '') + (isMobile ? ' mobile' : '')}>

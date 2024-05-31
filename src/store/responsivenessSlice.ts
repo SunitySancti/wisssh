@@ -5,6 +5,7 @@ import type { PayloadAction } from '@reduxjs/toolkit'
 
 interface ResponsivenessState {
     isNarrow: boolean;
+    isMobile: boolean;
     sidePadding: number;
 }
 
@@ -16,9 +17,11 @@ const upperPaddingsBreakPoint = 850;
 const lowerPaddingsBreakPoint = upperPaddingsBreakPoint - (maxPadding - minPadding) * 2;
 const narrowBreakPoint = 600;
 
+const askMobile = () => /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
 const initialState: ResponsivenessState = Object.freeze({
     isNarrow: false,
+    isMobile: true,
     sidePadding: maxPadding,
 })
 
@@ -31,17 +34,25 @@ const responsivenessSlice = createSlice({
         },
         responseWidth(state, action: PayloadAction<number>) {
             const width = action.payload;
+            
             if(width > narrowBreakPoint) {
                 state.isNarrow = false
             } else {
                 state.isNarrow = true
             }
+
             if(width > upperPaddingsBreakPoint) {
                 state.sidePadding = maxPadding;
             } else if(width < lowerPaddingsBreakPoint) {
                 state.sidePadding = minPadding;
             } else {
                 state.sidePadding = minPadding + (width - lowerPaddingsBreakPoint) / 2
+            }
+
+            if(askMobile() || width < narrowBreakPoint) {
+                state.isMobile = true
+            } else {
+                state.isMobile = false
             }
         }
     }
@@ -51,7 +62,5 @@ export const {
     setNarrow,
     responseWidth
 } = responsivenessSlice.actions;
-
-export const askMobile = () => /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
 export default responsivenessSlice.reducer

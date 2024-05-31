@@ -25,7 +25,8 @@ import type { Wish,
               Wishlist } from 'typings'
 import type { WithSubmitRef } from 'organisms/NavBarLayout'
 import type { ReactNode } from 'react'
-import { askMobile } from 'store/responsivenessSlice'
+
+const __DEV_MODE__ = import.meta.env.DEV
 
 
 interface SliderProps {
@@ -51,34 +52,36 @@ interface LinkOption {
 
 interface CrumbProps {
     to: string;
-    children: ReactNode
+    children: ReactNode;
+    isMobile: boolean;
 }
 
 interface EditCrumbProps {
     location: string;
-    title?: string
+    title?: string;
+    isMobile: boolean;
 }
 
 interface PlusProps {
-    isMobile?: boolean;
+    isMobile: boolean;
     isWishCreating?: boolean
 }
 
 interface BreadCrumbsProps extends WithSubmitRef {
-    isMobile?: boolean;
+    isMobile: boolean;
     shouldDropShadow?: boolean;
     isAbleToSumbit: boolean
 }
 
 interface TabsProps {
     wishTitle?: string;
-    isMobile?: boolean;
+    isMobile: boolean;
 }
 
 interface CrumbsProps {
     awaitingWishlists: boolean;
     awaitingWishes: boolean;
-    isMobile?: boolean;
+    isMobile: boolean;
     wishlist?: Wishlist;
     wish?: Wish;
     leftOverflow?: boolean;
@@ -173,27 +176,25 @@ const ScrollContainer = ({ children }: { children: ReactNode }) => {
     </>
 }
 
-const Crumb = ({ to, children }: CrumbProps) => {
-    const isMobile = askMobile();
-    return (
-        <NavLink
-            className='nav-elem option'
-            end
-            {...{ to }}
-        >
-            { isMobile 
-                ? <ScrollContainer {...{ children }}/>
-                : children
-            }
-        </NavLink>
-    )
-};
+const Crumb = ({ to, children, isMobile }: CrumbProps) => (
+    <NavLink
+        className='nav-elem option'
+        end
+        {...{ to }}
+    >
+        { isMobile 
+            ? <ScrollContainer {...{ children }}/>
+            : children
+        }
+    </NavLink>
+);
 
-const EditCrumb = memo(({ title, location }: EditCrumbProps) => {
+const EditCrumb = memo(({ title, location, isMobile }: EditCrumbProps) => {
     return title
         ?   <Crumb
                 to={ location }
                 children={ <span>{ 'Редактирование: ' + title }</span> }
+                isMobile={ isMobile }
             />
         : null
 });
@@ -276,7 +277,7 @@ const Tabs = memo(({
         }
     
         { wishId && isEditWish &&
-            <EditCrumb {...{ location, title: wishTitle }}/>
+            <EditCrumb {...{ location, title: wishTitle, isMobile }}/>
         }
     </>
 });
@@ -307,17 +308,18 @@ const Crumbs = memo(({
         <Crumb
             to={ `/${ section }/lists` }
             children={ <span>{ section === 'my-invites' ? 'Все приглашения' : 'Все вишлисты' }</span> }
+            isMobile={ isMobile }
         />
     ));
     
     const WishlistCrumb = memo(() => (
-        <Crumb to={ `/${ section }/lists/${ wishlistId }` }>
+        <Crumb to={ `/${ section }/lists/${ wishlistId }` } isMobile={ isMobile }>
             <span>{ wishlist?.title }</span>
         </Crumb>
     ));
     
     const WishCrumb = memo(() => (
-        <Crumb to={ location }>
+        <Crumb to={ location } isMobile={ isMobile }>
             <span>{ wish?.title }</span>
         </Crumb>
     ));
@@ -326,6 +328,7 @@ const Crumbs = memo(({
         <Crumb
             to='/my-wishes/items/new'
             children={ <span>Новое желание</span> }
+            isMobile={ isMobile }
         />
     ));
 
@@ -334,6 +337,7 @@ const Crumbs = memo(({
         <Crumb
             to='/my-wishes/lists/new'
             children={ <span>Новый вишлист</span> }
+            isMobile={ isMobile }
         />
     </>);
 
@@ -341,6 +345,7 @@ const Crumbs = memo(({
         <Crumb
             to='/profile'
             children={ <span>Профиль пользователя <b>{ userName || '' }</b></span> }
+            isMobile={ isMobile }
         />
     </>)
     
@@ -355,7 +360,7 @@ const Crumbs = memo(({
                     { awaitingWishlists
                         ? <NavbarEllipsis/>
                     : isEditWishlist
-                        ? <EditCrumb {...{ location, title: wishlist?.title }}/>
+                        ? <EditCrumb {...{ location, title: wishlist?.title, isMobile }}/>
                         : <WishlistCrumb/>
                     }
                 </>
@@ -367,7 +372,7 @@ const Crumbs = memo(({
                     { awaitingWishes
                         ? <NavbarEllipsis/>
                         : isEditWish
-                        ? <EditCrumb {...{ location, title: wish?.title }}/>
+                        ? <EditCrumb {...{ location, title: wish?.title, isMobile }}/>
                         : <WishCrumb/>
                     }
                 </>
@@ -379,7 +384,7 @@ const Crumbs = memo(({
                         { awaitingWishes
                             ? <NavbarEllipsis/>
                         : isEditWish
-                            ? <EditCrumb {...{ location, title: wish?.title }}/>
+                            ? <EditCrumb {...{ location, title: wish?.title, isMobile }}/>
                             : <WishCrumb/>
                         }
                     </>
@@ -390,7 +395,7 @@ const Crumbs = memo(({
             : isNewWishlist
                 ? <NewWishlistCrumb/>
             : !wishlistId && !wishId && isWishesSection && !isMobile &&
-                  <Plus/>
+                  <Plus isMobile={ isMobile }/>
             }
     </>
 });
@@ -438,7 +443,7 @@ export const BreadCrumbs = memo(({
             submitRef.current.submitWishlist()
         } else if(isProfileSection && submitRef.current?.submitProfile){
             submitRef.current.submitProfile()
-        } else {
+        } else if(__DEV_MODE__) {
             console.log('missed submit function')
         }
     },[ isNewWish,

@@ -4,7 +4,6 @@ import { Icon } from 'atoms/Icon'
 import { TextLabel } from 'atoms/TextLabel'
 
 import { useAppSelector } from 'store'
-import { askMobile } from 'store/responsivenessSlice'
 import { useEventListener } from 'hooks/useEventListener'
 
 import type { ReactNode,
@@ -36,11 +35,12 @@ interface TextInputProps<FV extends FieldValues> {
     autoComplete?: string;
     placeholder?: string;
     disabled?: boolean;
-    rows?: number;
+    rows?: number
 }
 
 interface TextInputViewProps<FV extends FieldValues> extends TextInputProps<FV> {
-    isNarrow?: boolean
+    isNarrow?: boolean;
+    isMobile: boolean;
 }
 
 
@@ -66,9 +66,9 @@ const TextInputView = <FV extends FieldValues>({
     disabled,
     isNarrow,
     rows,
+    isMobile
 } : TextInputViewProps<FV>
 ) => {
-    const isMobile = askMobile();
     const id = generateId<BasicId>();
     const errorTypes = ({
        required: formState?.errors[name]?.type === 'required',
@@ -168,7 +168,8 @@ export const TextInput = <FV extends FieldValues>(
     props: TextInputProps<FV>
 ) => {
     // GETTING RESPONSIVE 
-    const { isNarrow } = useAppSelector(state => state.responsiveness);
+    const { isNarrow,
+            isMobile } = useAppSelector(state => state.responsiveness);
 
-    return <TextInputView {...{ ...props, isNarrow }}/>
+    return <TextInputView {...{ ...props, isNarrow, isMobile }}/>
 }

@@ -102,7 +102,7 @@ async function fetchImage(
     return await fetch(endpoint,{
         'headers': {
             'Authorization': token,
-            'Content-Type': 'application/json'
+            // 'Content-Type': 'application/json'
         }
     })  .then(res => res.json())
         .then(data => {
@@ -163,7 +163,7 @@ export const getImage = createAsyncThunk<
         state: RootState;
         dispatch: AppDispatch;
 }>(
-    'images/fetchWishCover',
+    'images/getImage',
     async ({ id, ext, type }, thunkApi) => {
         const { getState, dispatch } = thunkApi
         return await fetchImageWithReauth(id + '.' + ext, type, getState, dispatch)

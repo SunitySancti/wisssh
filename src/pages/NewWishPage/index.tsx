@@ -32,7 +32,6 @@ import { getLocationConfig,
 import { usePostWishMutation } from 'store/apiSlice'
 import { postImage,
          deleteImage } from 'store/imageSlice'
-import { askMobile } from 'store/responsivenessSlice'
 
 import type { MouseEvent,
               BaseSyntheticEvent, 
@@ -46,6 +45,8 @@ import type { WishId,
               WishDefaultValues } from 'typings'
 import type { ImageInputRef } from 'inputs/ImageInput'
 import type { OutletContextType } from 'organisms/NavBarLayout'
+
+const __DEV_MODE__ = import.meta.env.DEV
 
 
 interface NewWishPageViewProps {
@@ -69,7 +70,8 @@ interface NewWishPageViewProps {
         min?: number;
         max?: number
     };
-    maxLabelWidth: number | undefined
+    maxLabelWidth: number | undefined;
+    isMobile: boolean;
 }
 
 
@@ -108,10 +110,10 @@ const NewWishPageView = memo(({
     isSubmitButtonDisabled,
     isSubmitButtonLoading,
     firstColumnLimits,
-    maxLabelWidth
+    maxLabelWidth,
+    isMobile
 } : NewWishPageViewProps
 ) => {
-    const isMobile = askMobile();
     const invisibleFields = [{
         name: 'id' as const,
         required: true
@@ -286,7 +288,7 @@ export const NewWishPage = forwardRef(() => {
     const [ postWish,{
             isLoading: awaitPostWish }] = usePostWishMutation();
 
-    const isMobile = askMobile();
+    const isMobile = useAppSelector(state => state.responsiveness.isMobile);
 
     // FORM SETTINGS //
 
@@ -363,7 +365,10 @@ export const NewWishPage = forwardRef(() => {
             await fetch(url)
                 .then(res => res.blob())
                 .then(blob => setImage(blob))
-                .catch(err => console.error(err))
+                .catch(err => {
+                    if(__DEV_MODE__) {
+                        console.error(err)
+                }})
         };
         setImageFromURL(currentImageURL)
         
@@ -475,7 +480,8 @@ export const NewWishPage = forwardRef(() => {
             isSubmitButtonDisabled: !isAbleToSumbit,
             isSubmitButtonLoading: formState.isSubmitting || awaitPostWish,
             firstColumnLimits,
-            maxLabelWidth
+            maxLabelWidth,
+            isMobile
         }}/>
     );
 })

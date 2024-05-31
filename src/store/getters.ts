@@ -340,8 +340,7 @@ const getLocationConfig = () => {
 
     return {
         location: location[-1] === '/' ? location.slice(0,-1) : location,
-        redirectedFrom: state?.redirectedFrom as string || undefined,
-        redirectTo: state?.redirectTo as string || undefined,
+        redirectedFrom: state as string || undefined,
         section,
         mode,
         tab,

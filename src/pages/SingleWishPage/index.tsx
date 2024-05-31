@@ -27,7 +27,6 @@ import { promoteImages } from 'store/imageSlice'
 import type { Wish,
               Wishlist } from 'typings'
 import type { Section } from 'store/getters'
-import { askMobile } from 'store/responsivenessSlice'
 
 
 interface WishlistEntriesProps {
@@ -149,7 +148,8 @@ interface SingleWishPageViewProps {
     wishlists: Wishlist[];
     firstColumnMinWidth?: number;
     firstColumnMaxWidth?: number;
-    pointerOffset: number
+    pointerOffset: number;
+    isMobile: boolean;
 }
 
 
@@ -159,14 +159,13 @@ const SingleWishPageView = memo(({
     wishlists,
     firstColumnMinWidth,
     firstColumnMaxWidth,
-    pointerOffset
+    pointerOffset,
+    isMobile
 } : SingleWishPageViewProps
 ) => {
     const { section,
             mode,
             tab } = getLocationConfig();
-    const isMobile = askMobile();
-    console.log({ wish })
 
     return ( isLoading
         ?   <div className='wish-page'>
@@ -223,7 +222,7 @@ const SingleWishPageView = memo(({
 });
 
 export const SingleWishPage = () => {
-    const isMobile = askMobile();
+    const isMobile = useAppSelector(state => state.responsiveness.isMobile);
     const dispatch = useAppDispatch();
     const { wishId } = getLocationConfig();
     
@@ -248,11 +247,10 @@ export const SingleWishPage = () => {
     },[])
 
     // ALIGN FIRST COLUMN
-    const imageURL = useAppSelector(state => state.images.imageURLs[wishId || 'undefined']);
+    const imageURL = useAppSelector(state => wishId ? state.images.imageURLs[wishId] : undefined);
 
     const firstColumnMinWidth = useMemo(() => {
         const minHeight = 330;
-        console.log({ isMobile })
         return isMobile
             ? 1
             : (wish && wish.imageAR && imageURL)
@@ -276,7 +274,8 @@ export const SingleWishPage = () => {
             wishlists,
             firstColumnMinWidth,
             firstColumnMaxWidth,
-            pointerOffset
+            pointerOffset,
+            isMobile
         }}/>
     );
 }

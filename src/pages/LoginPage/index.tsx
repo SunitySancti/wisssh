@@ -446,7 +446,7 @@ const LoginPageView = <FV extends FieldValues>({
     return ( token
         ?   <Navigate 
                 to={ redirectedFrom || '/my-wishes/items/actual' }
-                state={{ redirectedFrom: '/login' }}
+                state='/login'
                 replace
             />
         :   

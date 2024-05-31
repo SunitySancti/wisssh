@@ -15,7 +15,8 @@ import { DateSelect } from 'inputs/DateSelect'
 import { CardSelect } from 'inputs/CardSelect'
 import { LineContainer } from 'containers/LineContainer'
 
-import { useAppDispatch } from 'store'
+import { useAppDispatch,
+         useAppSelector } from 'store'
 import { generateUniqueId,
          formatDateToArray } from 'utils'
 import { usePostWishlistMutation } from 'store/apiSlice'
@@ -24,7 +25,6 @@ import { getLocationConfig,
          getActualWishes,
          getWishlistById } from 'store/getters'
 import { promoteImages } from 'store/imageSlice'
-import { askMobile } from 'store/responsivenessSlice'
 
 import type { Control,
               FormState,
@@ -50,7 +50,8 @@ interface NewListPageViewProps {
     isSubmitButtonDisabled: boolean;
     isSubmitButtonLoading: boolean;
     isLandscape: boolean;
-    maxLabelWidth: number | undefined
+    maxLabelWidth: number | undefined;
+    isMobile: boolean;
 }
 
 
@@ -76,10 +77,10 @@ const NewListPageView = memo(({
     isSubmitButtonDisabled,
     isSubmitButtonLoading,
     isLandscape,
-    maxLabelWidth
+    maxLabelWidth,
+    isMobile
 } : NewListPageViewProps
 ) => {
-    const isMobile = askMobile();
     return (
         <div className='new-list-page'>
             <form onSubmit={ handleFormSubmit } >
@@ -170,6 +171,7 @@ export const NewListPage = () => {
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
     
+    const isMobile = useAppSelector(state => state.responsiveness.isMobile);
     const { wishlistId,
             isNewWishlist,
             isEditWishlist } = getLocationConfig();
@@ -298,7 +300,8 @@ export const NewListPage = () => {
             isSubmitButtonDisabled: !isAbleToSumbit,
             isSubmitButtonLoading: formState.isSubmitting || awaitPostWishlist,
             isLandscape,
-            maxLabelWidth
+            maxLabelWidth,
+            isMobile
         }}/>
     );
 }

@@ -24,10 +24,10 @@ import { usePostWishMutation,
          useCompleteWishMutation,
          useUncompleteWishMutation,
          useReserveWishMutation,
-         useUnreserveWishMutation } from 'store/apiSlice'
+         useUnreserveWishMutation,
+         useRemoveWishFromWishlistMutation } from 'store/apiSlice'
 import { copyWishCover } from 'store/imageSlice'
 import { generateUniqueId } from 'utils'
-import { askMobile } from 'store/responsivenessSlice'
             
 import type { SyntheticEvent,
               RefObject } from 'react'
@@ -55,7 +55,8 @@ interface StatusBarViewProps {
     innerRef: RefObject<HTMLDivElement>;
     isCompleted: boolean;
     ofCurrentUser: boolean;
-    isReservedByCurrentUser: boolean
+    isReservedByCurrentUser: boolean;
+    isMobile: boolean;
 }
 
 interface WishCoverProps {
@@ -102,10 +103,10 @@ const StatusBarView = memo(({
     innerRef,
     isCompleted,
     ofCurrentUser,
-    isReservedByCurrentUser
+    isReservedByCurrentUser,
+    isMobile
 } : StatusBarViewProps
 ) => {
-    const isMobile = askMobile();
     const text = isMobile
         ? ( isCompleted && isReservedByCurrentUser && !ofCurrentUser
             ? 'Исполнено вами'
@@ -150,7 +151,7 @@ export const StatusBar = ({
     onCard
 } : StatusBarProps
 ) => {
-    const isMobile = askMobile();
+    const isMobile = useAppSelector(state => state.responsiveness.isMobile);
     const defaultWidth = 34;
     const defaultPadding = '0';
     const defaultOpacity = 0.6;
@@ -189,7 +190,8 @@ export const StatusBar = ({
             innerRef,
             isCompleted: wish.isCompleted,
             ofCurrentUser: wish.author === user?.id,
-            isReservedByCurrentUser: wish.reservedBy === user?.id
+            isReservedByCurrentUser: wish.reservedBy === user?.id,
+            isMobile
         }}/>
 }
 
@@ -235,8 +237,6 @@ const WishCoverView = memo(({
 export const WishCover = (props : WishCoverProps) => {
     const imageURL = useAppSelector(state => state.images?.imageURLs[props.wish?.id]?.url);
     const isLoading = useAppSelector(state => state.images?.loading[props.wish?.id]);
-
-    console.log({imageAR: props.wish.imageAR})
     
     return <WishCoverView {...{...props, imageURL, isLoading }}/>
 }
@@ -333,7 +333,8 @@ export const WishMenu = memo(({
             wishlistId,
             wishId,
             isWishesSection,
-            isItemsMode } = getLocationConfig();
+            isItemsMode,
+            isListsMode } = getLocationConfig();
 
     const { user } = getCurrentUser();
     const deleteModalRef = useRef<ModalRef>(null);
@@ -345,6 +346,7 @@ export const WishMenu = memo(({
     const [ uncompleteWish ] = useUncompleteWishMutation();
     const [ reserveWish ] = useReserveWishMutation();
     const [ unreserveWish ] = useUnreserveWishMutation();
+    const [ removeWishFromWishlist ] = useRemoveWishFromWishlistMutation();
 
     const handleEdit = useCallback((e: SyntheticEvent) => {
         e?.stopPropagation && e.stopPropagation();
@@ -389,7 +391,7 @@ export const WishMenu = memo(({
         deleteWish(wish.id);
         deleteModalRef.current?.hideModal(e);
         const path = ['/my-wishes', mode, (tab || wishlistId)].join('/');
-        navigate('/redirect',{ state:{ redirectTo: path }})
+        navigate(path)
     },[ wish.id,
         mode,
         tab,
@@ -404,7 +406,7 @@ export const WishMenu = memo(({
         if(isItemsMode && wishId) {
             navigate('/' + section + '/items/completed/' + wishId)
         } else {
-            navigate('/redirect',{ state:{ redirectTo: location }})
+            navigate(location)
         }
     },[ isItemsMode,
         wishId,
@@ -420,12 +422,22 @@ export const WishMenu = memo(({
         if((isItemsMode) && (wishId === wish.id)) {
             navigate('/my-wishes/items/actual/' + wishId)
         } else {
-            navigate('/redirect',{ state:{ redirectTo: location }})
+            navigate(location)
         }
     },[ isItemsMode,
         wishId,
         wish.id
     ]);
+
+    const handleRemove = useCallback((e: SyntheticEvent) => {
+        e?.stopPropagation && e.stopPropagation();
+        if(wishlistId && wish.id) {
+            removeWishFromWishlist({ wishlistId, wishId: wish.id });
+        }
+    },[ wishlistId,
+        wish.id
+    ]);
+
 
     const dropdownOptions = useMemo(() => {
         if(!user) {
@@ -464,6 +476,13 @@ export const WishMenu = memo(({
                     onClick: handleComplete,
                 })
             }
+            if(isListsMode) {
+                result.push({
+                    icon: 'close',
+                    text: 'Убрать из вишлиста',
+                    onClick: handleRemove,
+                })
+            }
         } else {
             result.push({
                 icon: 'copy',
@@ -493,12 +512,14 @@ export const WishMenu = memo(({
 
         return result
     },[ isWishesSection,
+        isListsMode,
         wish.id,
         wish.isCompleted,
         wish.reservedBy,
         handleEdit,
         handleCopy,
         handleComplete,
+        handleRemove,
         reserveWish,
         unreserveWish
     ]);

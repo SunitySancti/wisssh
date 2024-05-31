@@ -3,7 +3,7 @@ import { useState,
          useRef } from 'react'
 
 import './styles.scss'
-import { askMobile } from 'store/responsivenessSlice';
+import { useAppSelector } from 'store';
 
 import type { ReactNode,
               RefObject } from 'react'
@@ -98,7 +98,7 @@ export const DoubleColumnAdaptiveLayout = ({
     interColumnGaps
 } : DCALProps
 ) => {
-    const isMobile = askMobile();
+    const isMobile = useAppSelector(state => state.responsiveness.isMobile);
     const [ isLandscape, setIsLandscape ] = useState(true);
     const layoutRef = useRef<HTMLDivElement>(null);
     

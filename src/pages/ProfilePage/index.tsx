@@ -68,7 +68,6 @@ const ProfileFormView = memo(({
     isAbleToSumbit
 } : ProfileFormViewProps
 ) => {
-    console.log('ProfileFormView')
     return (
     <form onSubmit={ handleFormSubmit }>
         <DoubleColumnAdaptiveLayout

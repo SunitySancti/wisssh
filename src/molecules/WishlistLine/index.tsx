@@ -3,9 +3,10 @@ import { User } from 'atoms/User'
 import { WishlistMenu,
          TimeInfo } from 'molecules/WishlistStuff'
 
+import { useAppSelector } from 'store'
+
 import type { SyntheticEvent } from 'react'
 import type { Wishlist } from 'typings'
-import { askMobile } from 'store/responsivenessSlice'
 
 
 interface WishlistHeaderProps {
@@ -19,7 +20,7 @@ export const WishlistLine = ({
     onClick
 } : WishlistHeaderProps
 ) => {
-    const isMobile = askMobile();
+    const isMobile = useAppSelector(state => state.responsiveness.isMobile);
 
     return (
         <div
