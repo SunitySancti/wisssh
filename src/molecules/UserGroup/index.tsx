@@ -98,11 +98,7 @@ export const UserGroup = forwardRef((
         if(!file || !user) return;
 
         const handlePostImage = (file: Blob) => {
-            dispatch(postImage({
-                id: user.id,
-                file,
-                drive: 'avatars'
-            }));
+            dispatch(postImage({ id: user.id, file }));
             updateProfile({ ...user, withImage: true })
         }
         const compressOptions = {

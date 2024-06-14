@@ -43,14 +43,13 @@ import type { ButtonProps } from 'atoms/Button'
 interface StatusBarProps {
     wish: Wish;
     onCard?: boolean;
-    tooShort: boolean
+    tooShort?: boolean
 }
 
 interface StatusBarViewProps {
     showText(): void;
     hideText(): void;
     onCard: boolean;
-    tooShort: boolean;
     width: number;
     height: number;
     padding: string;
@@ -60,6 +59,7 @@ interface StatusBarViewProps {
     ofCurrentUser: boolean;
     isReservedByCurrentUser: boolean;
     isMobile: boolean;
+    tooShort?: boolean;
 }
 
 interface WishCoverProps {
@@ -396,7 +396,6 @@ export const WishMenu = memo(({
             dispatch(copyWishCover({
                 sourceId: wish.id,
                 targetId: newWish.id
-                // extension: wish.withImage
             }))
         }
         navigate('/my-wishes/items/actual/' + newWish.id)

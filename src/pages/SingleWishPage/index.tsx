@@ -16,13 +16,11 @@ import { WishCover,
          WishMenu,
          StatusBar } from 'molecules/WishStuff'
 
-import { useAppDispatch,
-         useAppSelector } from 'store'
+import { useAppSelector } from 'store'
 import { getLocationConfig,
          getWishById,
          getWishlistsByIdList,
          getLoadingStatus } from 'store/getters'
-import { promoteImages } from 'store/imageSlice'
 
 import type { Wish,
               Wishlist } from 'typings'
@@ -223,20 +221,12 @@ const SingleWishPageView = memo(({
 
 export const SingleWishPage = () => {
     const isMobile = useAppSelector(state => state.responsiveness.isMobile);
-    const dispatch = useAppDispatch();
     const { wishId } = getLocationConfig();
     
     const { awaitingWishes,
             awaitingWishlists } = getLoadingStatus();
     const wish = getWishById(wishId);
     const wishlists = getWishlistsByIdList(wish?.inWishlists);
-
-    // PROMOTE IMAGES
-    useEffect(() => {
-        if(wishId) {
-            dispatch(promoteImages(wishId))
-        }
-    },[ wishId ]);
 
     // ALIGN SVG POINTER
     const [ pointerOffset, setPointerOffset ] = useState(69);

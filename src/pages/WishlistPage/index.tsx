@@ -1,6 +1,5 @@
 import { memo } from 'react'
-import { useDeepCompareEffect,
-         useDeepCompareMemo } from 'use-deep-compare'
+import { useDeepCompareMemo } from 'use-deep-compare'
 import { Navigate } from 'react-router-dom'
 
 import './styles.scss'
@@ -10,12 +9,10 @@ import { MultiColumnLayout } from 'containers/MultiColumnLayout'
 import { WishPreloader } from 'atoms/Preloaders'
 import { Plug } from 'atoms/Plug'
 
-import { useAppDispatch } from 'store'
 import { getLocationConfig,
          getWishlistById,
          getWishesByWishlistId,
          getLoadingStatus } from 'store/getters'
-import { promoteImages } from 'store/imageSlice'
 
 import type { Wish,
               Wishlist } from 'typings'
@@ -61,7 +58,6 @@ const WishlistPageView = memo(({
 });
 
 export const WishlistPage = () => {
-    const dispatch = useAppDispatch();
     const { wishlistId,
             isWishesSection } = getLocationConfig();
 
@@ -78,16 +74,7 @@ export const WishlistPage = () => {
     const wishes = getWishesByWishlistId(wishlistId);
 
     const memoizedWishlist = useDeepCompareMemo(() => wishlist,[ wishlist ]);
-    const memoizedWishes = useDeepCompareMemo(() => wishes,[ wishes ]);
-    
-    // PROMOTE IMAGES
-
-    useDeepCompareEffect(() => {
-        if(wishes.length) {
-            const wishIds = wishes.map(wish => wish.id);
-            dispatch(promoteImages(wishIds))
-        }
-    },[ wishes ]);
+    const memoizedWishes = useDeepCompareMemo(() => wishes,[ wishes ])
 
     return (
         <WishlistPageView {...{

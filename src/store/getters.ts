@@ -11,10 +11,12 @@ import { useGetCurrentUserQuery,
          useGetUserWishlistsQuery,
          useGetInvitesQuery } from 'store/apiSlice'
 
-import type { UserId,
+import type { ImageId,
+              UserId,
               WishId,
               WishlistId,
               InvitationCode } from 'typings';
+import { useAppSelector } from 'store';
 
 // It needs to do additional render optimizing if you want to set polling to every single endpoint
 const pollingInterval = undefined;
@@ -319,6 +321,8 @@ const getLocationConfig = () => {
     const isProfileSection = steps[1] === 'profile';
     const isItemsMode = steps[2] === 'items';
     const isListsMode = steps[2] === 'lists';
+
+    const isListOfLists = location === 'my-invites/lists';
     
     const section = checkSection(steps[1]);
     const mode: Mode | undefined = (steps[2] === 'items' || steps[2] === 'lists') ? steps[2] : undefined;
@@ -353,12 +357,224 @@ const getLocationConfig = () => {
         isProfileSection,
         isItemsMode,
         isListsMode,
+        isListOfLists,
         isNewWish,
         isEditWish,
         isNewWishlist,
         isEditWishlist,
         isWrongLocation
     }
+}
+
+
+// PRIMARY IMAGES //
+
+function getPrimaryImageIds() {
+    const { isWishesSection,
+            isInvitesSection,
+            isItemsMode,
+            tab,
+            wishlistId,
+            wishId,
+            isNewWishlist,
+            isEditWishlist,
+            isListOfLists } = getLocationConfig();
+    
+    const { user,
+            userHasLoaded } = getCurrentUser();
+    const { friends,
+            friendsHaveLoaded } = getFriends();
+    const { userWishes,
+            userWishesHaveLoaded } = getUserWishes();
+    const { friendWishes,
+            friendWishesHaveLoaded } = getFriendWishes();
+    const { actualWishes } = getActualWishes();
+    const currentWish = getWishById(wishId);
+    const currentWishlist = getWishlistById(wishlistId);
+    const wishAuthor = getUserById(currentWish?.author);
+    const wishlistAuthor = getUserById(currentWishlist?.author);
+    const wishlistWishes = getWishesByWishlistId(wishlistId);
+
+    const { imageURLs,
+            backupURLs,
+            loading } = useAppSelector(state => state.images);
+
+    const assimilatedIds = [
+        ...Object.keys(imageURLs),
+        ...Object.keys(backupURLs),
+        ...Object.keys(loading),
+    ]
+
+    let imageIds: ImageId[] = [];
+
+    if(user && user.withImage) {
+        imageIds.push(user.id)
+    }
+
+    if(wishId) {
+        if(currentWish?.withImage) {
+            imageIds.push(currentWish.id)
+
+            if(isInvitesSection && wishAuthor?.withImage) {
+                imageIds.push(wishAuthor.id)
+            }
+        }
+
+    } else if(wishlistId) {
+        if(wishlistWishes) {
+            imageIds.push(...wishlistWishes
+                .filter(wish => wish.withImage)
+                .map(wish => wish.id)
+            )
+
+            if(isInvitesSection && wishlistAuthor?.withImage) {
+                imageIds.push(wishlistAuthor.id)
+            }
+
+            if(isEditWishlist || isNewWishlist) {
+                // actual wishes for card select
+                imageIds.push(...actualWishes
+                    .filter(wish => wish.withImage)
+                    .map(wish => wish.id))
+            }
+        }
+
+    } else if(isItemsMode && tab) {
+        const allWishes = isWishesSection 
+            ? userWishes.filter(wish => wish.withImage)
+                        : isInvitesSection
+            ? friendWishes.filter(wish => wish.withImage)
+                        : [];
+        switch (tab) {
+            case 'actual':
+                imageIds.push(...allWishes
+                    .filter(wish => !wish.isCompleted)
+                    .map(wish => wish.id)
+                )
+            break
+            case 'reserved':
+                imageIds.push(...allWishes
+                    .filter(wish => !wish.isCompleted && wish.reservedBy === user?.id)
+                    .map(wish => wish.id)
+                )
+            break
+            case 'completed':
+                imageIds.push(...allWishes
+                    .filter(wish => wish.isCompleted)
+                    .map(wish => wish.id)
+                )
+            break
+            case 'all':
+                imageIds.push(...allWishes
+                    .map(wish => wish.id)
+                )
+        }
+    } else if(isListOfLists) {
+        imageIds.push(...friends
+            .filter(user => user.withImage)
+            .map(user => user.id)
+        )
+    }
+
+    const isReady = userHasLoaded && (
+          isWishesSection   ? userWishesHaveLoaded
+        : isInvitesSection  ? friendWishesHaveLoaded && friendsHaveLoaded
+                            : true
+    );
+
+    imageIds = imageIds.filter(id => !assimilatedIds.includes(id));
+
+    const isEmpty = !imageIds.length;
+
+    return ({ imageIds, isReady, isEmpty })
+}
+
+// SECONDARY IMAGES //
+
+function getSecondaryImageIds() {
+    const { isWishesSection,
+            isInvitesSection } = getLocationConfig();
+    
+    const { userWishes,
+            userWishesHaveLoaded } = getUserWishes();
+    const { friendWishes,
+            friendWishesHaveLoaded } = getFriendWishes();
+    const { friends,
+            friendsHaveLoaded } = getFriends();
+
+    const { imageURLs,
+            backupURLs,
+            loading } = useAppSelector(state => state.images);
+
+    const assimilatedIds = [
+        ...Object.keys(imageURLs),
+        ...Object.keys(backupURLs),
+        ...Object.keys(loading),
+    ]
+
+    const imageIds: ImageId[] = [];
+
+    if(isWishesSection) {
+        imageIds.push(...userWishes
+            .filter(wish => wish.withImage)
+            .map(wish => wish.id)
+            .filter(id => !assimilatedIds.includes(id))
+        )
+    } else if(isInvitesSection) {
+        imageIds.push(...friendWishes
+            .filter(wish => wish.withImage)
+            .map(wish => wish.id)
+            .filter(id => !assimilatedIds.includes(id))
+        )
+        imageIds.push(...friends
+            .filter(user => user.withImage)
+            .map(user => user.id)
+            .filter(id => !assimilatedIds.includes(id))
+        )
+    }
+
+    const isReady = isWishesSection     ? userWishesHaveLoaded
+                  : isInvitesSection    ? friendWishesHaveLoaded && friendsHaveLoaded
+                                        : true
+
+    const isEmpty = !imageIds.length;
+
+    return ({ imageIds, isReady, isEmpty })
+}
+
+// ALL IMAGES //
+
+function getRestImageIds() {
+    const { imageURLs,
+            backupURLs,
+            loading } = useAppSelector(state => state.images);
+
+    const assimilatedIds = [
+        ...Object.keys(imageURLs),
+        ...Object.keys(backupURLs),
+        ...Object.keys(loading),
+    ]
+
+    const imageIds: ImageId[] = [];
+
+    imageIds.push(...getAllRelevantUsers()
+        .filter(user => user.withImage)
+        .map(user => user.id)
+        .filter(id => !assimilatedIds.includes(id))
+    )
+    imageIds.push(...getAllRelevantWishes()
+        .filter(wish => wish.withImage)
+        .map(wish => wish.id)
+        .filter(id => !assimilatedIds.includes(id))
+    )
+
+    const result = useDeepCompareMemo(() => (
+        imageIds
+    ),[ imageIds ]);
+
+    const isEmpty = !result.length
+
+    return { imageIds: result, isEmpty }
 }
 
 
@@ -384,5 +600,9 @@ export {
     useInvitesPolling,
 
     getLoadingStatus,
-    getLocationConfig
+    getLocationConfig,
+
+    getPrimaryImageIds,
+    getSecondaryImageIds,
+    getRestImageIds
 }

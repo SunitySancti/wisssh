@@ -8,6 +8,8 @@ import { Fragment,
 import { Outlet,
          Link,
          useNavigate } from 'react-router-dom'
+import { useDeepCompareCallback,
+         useDeepCompareEffect } from 'use-deep-compare'
 
 import './styles.scss'
 import { SectionSwitcher } from 'molecules/SectionSwitcher'
@@ -21,18 +23,28 @@ import { User } from 'atoms/User'
 import { updateIndex,
          updateHistory,
          clearHistory } from 'store/historySlice'
-import { getImage } from 'store/imageSlice'
+import { getImage,
+         removeUrl } from 'store/imageSlice'
 import { getLocationConfig,
-         getCurrentUser } from 'store/getters'
+         getCurrentUser,
+         getPrimaryImageIds,
+         getSecondaryImageIds,
+         getRestImageIds, 
+         getFriends,
+         getUserWishes,
+         getFriendWishes} from 'store/getters'
 import { useAppDispatch,
          useAppSelector } from 'store'
 
 import type { RefObject,
               SyntheticEvent,
               WheelEvent } from 'react'
-import type { QueueItem } from 'store/imageSlice'
 import type { WidthAwared,
-              UserId } from 'typings'
+              UserId,
+              Wish as WishType,
+              User as UserType } from 'typings'
+
+import { __API_URL__ } from 'environment'
 
 
 interface AppHeaderViewProps {
@@ -49,6 +61,123 @@ interface AppHeaderMobileViewProps {
     appHeaderHeight: number;
     top: number;
     userId: UserId | undefined;
+}
+
+
+function useRedirectController() {
+    // REDIRECTING TO LOGIN PAGE //
+    const navigate = useNavigate();
+    const token = useAppSelector(state => state.auth.token);
+    const { location } = getLocationConfig();
+
+    useEffect(() => {
+        if(!token) {
+            navigate('/login',{ state: location })
+        }
+    },[ token ]);
+}
+
+function useFetchImagesController() {
+    const dispatch = useAppDispatch();
+    const isLoading = useAppSelector(state => Boolean(Object.keys(state.images.loading).length));
+    const imageURLs = useAppSelector(state => state.images.imageURLs);
+
+    const { user } = getCurrentUser();
+    const { friends } = getFriends();
+    const { userWishes } = getUserWishes();
+    const { friendWishes } = getFriendWishes();
+
+    const primary = getPrimaryImageIds();
+    const secondary = getSecondaryImageIds();
+    const rest = getRestImageIds();
+
+    useDeepCompareEffect(() => {
+        if(isLoading) return
+
+        if(primary.isReady && !primary.isEmpty) {
+            primary.imageIds.forEach(id => {
+                dispatch(getImage(id))
+            })
+        }
+
+        if(primary.isEmpty && secondary.isReady && !secondary.isEmpty) {
+            secondary.imageIds.forEach(id => {
+                dispatch(getImage(id))
+            })
+        }
+
+        if(primary.isEmpty && secondary.isEmpty) {
+            rest.imageIds.forEach(id => {
+                dispatch(getImage(id))
+            })
+        }
+    },[ isLoading, primary, secondary, rest ]);
+
+    const refreshImage = useDeepCompareCallback((unit: WishType | UserType | undefined) => {
+        if(unit) {
+            const { id, withImage } = unit;
+            
+            const unitTS = unit.lastImageUpdate || 1;
+            const imageTS = imageURLs[id]?.timestamp || 0
+
+            if(unitTS > imageTS) {
+                if(withImage) {
+                    dispatch(getImage(id))
+                } else {
+                    dispatch(removeUrl(id))
+                }
+            }
+        }
+    },[ imageURLs, dispatch, getImage, removeUrl ]);
+
+    useDeepCompareEffect(() => {
+        refreshImage(user)
+    },[ user ]);
+
+    useDeepCompareEffect(() => {
+        friends.forEach(user => {
+            refreshImage(user)
+        })
+    },[ friends ]);
+
+    useDeepCompareEffect(() => {
+        userWishes.forEach(wish => {
+            refreshImage(wish)
+        })
+    },[ userWishes ]);
+
+    useDeepCompareEffect(() => {
+        friendWishes.forEach(wish => {
+            refreshImage(wish)
+        })
+    },[ friendWishes ]);
+}
+
+function useHistoryController() {
+    const dispatch = useAppDispatch();
+    const { location } = getLocationConfig();
+    const { isMobile } = useAppSelector(state => state.responsiveness);
+    const { lastIndex } = useAppSelector(state => state.history);
+    
+    useEffect(() => {
+        if(isMobile) {
+            dispatch(updateIndex())
+        } else {
+            dispatch(updateHistory(location))
+        }
+    },[ location ]);
+
+    useEffect(() => {
+        return () => {
+            dispatch(clearHistory())
+        }
+    },[])
+
+    const hasBackPressed =  useMemo(() => {
+        return lastIndex > window.history.state.idx
+    },[ location ])
+
+    return { hasBackPressed }
 }
 
 
@@ -86,71 +215,6 @@ const AppHeaderView = memo(({
         </div>
     </div>
 ));
-
-function useRedirectController() {
-    // REDIRECTING TO LOGIN PAGE //
-    const navigate = useNavigate();
-    const token = useAppSelector(state => state.auth.token);
-    const { location } = getLocationConfig();
-
-    useEffect(() => {
-        if(!token) {
-            navigate('/login',{ state: location })
-        }
-    },[ token ]);
-}
-
-function useFetchImagesController() {
-    const dispatch = useAppDispatch();
-    const queue = useAppSelector(state => state.images.queue);
-    const prior = useAppSelector(state => state.images.prior);
-    const isLoading = useAppSelector(state => Boolean(Object.keys(state.images.loading).length));
-
-    useEffect(() => {
-        if(isLoading) {
-            return
-        }
-        const partLength = 8;
-        const part: QueueItem[] = [];
-        
-        if(prior instanceof Array && prior.length) {
-            part.push(...prior.slice(0, partLength))
-        } else if(queue instanceof Array && queue.length) {
-            part.push(...queue.slice(0, partLength))
-        }
-
-        part.forEach(item => {
-            dispatch(getImage(item))
-        })
-    },[ queue, prior, isLoading ]);
-}
-
-function useHistoryController() {
-    const dispatch = useAppDispatch();
-    const { location } = getLocationConfig();
-    const { isMobile } = useAppSelector(state => state.responsiveness);
-    const { lastIndex } = useAppSelector(state => state.history);
-    
-    useEffect(() => {
-        if(isMobile) {
-            dispatch(updateIndex())
-        } else {
-            dispatch(updateHistory(location))
-        }
-    },[ location ]);
-
-    useEffect(() => {
-        return () => {
-            dispatch(clearHistory())
-        }
-    },[])
-
-    const hasBackPressed =  useMemo(() => {
-        return lastIndex > window.history.state.idx
-    },[ location ])
-
-    return { hasBackPressed }
-}
 
 const AppHeader = () => {
     useRedirectController();

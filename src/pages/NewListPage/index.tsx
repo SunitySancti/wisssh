@@ -15,8 +15,7 @@ import { DateSelect } from 'inputs/DateSelect'
 import { CardSelect } from 'inputs/CardSelect'
 import { LineContainer } from 'containers/LineContainer'
 
-import { useAppDispatch,
-         useAppSelector } from 'store'
+import { useAppSelector } from 'store'
 import { generateUniqueId,
          formatDateToArray } from 'utils'
 import { usePostWishlistMutation } from 'store/apiSlice'
@@ -24,7 +23,6 @@ import { getLocationConfig,
          getCurrentUser,
          getActualWishes,
          getWishlistById } from 'store/getters'
-import { promoteImages } from 'store/imageSlice'
 
 import type { Control,
               FormState,
@@ -169,7 +167,6 @@ const NewListPageView = memo(({
 
 export const NewListPage = () => {
     const navigate = useNavigate();
-    const dispatch = useAppDispatch();
     
     const isMobile = useAppSelector(state => state.responsiveness.isMobile);
     const { wishlistId,
@@ -179,7 +176,6 @@ export const NewListPage = () => {
     const [ postWishlist,{ isLoading: awaitPostWishlist }] = usePostWishlistMutation();
     const { user } = getCurrentUser();
     const { actualWishes } = getActualWishes();
-    const actualWishIds = actualWishes?.map(wish => wish.id);
     const editingWishlist = getWishlistById(wishlistId);
 
     // FORM SETTINGS //
@@ -283,10 +279,6 @@ export const NewListPage = () => {
 
         setMaxLabelWidth(maxWidth);
     });
-
-    useEffect(() => {
-        dispatch(promoteImages(actualWishIds))
-    },[ actualWishIds?.length ])
 
     return (
         <NewListPageView {...{

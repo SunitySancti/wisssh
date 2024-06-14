@@ -403,17 +403,10 @@ export const NewWishPage = forwardRef(() => {
         const { id, isCompleted } = getValues()
         if(id && wishHasPosted) {
             if(image && (isNewImage || isNewWish)) {
-                dispatch(postImage({
-                    id,
-                    file: image,
-                    drive: 'covers'
-                }))
+                dispatch(postImage({ id, file: image }))
             }
             if(!image && !isNewWish && isEditWish) {
-                dispatch(deleteImage({
-                    id,
-                    drive: 'covers'
-                }))
+                dispatch(deleteImage(id))
             }
             navigate(`/my-wishes/items/${ isCompleted ? 'completed' : 'actual'  }/${ id }`)
         }

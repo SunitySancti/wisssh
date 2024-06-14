@@ -1,15 +1,12 @@
-import { useEffect,
-         memo } from 'react'
+import { memo } from 'react'
     
 import './styles.scss'
 import { UserPlaceholder } from 'atoms/Icon'
 import { Spinner } from 'atoms/Preloaders'
 import { WithTooltip } from 'atoms/WithTooltip'
 
-import { useAppSelector,
-         useAppDispatch } from 'store'
+import { useAppSelector } from 'store'
 import { getUserById } from 'store/getters'
-import { promoteImages } from 'store/imageSlice'
 
 import type { UserId } from 'typings'
 import type { SyntheticEvent } from 'react'
@@ -103,14 +100,9 @@ export const User = ({
     ...optionalParams
 } : UserProps
 ) => {
-    const dispatch = useAppDispatch();
     const user = getUserById(id);
     const { url: imageURL } = useAppSelector(state => id ? state.images.imageURLs[id] : undefined) || {};
     const isLoading = useAppSelector(state => id ? state.images.loading[id] : undefined);
-
-    useEffect(() => {
-        if(id && user?.withImage && !imageURL) dispatch(promoteImages(id))
-    },[ id, user?.withImage, imageURL ]);
 
     return user &&
         <UserView {...{...optionalParams, name: user?.name, imageURL, isLoading }} />

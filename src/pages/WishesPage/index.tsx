@@ -1,19 +1,16 @@
 import { useMemo } from 'react'
-import { useDeepCompareMemo,
-         useDeepCompareEffect } from 'use-deep-compare'
+import { useDeepCompareMemo } from 'use-deep-compare'
 
 import { MultiColumnLayout } from 'containers/MultiColumnLayout'
 import { WishCard } from 'molecules/WishCard'
 import { WishPreloader } from 'atoms/Preloaders'
 import { Plug } from 'atoms/Plug'
 
-import { useAppDispatch } from 'store'
 import { getLocationConfig,
          getCurrentUser,
          getUserWishes,
          getFriendWishes,
          getLoadingStatus } from 'store/getters'
-import { promoteImages } from 'store/imageSlice'
 import { useAppSelector } from 'store'
 
 import type { Wish } from 'typings'
@@ -46,7 +43,6 @@ const WishesPageView = ({
     )
 
 export const WishesPage = () => {
-    const dispatch = useAppDispatch();
     const { section,
             tab,
             isWishesSection,
@@ -67,7 +63,6 @@ export const WishesPage = () => {
         switch (tab) {
             case 'actual':
                 return allWishes.filter(wish => !wish.isCompleted)
-                // .sort((a, b) => (b.stars - a.stars))
             case 'reserved':
                 return allWishes.filter(wish => !wish.isCompleted && wish.reservedBy === user?.id)
             case 'completed':
@@ -99,13 +94,6 @@ export const WishesPage = () => {
                     : 'Здесь будут желания из вишлистов, в которые вас пригласят';
         }
     },[ section, tab ]);
-    
-    useDeepCompareEffect(() => {
-        if(wishes instanceof Array && wishes.length) {
-            const wishIds = wishes.map(wish => wish.id);
-            dispatch(promoteImages(wishIds))
-        }
-    },[ wishes ]);
     
     // RESPONSIVENESS
     const { isNarrow } = useAppSelector(state => state.responsiveness);

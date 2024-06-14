@@ -208,3 +208,11 @@ export function equalizeWidthsByClass(className: string) {
     const maxWidth = Math.ceil(Math.max(...widths));
     elements.forEach(elem => elem.style.width = maxWidth + 'px')
 }
+
+export function currentTime() {
+    const currentDate = new Date();
+    const currentMinutes = currentDate.getMinutes();
+    const currentSeconds = currentDate.getSeconds();
+    
+    return `${currentDate.getHours()}:${currentMinutes < 10 ? '0' : ''}${currentMinutes}:${currentSeconds < 10 ? '0' : ''}${currentSeconds}` 
+}

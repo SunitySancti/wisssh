@@ -229,18 +229,11 @@ const ProfileForm = ({ labelWidth }: LabelAlignment) => {
         updateProfile({ ...data, id, name, email, withImage: Boolean(image) });
         
         if(image && isNewImage) {
-            dispatch(postImage({
-                id,
-                file: image,
-                drive: 'avatars'
-            }))
+            dispatch(postImage({ id, file: image }))
         }
 
         if(!image) {
-            dispatch(deleteImage({
-                id,
-                drive: 'avatars'
-            }))
+            dispatch(deleteImage(id))
         }
         
         setIsSubmitted(true)
