@@ -1,6 +1,6 @@
-import { memo,
-         useMemo } from 'react'
-import   useDeepCompareEffect from 'use-deep-compare-effect'
+import { memo } from 'react'
+import { useDeepCompareEffect,
+         useDeepCompareMemo } from 'use-deep-compare'
 import { Navigate } from 'react-router-dom'
 
 import './styles.scss'
@@ -77,13 +77,8 @@ export const WishlistPage = () => {
     const wishlist = getWishlistById(wishlistId);
     const wishes = getWishesByWishlistId(wishlistId);
 
-    const memoizedWishlist = useMemo(() => {
-        return wishlist
-    },[ wishlist?.id ])
-
-    const memoizedWishes = useMemo(() => {
-        return wishes
-    },[ wishes.length ])
+    const memoizedWishlist = useDeepCompareMemo(() => wishlist,[ wishlist ]);
+    const memoizedWishes = useDeepCompareMemo(() => wishes,[ wishes ]);
     
     // PROMOTE IMAGES
 

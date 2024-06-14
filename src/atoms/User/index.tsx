@@ -109,8 +109,8 @@ export const User = ({
     const isLoading = useAppSelector(state => id ? state.images.loading[id] : undefined);
 
     useEffect(() => {
-        if(id && user?.imageExtension && !imageURL) dispatch(promoteImages(id))
-    },[ id, user?.imageExtension, imageURL ]);
+        if(id && user?.withImage && !imageURL) dispatch(promoteImages(id))
+    },[ id, user?.withImage, imageURL ]);
 
     return user &&
         <UserView {...{...optionalParams, name: user?.name, imageURL, isLoading }} />

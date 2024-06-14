@@ -5,16 +5,17 @@ import type { PayloadAction } from '@reduxjs/toolkit'
 
 interface HistoryState {
     myWishesSection: {
-        itemsModeLast: string,
-        listsModeLast: string,
-        last: string,
-    },
+        itemsModeLast: string;
+        listsModeLast: string;
+        last: string;
+    };
     myInvitesSection: {
-        itemsModeLast: string,
-        listsModeLast: string,
-        last: string,
-    },
-    anySectionLast: string
+        itemsModeLast: string;
+        listsModeLast: string;
+        last: string;
+    };
+    anySectionLast: string;
+    lastIndex: number
 }
 
 const initialState: HistoryState = Object.freeze({
@@ -29,6 +30,7 @@ const initialState: HistoryState = Object.freeze({
         last: '/my-invites/items/reserved',
     },
     anySectionLast: '/my-wishes/items/actual',
+    lastIndex: 0
 })
 
 const historySlice = createSlice({
@@ -61,6 +63,9 @@ const historySlice = createSlice({
 
                 default: return state;
             }
+        },
+        updateIndex(state) {
+            state.lastIndex = window.history.state.idx
         }
     },
 });
@@ -68,6 +73,7 @@ const historySlice = createSlice({
 export const {
     clearHistory,
     updateHistory,
+    updateIndex,
 } = historySlice.actions;
 
 export default historySlice.reducer

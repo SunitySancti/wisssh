@@ -16,6 +16,52 @@
             }
         }
 
+        .button {
+            &:not(.clear):not(:disabled) {
+                &.primary {
+                    &:hover,
+                    &:active,
+                    &:focus {
+                        background-color: $primaryHover;
+                        border-color: $primaryHover;
+                    }
+                }
+                &.secondary {
+                    &:hover,
+                    &:active,
+                    &:focus {
+                        background-color: $primaryHover;
+                        border-color: $primaryHover;
+                    }
+                }
+                &.accent {
+                    &:hover,
+                    &:active,
+                    &:focus {
+                        background-color: $accentHover;
+                    }
+                }
+                &.negative {
+                    &:hover,
+                    &:active,
+                    &:focus {
+                        background-color: $negativeHover;
+                    }
+                }
+            }
+            &.clear {
+                &:not(:disabled):not(:hover):not(:focus):not(:active) {
+                    color: $gray2;
+                }
+
+                &:hover:not(:disabled),
+                &:active,
+                &:focus {
+                    color: $darkGray3;
+                }
+            }
+        }
+
         .work-space {
             padding: 2rem 8rem 1rem;
         }
@@ -52,6 +98,9 @@
                 .title {
                     font: $wishHeader;
                 }
+            }
+            .wish-cover .status-bar.shifted {
+                right: 4rem;
             }
         }
         
@@ -167,6 +216,20 @@
                 right: 0;
                 top: 0;
             }
+  
+            &.droppable,
+            &:hover {
+                cursor: pointer;
+                .button {
+                    background-color: $primaryHover !important;
+                    border-color: $primaryHover !important;
+                }
+                svg.placeholder {
+                    background-color: $primaryLight;
+                    fill: $primaryHover;
+                    opacity: 0.6;
+                }
+            }
         }
 
         .double-column-layout {
@@ -196,6 +259,11 @@
         }
         -ms-overflow-style: none; /* Скрыть скроллбар в IE и Edge */
         scrollbar-width: none; /* Скрыть скроллбар в Firefox и других браузерах */
+
+        .button.clear {
+            color: $gray2;
+        }
+
         .work-space {
             padding: 0;
         }
@@ -279,6 +347,10 @@
             }
             .wish-cover {
                 min-width: unset !important;
+
+                .status-bar.shifted {
+                    right: 0.5rem;
+                }
             }
             .wishcard-content {
                 padding: calc($bigStep / 2) $bigStep;

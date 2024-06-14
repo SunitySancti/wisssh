@@ -81,7 +81,7 @@ const defaultValues: WishDefaultValues = {
     title: '',
     description: '',
     external: '',
-    imageExtension: null,
+    withImage: false,
     imageAR: 1,
     stars: 0,
     price: null,
@@ -286,14 +286,20 @@ export const NewWishPage = forwardRef(() => {
     const { userWishlists } = getUserWishlists();
     const editingWish = getWishById(wishId);
     const [ postWish,{
-            isLoading: awaitPostWish }] = usePostWishMutation();
+            isLoading: awaitPostWish,
+            isSuccess: wishHasPosted }] = usePostWishMutation();
 
     const isMobile = useAppSelector(state => state.responsiveness.isMobile);
+
+    useEffect(() => {
+        console.log({ editingWish })
+    },[ editingWish?.id ])
 
     // FORM SETTINGS //
 
     const { handleSubmit,
             register,
+            getValues,
             setValue,
             reset,
             watch,
@@ -379,25 +385,10 @@ export const NewWishPage = forwardRef(() => {
     const onSubmit: SubmitHandler<WishDefaultValues> = async (data, e?: BaseSyntheticEvent) => { 
         e?.preventDefault();
 
-        const { id, author, isCompleted } = data;
-        if(!id || !author) return
-        
-        postWish({ ...data, id, author });
-
-        if(image && (isNewImage || isNewWish)) {
-            dispatch(postImage({
-                id,
-                file: image,
-                drive: 'covers'
-            }))
+        const { id, author } = data;
+        if(id && author) {
+            postWish({ ...data, id, author, withImage: Boolean(image) });
         }
-        if(!image && !isNewWish && isEditWish) {
-            dispatch(deleteImage({
-                id,
-                drive: 'covers'
-            }))
-        }
-        navigate(`/my-wishes/items/${ isCompleted ? 'completed' : 'actual'  }/${ id }`)
     }
     const handleFormSubmit = useCallback(handleSubmit(onSubmit),[
         handleSubmit,
@@ -407,6 +398,26 @@ export const NewWishPage = forwardRef(() => {
         deleteImage,
         navigate
     ]);
+
+    useEffect(() => {
+        const { id, isCompleted } = getValues()
+        if(id && wishHasPosted) {
+            if(image && (isNewImage || isNewWish)) {
+                dispatch(postImage({
+                    id,
+                    file: image,
+                    drive: 'covers'
+                }))
+            }
+            if(!image && !isNewWish && isEditWish) {
+                dispatch(deleteImage({
+                    id,
+                    drive: 'covers'
+                }))
+            }
+            navigate(`/my-wishes/items/${ isCompleted ? 'completed' : 'actual'  }/${ id }`)
+        }
+    },[ wishHasPosted ])
 
     const cancelForm = useCallback((e: MouseEvent) => {
         e.preventDefault();

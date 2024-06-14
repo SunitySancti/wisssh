@@ -111,7 +111,7 @@ const URLCorrector = () => {
     useEffect(() => {
         const corrected = '/' + location.split('/').filter(str => str).join('/');
         if(corrected !== location) {
-            navigate(corrected)
+            navigate(corrected,{ replace: true })
         }
     },[ location ]);
 
@@ -156,7 +156,6 @@ const App = () => (
                     <Route path=':wishlistId/:wishId' element={ <SingleWishPage/> }/>
                 </Route>
 
-                {/* <Route path='profile' element={ <ProfilePage/> }/> */}
                 <Route path='profile' element={ <NavBarLayout/> }>
                     <Route index element={ <ProfilePage/> }/>
                 </Route>

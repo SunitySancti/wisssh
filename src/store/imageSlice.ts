@@ -43,7 +43,7 @@ interface DeleteImageArgs {
 interface CopyWishCoverArgs {
     sourceId: ImageId;
     targetId: ImageId;
-    extension: 'jpg' | 'png' | null
+    // extension: 'jpg' | 'png' | null
 }
 
 interface LoadingImageIds {
@@ -53,7 +53,7 @@ interface LoadingImageIds {
 
 export interface QueueItem {
     id: ImageId;
-    ext: 'jpg' | 'png';
+    // ext: 'jpg' | 'png';
     type: 'avatar' | 'cover'
 }
 
@@ -88,16 +88,16 @@ const initialState: ImageState = Object.freeze({
 const mutex = new Mutex();
 
 async function fetchImage(
-    name: string,
+    id: ImageId,
     type: 'cover' | 'avatar',
     getState: () => RootState
 ) {
     const { token } = getState().auth;
-    if(!name) {
+    if(!id) {
         return ({ data: undefined, error: undefined })
     };
-    const id = name.split('.')[0];
-    const endpoint = [__API_URL__, 'images', type + 's', name ].join('/');
+    // const id = name.split('.')[0];
+    const endpoint = [__API_URL__, 'images', type + 's', id ].join('/');
 
     return await fetch(endpoint,{
         'headers': {
@@ -112,7 +112,7 @@ async function fetchImage(
             const url = URL.createObjectURL(blob);
             return ({
                 data: {
-                    id: id as ImageId,
+                    id,
                     url,
                     timestamp
                 },
@@ -126,13 +126,13 @@ async function fetchImage(
 }
 
 async function fetchImageWithReauth(
-    name: string,
+    id: ImageId,
     type: 'cover' | 'avatar',
     getState: () => RootState,
     dispatch: AppDispatch
 ) {
     await mutex.waitForUnlock();
-    let result = await fetchImage(name, type, getState);
+    let result = await fetchImage(id, type, getState);
     if(result.error) {
         if(__DEV_MODE__) {
             console.log('Error in image fetch.', result.error)
@@ -143,14 +143,14 @@ async function fetchImageWithReauth(
                 try {
                     const reAuthSuccess = await reAuth(getState, dispatch);
                     if(reAuthSuccess) {
-                        result = await fetchImage(name, type, getState)
+                        result = await fetchImage(id, type, getState)
                     }
                 } finally {
                     release()
                 }
             } else {
                 await mutex.waitForUnlock();
-                result = await fetchImage(name, type, getState);
+                result = await fetchImage(id, type, getState);
             }
         }
     }
@@ -164,9 +164,10 @@ export const getImage = createAsyncThunk<
         dispatch: AppDispatch;
 }>(
     'images/getImage',
-    async ({ id, ext, type }, thunkApi) => {
+    async ({ id, type }, thunkApi) => {
         const { getState, dispatch } = thunkApi
-        return await fetchImageWithReauth(id + '.' + ext, type, getState, dispatch)
+        return await fetchImageWithReauth(id, type, getState, dispatch)
+        // return await fetchImageWithReauth(id + '.' + ext, type, getState, dispatch)
     }
 );
 
@@ -239,8 +240,8 @@ export const copyWishCover = createAsyncThunk<
         dispatch: AppDispatch;
 }>(
     'images/copyWishCover',
-    async ({ sourceId, targetId, extension },{ getState }) => {
-        if(!sourceId || !targetId || !extension) {
+    async ({ sourceId, targetId },{ getState }) => {
+        if(!sourceId || !targetId) {
             return {
                 error: { message: 'Source id, target id or image extension was not specified. Image copying was crash' },
                 data: undefined
@@ -255,7 +256,7 @@ export const copyWishCover = createAsyncThunk<
                 'Authorization': token,
                 'Content-Type': 'application/json',
             },
-            'body': JSON.stringify({ sourceId, targetId, extension })
+            'body': JSON.stringify({ sourceId, targetId })
         })
     }
 );
@@ -408,20 +409,20 @@ const imageSlice = createSlice({
 
                     payload.forEach(unit => {
                         if(unit && typeof unit === 'object') {
-                            const { id, imageExtension: ext, title } = unit;
+                            const { id, withImage, title } = unit;
                             const type = title ? 'cover' : 'avatar';
                             
-                            if(!idList.includes(id) && ext) {
-                                state.queue.push({ id, ext, type })
+                            if(!idList.includes(id) && withImage) {
+                                state.queue.push({ id, type })
                             }
 
-                            const unitTS = unit.lastImageUpdate || 0;
+                            const unitTS = unit.lastImageUpdate || 1;
                             const imageTS = currentState.imageURLs[id]?.timestamp || 0
 
                             // we need to renew image data: fetch or delete url
-                            if((unitTS > imageTS) && ext) {
-                                if(ext) {
-                                    state.queue.push({ id, ext, type })
+                            if(unitTS > imageTS) {
+                                if(withImage) {
+                                    state.queue.push({ id, type })
                                 } else {
                                     delete state.imageURLs[id];
                                     delete state.backupURLs[id]

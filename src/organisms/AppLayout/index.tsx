@@ -18,7 +18,8 @@ import { Icon,
          BurgerCross } from 'atoms/Icon'
 import { User } from 'atoms/User'
 
-import { updateHistory,
+import { updateIndex,
+         updateHistory,
          clearHistory } from 'store/historySlice'
 import { getImage } from 'store/imageSlice'
 import { getLocationConfig,
@@ -124,16 +125,37 @@ function useFetchImagesController() {
     },[ queue, prior, isLoading ]);
 }
 
-const AppHeader = () => {
+function useHistoryController() {
     const dispatch = useAppDispatch();
     const { location } = getLocationConfig();
+    const { isMobile } = useAppSelector(state => state.responsiveness);
+    const { lastIndex } = useAppSelector(state => state.history);
+    
+    useEffect(() => {
+        if(isMobile) {
+            dispatch(updateIndex())
+        } else {
+            dispatch(updateHistory(location))
+        }
+    },[ location ]);
 
+    useEffect(() => {
+        return () => {
+            dispatch(clearHistory())
+        }
+    },[])
+
+    const hasBackPressed =  useMemo(() => {
+        return lastIndex > window.history.state.idx
+    },[ location ])
+
+    return { hasBackPressed }
+}
+
+const AppHeader = () => {
     useRedirectController();
     useFetchImagesController();
-
-    // HISTORY UPDATING //
-    useEffect(() => { dispatch(updateHistory(location)) },[ location ]);
-    useEffect(() => { return () => { dispatch(clearHistory()) }},[]);
+    useHistoryController();
 
     // HANDLE SCROLLING //
     const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -263,12 +285,14 @@ const AppHeaderMobileView = memo(({
 const AppHeaderMobile = () => {
     useRedirectController();
     useFetchImagesController();
-
-    const appHeaderHeight = 66;
+    const { hasBackPressed } = useHistoryController();
+    const navigate = useNavigate();
 
     const { section,
             mode } = getLocationConfig();
     const { user } = getCurrentUser();
+
+    const appHeaderHeight = 66;
 
     const [ isMenuOpen, setIsMenuOpen ] = useState(false);
     
@@ -277,6 +301,15 @@ const AppHeaderMobile = () => {
         const animation = document.getElementById('burger-to-cross') as unknown as SVGAnimateElement | null
         animation?.beginElement()
     },[ isMenuOpen ]);
+
+    useEffect(() => {
+        if(isMenuOpen && hasBackPressed) {
+            toggleMenu();
+            navigate(1)
+        }
+    },[ isMenuOpen,
+        hasBackPressed
+    ]);
 
     const optionId = mode ? section + '/' + mode : section || '';
     const targetOption = document.getElementById(optionId) as HTMLAnchorElement | null;

@@ -63,12 +63,12 @@
                 background-color: $primary;
                 color: $darkGray2;
         
-                &:hover,
-                &:active,
-                &:focus {
-                    background-color: $primaryHover;
-                    border-color: $primaryHover;
-                }
+                // &:hover,
+                // &:active,
+                // &:focus {
+                //     background-color: $primaryHover;
+                //     border-color: $primaryHover;
+                // }
             }
       
             &.secondary {
@@ -76,12 +76,12 @@
                 color: $darkGray2;
                 border: solid 1px $lightGray3;
         
-                &:hover,
-                &:active,
-                &:focus {
-                    background-color: $primaryHover;
-                    border-color: $primaryHover;
-                }
+                // &:hover,
+                // &:active,
+                // &:focus {
+                //     background-color: $primaryHover;
+                //     border-color: $primaryHover;
+                // }
             }
         
             &.accent {
@@ -89,22 +89,22 @@
                 color: white;
                 border: none;
         
-                &:hover,
-                &:active,
-                &:focus {
-                    background-color: $accentHover;
-                }
+                // &:hover,
+                // &:active,
+                // &:focus {
+                //     background-color: $accentHover;
+                // }
             }
         
             &.negative {
                 background-color: $negative;
                 color: white;
         
-                &:hover,
-                &:active,
-                &:focus {
-                    background-color: $negativeHover;
-                }
+            //     &:hover,
+            //     &:active,
+            //     &:focus {
+            //         background-color: $negativeHover;
+            //     }
             }
         }
     
@@ -127,15 +127,15 @@
     &.clear {
         background: none;
         
-        &:not(:disabled):not(:hover):not(:focus):not(:active) {
-            color: $gray2;
-        }
+        // &:not(:disabled):not(:hover):not(:focus):not(:active) {
+        //     color: $gray2;
+        // }
 
-        &:hover:not(:disabled),
-        &:active,
-        &:focus {
-            color: $darkGray2;
-        }
+        // &:hover:not(:disabled),
+        // &:active,
+        // &:focus {
+        //     color: $darkGray2;
+        // }
 
         &:disabled {
             color: rgba(0,0,0,0.2);

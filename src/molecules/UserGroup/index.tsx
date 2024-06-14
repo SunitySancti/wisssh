@@ -73,8 +73,8 @@ export const UserGroup = forwardRef((
 
     const dropdownOptions = useMemo(() => [
         {
-            text: user?.imageExtension ? 'Поменять аватарку' : 'Загрузить аватарку',
-            icon: user?.imageExtension ? 'change' as const   : 'upload' as const,
+            text: user?.withImage ? 'Поменять аватарку' : 'Загрузить аватарку',
+            icon: user?.withImage ? 'change' as const   : 'upload' as const,
             onClick: () => imageInputRef.current?.click()
         },{
             text: 'Настройки профиля',
@@ -85,7 +85,7 @@ export const UserGroup = forwardRef((
             icon: 'logout' as const,
             onClick: () => navigate('/logout')
         }
-    ],[ user?.imageExtension ]);
+    ],[ user?.withImage ]);
 
     useImperativeHandle(ref, () => ({
         getWidth() { return dropdownRef.current?.getWidth() }
@@ -103,9 +103,7 @@ export const UserGroup = forwardRef((
                 file,
                 drive: 'avatars'
             }));
-            const type = file.type.split('/')[1];
-            const imageExtension = type === 'jpeg' ? 'jpg' : 'png';
-            updateProfile({ ...user, imageExtension })
+            updateProfile({ ...user, withImage: true })
         }
         const compressOptions = {
             maxWidth: 440,

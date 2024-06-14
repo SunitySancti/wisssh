@@ -183,7 +183,7 @@ const SwipeContainer = ({ children }: { children: ReactNode }) => {
         '/my-invites/items/all',
     ].includes(location);
 
-    const triggerX = window.innerWidth / 3
+    const triggerX = window.innerWidth / 4
 
     const onSwipedLeft = ({ absX }: SwipeEventData) => {
         if(absX > triggerX) {

@@ -51,8 +51,8 @@ interface UpdateProfileArgs {
     id: UserId;
     name: string;
     email: string;
+    withImage: boolean;
     newPassword?: string;
-    imageExtension?: 'jpg' | 'png' | null
 }
 
 interface SwitchWishCompletenessData {
@@ -149,11 +149,6 @@ export const apiSlice = createApi({
             async onQueryStarted( userUpdates,{ dispatch, queryFulfilled }) {
                 const updateUser = dispatch(
                     apiSlice.util.updateQueryData('getCurrentUser', undefined, (draftUser) => {
-                        const { id, name, email, imageExtension } = userUpdates;
-                        userUpdates = { id, name, email };
-                        if(imageExtension !== undefined) {
-                            userUpdates.imageExtension = imageExtension
-                        }
                         Object.assign(draftUser, userUpdates)
                     })
                 );

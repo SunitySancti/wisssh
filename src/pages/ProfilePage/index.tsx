@@ -51,7 +51,8 @@ interface ProfileFormValues {
     name?: string;
     email?: string;
     newPassword?: string;
-    confirmPassword?: string
+    confirmPassword?: string;
+    withImage?: boolean;
 }
 
 
@@ -148,7 +149,8 @@ const ProfileForm = ({ labelWidth }: LabelAlignment) => {
         name: user?.name,
         email: user?.email,
         newPassword: undefined,
-        confirmPassword: undefined
+        confirmPassword: undefined,
+        withImage: false
     }
 
     // FORM SETTINGS //
@@ -224,27 +226,23 @@ const ProfileForm = ({ labelWidth }: LabelAlignment) => {
         const { id, name, email } = data
         if(!id || !name || !email) return
         
-        updateProfile({ ...data, id, name, email });
+        updateProfile({ ...data, id, name, email, withImage: Boolean(image) });
         
-        if(image) {
-            const type = image.type.split('/')[1];
-            const imageExtension = type === 'jpeg' ? 'jpg' : 'png';
-            updateProfile({ ...data, id, name, email, imageExtension });
+        if(image && isNewImage) {
+            dispatch(postImage({
+                id,
+                file: image,
+                drive: 'avatars'
+            }))
+        }
 
-            if(isNewImage) {
-                dispatch(postImage({
-                    id,
-                    file: image,
-                    drive: 'avatars'
-                }))
-            }
-        } else {
-            updateProfile({ ...data, id, name, email, imageExtension: null });
+        if(!image) {
             dispatch(deleteImage({
                 id,
                 drive: 'avatars'
             }))
         }
+        
         setIsSubmitted(true)
     }
     const handleFormSubmit = useCallback(handleSubmit(onSubmit),[

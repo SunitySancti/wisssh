@@ -117,20 +117,6 @@
         transition: all .2s ease-in-out;
     }
   
-    &.droppable,
-    &:hover {
-        cursor: pointer;
-        .button {
-            background-color: $primaryHover !important;
-            border-color: $primaryHover !important;
-        }
-        svg.placeholder {
-            background-color: $primaryLight;
-            fill: $primaryHover;
-            opacity: 0.6;
-        }
-    }
-  
     &.rejected .no-image {
         background-color: $negativeLight;
     }

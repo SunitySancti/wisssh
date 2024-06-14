@@ -35,7 +35,7 @@ export interface User {
     reservations: WishId[];
     wishlists: WishlistId[];
     invites: WishlistId[];
-    imageExtension: 'png' | 'jpg' | null;
+    withImage: boolean;
     signedAt: Timestamp;
     lastActivityAt: Timestamp;
     lastImageUpdate?: Timestamp
@@ -45,7 +45,7 @@ export interface WishDefaultValues {
     title: string;
     description: string;
     external: string;
-    imageExtension: 'png' | 'jpg' | null;
+    withImage: boolean;
     imageAR: number;
     stars: 0 | 1 | 2 | 3;
     price: number | null;

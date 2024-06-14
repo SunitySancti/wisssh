@@ -38,6 +38,7 @@ interface ImageInputProps<FV extends FieldValues> {
 interface ImageInputViewProps<FV extends FieldValues> {
     register: UseFormRegister<FV>;
     getRootProps(props?: any): any;
+    getInputProps(props?: any): any;
     isDragAccept: boolean;
     isDragReject: boolean;
     imgRef: RefObject<HTMLImageElement>;
@@ -129,6 +130,7 @@ export function compressAndDoSomething(
 const ImageInputView = <FV extends FieldValues>({
     register,
     getRootProps,
+    getInputProps,
     isDragAccept,
     isDragReject,
     imageURL,
@@ -156,6 +158,7 @@ const ImageInputView = <FV extends FieldValues>({
             className={ classes }
             {...getRootProps()}
         >
+            <input multiple={ false } {...getInputProps()} />
             <input
                 className='invis'
                 type='text'
@@ -240,9 +243,10 @@ export const ImageInput = <FV extends FieldValues>({
         compressAndDoSomething(acceptedFiles[0], setImage, compressOptions)
     },[ setImage ]);
 
-    const { getRootProps, isDragAccept, isDragReject } = useDropzone({
+    const { getRootProps, getInputProps, isDragAccept, isDragReject } = useDropzone({
         onDrop,
-        accept: {'image/*': ['.jpeg', '.png']}
+        accept: {'image/*': ['.jpeg', '.png']},
+        maxFiles: 1
     });
     
     const setAspectRatio = () => {
@@ -272,6 +276,7 @@ export const ImageInput = <FV extends FieldValues>({
         <ImageInputView {...{
             register,
             getRootProps,
+            getInputProps,
             isDragAccept,
             isDragReject,
             imageURL,

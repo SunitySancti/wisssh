@@ -93,18 +93,18 @@ export const WishlistMenu = memo(({
         navigate('/' + section + '/lists')
     }
 
-    const tooNarrow = window.innerWidth >= 375;
+    const tooNarrow = window.innerWidth < 375;
 
     const dropdownOptions = useMemo(() => {
         return isInvitesSection
             ?   [{
                     icon: 'delete' as const,
-                    text: tooNarrow ? 'Удалить приглашение' : 'Удалить из списка приглашений',
+                    text: 'Отклонить приглашение',
                     onClick: (e: SyntheticEvent) => modalRef.current?.showModal(e)
                 }]
             :   [{
                     icon: 'copy' as const,
-                    text: `Скопировать ${ tooNarrow ? 'пригласительную ': '' }ссылку`,
+                    text: `Скопировать ${ tooNarrow ? '' : 'пригласительную ' }ссылку`,
                     clickedIcon: 'ok' as const,
                     clickedText: 'Ссылка скопирована',
                     dontHideAfterClick: true,

@@ -42,14 +42,17 @@ import type { ButtonProps } from 'atoms/Button'
 
 interface StatusBarProps {
     wish: Wish;
-    onCard?: boolean
+    onCard?: boolean;
+    tooShort: boolean
 }
 
 interface StatusBarViewProps {
     showText(): void;
     hideText(): void;
     onCard: boolean;
+    tooShort: boolean;
     width: number;
+    height: number;
     padding: string;
     opacity: number;
     innerRef: RefObject<HTMLDivElement>;
@@ -67,7 +70,8 @@ interface WishCoverProps {
 
 interface WishCoverViewProps extends WishCoverProps {
     imageURL: string | undefined;
-    isLoading: boolean
+    isLoading: boolean;
+    coverRef: RefObject<HTMLDivElement>;
 }
 
 interface WishButtonProps {
@@ -97,7 +101,9 @@ const StatusBarView = memo(({
     showText,
     hideText,
     onCard,
+    tooShort,
     width,
+    height,
     padding,
     opacity,
     innerRef,
@@ -127,8 +133,8 @@ const StatusBarView = memo(({
                              : 'inProgress' as const;
     return (
         <div
-            className={ 'status-bar' + (onCard ? ' on-card' : '') }
-            style={ onCard ? { width, padding, opacity } : undefined }
+            className={ 'status-bar' + (onCard ? ' on-card' : '') + (tooShort ? ' shifted' : '') }
+            style={ onCard ? { width, height, padding, opacity } : undefined }
             onClick={ e => e.stopPropagation() }
             onMouseEnter={ showText }
             onMouseLeave={ hideText }
@@ -138,7 +144,7 @@ const StatusBarView = memo(({
                 ref={ innerRef }
             >
                 { icon &&
-                    <Icon name={ icon } size={ 34 }/>
+                    <Icon name={ icon }/>
                 }
                 <span>{ text }</span>
             </div>
@@ -148,11 +154,12 @@ const StatusBarView = memo(({
 
 export const StatusBar = ({
     wish,
-    onCard
+    onCard,
+    tooShort
 } : StatusBarProps
 ) => {
     const isMobile = useAppSelector(state => state.responsiveness.isMobile);
-    const defaultWidth = 34;
+    const defaultWidth = 44;
     const defaultPadding = '0';
     const defaultOpacity = 0.6;
     const innerRef = useRef<HTMLDivElement>(null);
@@ -163,8 +170,8 @@ export const StatusBar = ({
 
     const showText = useCallback(() => {
         if(onCard) {
-            setWidth(innerRef.current ? innerRef.current.offsetWidth + 22 : defaultWidth);
-            setPadding('0 6px');
+            setWidth(innerRef.current ? innerRef.current.offsetWidth + 33 : defaultWidth);
+            setPadding('0 8px');
             setOpacity(1)
             if(isMobile) {
                 setTimeout(hideText, 2000)
@@ -184,7 +191,9 @@ export const StatusBar = ({
             showText,
             hideText,
             onCard: !!onCard,
+            tooShort,
             width,
+            height: defaultWidth,
             padding,
             opacity,
             innerRef,
@@ -201,17 +210,19 @@ const WishCoverView = memo(({
     withUserPic,
     onCard,
     imageURL,
-    isLoading
+    isLoading,
+    coverRef
 } : WishCoverViewProps
 ) => (
     <div
-        className={ 'wish-cover' + (wish.imageExtension ? '' : ' no-image') }
-        style={ wish.imageExtension
+        className={ 'wish-cover' + (wish.withImage ? '' : ' no-image') }
+        style={ wish.withImage
             ? { aspectRatio: (wish?.imageAR || 1) + '' }
             : onCard
-            ? { height: '3.5rem' }
+            ? { height: '4rem' }
             : undefined
         }
+        ref={ coverRef }
     >
         <StarRating readOnly rating={ wish?.stars }/>
         { withUserPic &&
@@ -224,11 +235,15 @@ const WishCoverView = memo(({
             />
         }
         { onCard &&
-            <StatusBar {...{ wish, onCard }}/>
+            <StatusBar {...{
+                wish,
+                onCard,
+                tooShort: !wish?.withImage || ((coverRef.current?.offsetHeight || 100) < 99)
+            }}/>
         }
         { imageURL
             ? <img src={ imageURL }/>
-            : (!onCard || wish?.imageExtension) && 
+            : (!onCard || wish?.withImage) && 
                 <WishPreloader {...{ isLoading }}/>
         }
     </div>
@@ -237,8 +252,9 @@ const WishCoverView = memo(({
 export const WishCover = (props : WishCoverProps) => {
     const imageURL = useAppSelector(state => state.images?.imageURLs[props.wish?.id]?.url);
     const isLoading = useAppSelector(state => state.images?.loading[props.wish?.id]);
+    const coverRef = useRef<HTMLDivElement>(null);
     
-    return <WishCoverView {...{...props, imageURL, isLoading }}/>
+    return <WishCoverView {...{...props, imageURL, isLoading, coverRef }}/>
 }
 
 
@@ -253,6 +269,7 @@ export const WishButton = ({
     const [ completeWish ] = useCompleteWishMutation();
     const [ reserveWish ] = useReserveWishMutation();
     const [ unreserveWish ] = useUnreserveWishMutation();
+    const { isMobile } = useAppSelector(state => state.responsiveness);
 
     const buttonProps = useMemo(() => {
         if(wish.isCompleted) return undefined
@@ -261,6 +278,7 @@ export const WishButton = ({
             return {
                 icon: 'completed' as const,
                 text: 'Отметить исполненным',
+                kind: isMobile ? 'primary' as const : 'secondary' as const,
                 onClick: () => completeWish(wish.id),
             }
         } else if(!wish.reservedBy) { // actual wishes of other users
@@ -274,6 +292,7 @@ export const WishButton = ({
             return {
                 icon: 'cancel' as const,
                 text: 'Отменить резервирование',
+                kind: isMobile ? 'primary' as const : 'secondary' as const,
                 onClick: () => unreserveWish(wish.id),
             }
         } else return undefined
@@ -373,11 +392,11 @@ export const WishMenu = memo(({
             completedAt: null
         }
         postWish(newWish);
-        if(wish.imageExtension) {
+        if(wish.withImage) {
             dispatch(copyWishCover({
                 sourceId: wish.id,
-                targetId: newWish.id,
-                extension: wish.imageExtension
+                targetId: newWish.id
+                // extension: wish.withImage
             }))
         }
         navigate('/my-wishes/items/actual/' + newWish.id)
