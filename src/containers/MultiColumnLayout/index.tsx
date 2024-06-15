@@ -2,40 +2,41 @@ import { useEffect,
          useState,
          useRef,
          memo } from 'react'
+import { useDeepCompareEffect } from 'use-deep-compare';
+
+import { WishCard } from 'molecules/WishCard'
 
 import { getLocationConfig } from 'store/getters';
 import { useAppSelector } from 'store'
 
-import type { FC } from 'react'
-import type { Wish } from 'typings'
-import { useDeepCompareEffect } from 'use-deep-compare';
+import type { WishId } from 'typings'
+
 
 interface MultiColumnLayoutProps {
-    Card: FC<{ data: Wish }>;
-    data: Wish[]
-    [cardProp: string]: any
+    ids: WishId[];
+    value?: WishId[];
+    onChange?(newValue: WishId[]): void;
 }
 
 
 export const MultiColumnLayout = memo(({
-    Card,
-    data,
-    ...cardProps
+    ids,
+    ...rest
 } : MultiColumnLayoutProps
 ) => {
     // STATE //
     const layoutRef = useRef<HTMLDivElement>(null);
     const { location } = getLocationConfig();
 
-    const [ items, setItems ] = useState<Wish[]>([]);
+    const [ items, setItems ] = useState<WishId[]>([]);
     const [ columnsQty, setColumnsQty ] = useState(0);
-    const [ itemsRest, setItemsRest ] = useState<Wish[]>([]);
-    const [ columnedData, setColumnedData ] = useState<Wish[][]>([]);
+    const [ itemsRest, setItemsRest ] = useState<WishId[]>([]);
+    const [ columnedData, setColumnedData ] = useState<WishId[][]>([]);
     const [ opacity, setOpacity ] = useState(0.5);
     
     // RESPONSIVENESS //
     const isMobile = useAppSelector(state => state.responsiveness.isMobile);
-    const isOneColumn = isMobile && data.length <= 2;
+    const isOneColumn = isMobile && ids.length <= 2;
     const isTwoColumns = isMobile && !isOneColumn;
 
     // STYLES //
@@ -66,7 +67,7 @@ export const MultiColumnLayout = memo(({
     
     // METHODS //
     const resetState = () => {
-        setItems(data);
+        setItems(ids);
         setColumnsQty(0);
         setItemsRest([]);
         setColumnedData([]);
@@ -115,7 +116,7 @@ export const MultiColumnLayout = memo(({
     // LIFE CYCLE //
     useDeepCompareEffect(() => {
         resetState();
-    },[ location, data ]);
+    },[ location, ids ]);
 
     useEffect(() => {
         updateColumnsQty(); 
@@ -156,15 +157,11 @@ export const MultiColumnLayout = memo(({
                     key={index}
                     className='column'
                 >
-                    { column.map( (item, index) =>
-                        <Card
-                            key={index}
-                            data={item}
-                            {...cardProps}
-                        />
+                    { column.map( (id, key) =>
+                        <WishCard {...{ id, key, ...rest}}/>
                     )}
                 </div>
             )}
         </div>
     );
-})
+});

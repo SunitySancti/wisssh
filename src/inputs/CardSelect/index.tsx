@@ -3,7 +3,6 @@ import { Controller } from 'react-hook-form'
 import './styles.scss'
 import { Button } from 'atoms/Button'
 import { Plug } from 'atoms/Plug'
-import { WishCard } from 'molecules/WishCard'
 import { MultiColumnLayout } from 'containers/MultiColumnLayout'
 import { LineContainer } from 'containers/LineContainer'
 
@@ -13,14 +12,13 @@ import type { MouseEvent } from 'react'
 import type { Control,
               FieldValues,
               Path } from 'react-hook-form'
-import type { Wish,
-              WishId } from 'typings'
+import type { WishId } from 'typings'
  
 
 interface CardSelectProps<FV extends FieldValues> {
     control: Control<FV>,
     name: string,
-    options: Wish[]
+    options: WishId[]
 }
 
 interface CardSelectControllerRenderProps {
@@ -31,7 +29,7 @@ interface CardSelectControllerRenderProps {
 }
 
 interface CardSelectViewProps {
-    options: Wish[];
+    options: WishId[];
     value: WishId[];
     onChange: (newValue: WishId[]) => void;
     isMobile: boolean
@@ -75,7 +73,7 @@ const CardSelectView = ({
                             text='Выбрать все'
                             onClick={(e: MouseEvent) => {
                                 e.preventDefault();
-                                onChange(options.map(option => option.id));
+                                onChange(options);
                             }}
                             kind={ isMobile ? 'primary' : 'secondary' }
                             round
@@ -85,8 +83,7 @@ const CardSelectView = ({
                 </div>
             </LineContainer>
             <MultiColumnLayout {...{
-                data: options,
-                Card: WishCard,
+                ids: options,
                 value,
                 onChange
             }}/>

@@ -2,7 +2,6 @@ import { useMemo } from 'react'
 import { useDeepCompareMemo } from 'use-deep-compare'
 
 import { MultiColumnLayout } from 'containers/MultiColumnLayout'
-import { WishCard } from 'molecules/WishCard'
 import { WishPreloader } from 'atoms/Preloaders'
 import { Plug } from 'atoms/Plug'
 
@@ -13,12 +12,12 @@ import { getLocationConfig,
          getLoadingStatus } from 'store/getters'
 import { useAppSelector } from 'store'
 
-import type { Wish } from 'typings'
+import type { WishId } from 'typings'
 
 
 interface WishesPageViewProps {
     isLoading: boolean;
-    wishes: Wish[];
+    wishIds: WishId[];
     noWishesMessage: string;
     isNarrow?: boolean
 }
@@ -26,7 +25,7 @@ interface WishesPageViewProps {
 
 const WishesPageView = ({
     isLoading,
-    wishes,
+    wishIds,
     noWishesMessage
 } : WishesPageViewProps
 ) => (
@@ -34,11 +33,8 @@ const WishesPageView = ({
         ?   <div className='wish-page'>
                 <WishPreloader isLoading/>
             </div>
-        :   wishes instanceof Array && wishes.length
-        ?   <MultiColumnLayout
-                Card={ WishCard }
-                data={ wishes }
-            />
+        :   wishIds instanceof Array && wishIds.length
+        ?   <MultiColumnLayout ids={ wishIds }/>
         :   <Plug message={ noWishesMessage }/>
     )
 
@@ -53,7 +49,7 @@ export const WishesPage = () => {
     const { friendWishes } = getFriendWishes();
     const { awaitingWishes: isLoading } = getLoadingStatus();
 
-    const wishes = useDeepCompareMemo(() => {
+    const wishIds = useDeepCompareMemo(() => {
         const allWishes = isWishesSection  ? userWishes
                         : isInvitesSection ? friendWishes : [];
 
@@ -63,13 +59,16 @@ export const WishesPage = () => {
         switch (tab) {
             case 'actual':
                 return allWishes.filter(wish => !wish.isCompleted)
+                                .map(wish => wish.id)
             case 'reserved':
                 return allWishes.filter(wish => !wish.isCompleted && wish.reservedBy === user?.id)
+                                .map(wish => wish.id)
             case 'completed':
                 return allWishes.filter(wish => wish.isCompleted)
+                                .map(wish => wish.id)
             case 'all':
             default:
-                return allWishes;
+                return allWishes.map(wish => wish.id);
         }
     },[ section,
         tab,
@@ -101,7 +100,7 @@ export const WishesPage = () => {
     return (
         <WishesPageView {...{
             isLoading,
-            wishes,
+            wishIds,
             noWishesMessage,
             isNarrow
         }}/>

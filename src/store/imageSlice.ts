@@ -12,11 +12,6 @@ import type { RootState,
               AppDispatch } from 'store'
 
 
-// interface GetImagesResponse {
-//     data?: GetImageData[];
-//     error?: any
-// }
-
 interface GetImageData {
     id: ImageId;
     url: ImageURL;
@@ -31,6 +26,7 @@ interface GetImageResponse {
 interface PostImageArgs {
     id: ImageId;
     file: File | Blob;
+    imageAR?: number;
 }
 
 interface CopyWishCoverArgs {
@@ -61,87 +57,6 @@ interface ImageState {
 
 
 const mutex = new Mutex();
-
-// async function fetchMany(
-//     imageIds: ImageId[],
-//     getState: () => RootState
-// ) {
-//     const { token } = getState().auth;
-//     return await fetch(__API_URL__ + '/images/getMany',{
-//         method: 'POST',
-//         headers: {
-//             'Authorization': token,
-//             'Accept': 'application/json',
-//             'Content-Type': 'application/json'
-//         },
-//         body: JSON.stringify(imageIds)
-//     })
-//         .then(response => response.formData())
-//         .then(formData => {
-//             const data: GetImageData[] = [];
-//             imageIds.forEach(id => {
-//                 const file = formData.get(id);
-//                 if(file instanceof File) {
-//                     const url = URL.createObjectURL(file);
-//                     const timestamp = file.lastModified;
-
-//                     data.push({ id, url, timestamp })
-//                 }
-//             })
-//             return ({
-//                 data,
-//                 error: undefined
-//             })
-//         })
-//         .catch(error => ({
-//             data: undefined,
-//             error
-//         }))
-// }
-
-// async function fetchManyWithReauth(
-//     args: ImageId[],
-//     getState: () => RootState,
-//     dispatch: AppDispatch
-// ) {
-//     await mutex.waitForUnlock();
-//     let result = await fetchMany(args, getState);
-//     if(result.error) {
-//         if(__DEV_MODE__) {
-//             console.log('Error in images fetch.', result.error)
-//         }
-//         if(result.error.status === 403) {
-//             if (!mutex.isLocked()) {
-//                 const release = await mutex.acquire();
-//                 try {
-//                     const reAuthSuccess = await reAuth(getState, dispatch);
-//                     if(reAuthSuccess) {
-//                         result = await fetchMany(args, getState)
-//                     }
-//                 } finally {
-//                     release()
-//                 }
-//             } else {
-//                 await mutex.waitForUnlock();
-//                 result = await fetchMany(args, getState);
-//             }
-//         }
-//     }
-//     return result
-// }
-
-// export const getImages = createAsyncThunk<
-//     GetImagesResponse,
-//     ImageId[], {
-//         state: RootState;
-//         dispatch: AppDispatch;
-//     }>(
-//     'images/getImages',
-//     async (imageIds, thunkApi) => {
-//         const { getState, dispatch } = thunkApi
-//         return await fetchManyWithReauth(imageIds, getState, dispatch)
-//     }
-// );
 
 async function fetchImage(
     id: ImageId,
@@ -229,7 +144,7 @@ export const postImage = createAsyncThunk<
         dispatch: AppDispatch;
 }>(
     'images/postImage',
-    async ({ id, file },{ getState }) => {
+    async ({ id, file, imageAR },{ getState }) => {
         if(!id || !file) {
             return {
                 error: { message: 'No id or file has specified. Image was not save' },
@@ -242,6 +157,9 @@ export const postImage = createAsyncThunk<
         
         const formData = new FormData();
         formData.append('file', file)
+        if(imageAR) {
+            formData.append('aspectRatio', String(imageAR))
+        }
 
         return await fetch(endpoint, {
             'method': 'POST',
@@ -365,30 +283,6 @@ const imageSlice = createSlice({
         });
 
 
-        // builder.addCase(getImages.pending, (state, action) => {
-        //     const { covers, avatars } = action.meta.arg;
-        //     [...covers, ...avatars].forEach(id => {
-        //         state.loading[id] = true;
-        //     })
-        // });
-        // builder.addCase(getImages.fulfilled, (state, action) => {
-        //     if(!action.payload.data) return state
-
-        //     action.payload.data.forEach(({ id, url, timestamp }) => {
-        //         state.imageURLs[id] = url
-        //             ? { url, timestamp }
-        //             : null
-        //         delete state.loading[id];
-        //     })
-        // });
-        // builder.addCase(getImages.rejected, (state, action) => {
-        //     const { covers, avatars } = action.meta.arg;
-        //     [...covers, ...avatars].forEach(id => {
-        //         delete state.loading[id];
-        //     })
-        // });
-
-
         builder.addCase(postImage.pending, (state, action) => {
             const { id, file } = action.meta.arg;
             state.backupURLs[id] = state.imageURLs[id] || null;
@@ -444,54 +338,6 @@ const imageSlice = createSlice({
             const { targetId } = action.meta.arg;
             delete state.imageURLs[targetId]
         });
-
-
-        // [ apiSlice.endpoints.getCurrentUser,
-        //   apiSlice.endpoints.getFriends,
-        //   apiSlice.endpoints.getUserWishes,
-        //   apiSlice.endpoints.getFriendWishes ].forEach(endpoint => {
-
-        //     builder.addMatcher(
-        //         endpoint.matchFulfilled,
-        //         (state,{ payload }) => {
-        //             const currentState = current(state)
-        //             const currentQueueIds = currentState.queue.map(item => item.id);
-        //             const currentPriorIds = currentState.prior.map(item => item.id);
-        //             const currentImageIds = Object.keys(currentState.imageURLs) as ImageId[];
-        //             const currentBackupIds = Object.keys(currentState.backupURLs) as ImageId[];
-        //             const currentLoadingIds = Object.keys(currentState.loading) as ImageId[];
-        //             const idList = [...currentQueueIds, ...currentPriorIds, ...currentImageIds, ...currentBackupIds, ...currentLoadingIds];
-
-        //             if(!(payload instanceof Array)) {
-        //                 payload = [ payload ]
-        //             }
-
-        //             payload.forEach(unit => {
-        //                 if(unit && typeof unit === 'object') {
-        //                     const { id, withImage, title } = unit;
-        //                     const type = title ? 'cover' : 'avatar';
-                            
-        //                     if(!idList.includes(id) && withImage) {
-        //                         state.queue.push({ id, type })
-        //                     }
-
-        //                     const unitTS = unit.lastImageUpdate || 1;
-        //                     const imageTS = currentState.imageURLs[id]?.timestamp || 0
-
-        //                     // we need to renew image data: fetch or delete url
-        //                     if(unitTS > imageTS) {
-        //                         if(withImage) {
-        //                             state.queue.push({ id, type })
-        //                         } else {
-        //                             delete state.imageURLs[id];
-        //                             delete state.backupURLs[id]
-        //                         }
-        //                     }
-        //                 }
-        //             })
-        //         }
-        //     )
-        // })
     }
 });
 

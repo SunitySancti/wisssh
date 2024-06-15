@@ -228,6 +228,14 @@ const getActualWishes = () => {
     return ({ actualWishes })
 }
 
+const getActualWishIds = () => {
+    const { actualWishes } = getActualWishes();
+    const ids = actualWishes.map(wish => wish.id);
+        
+    const actualWishIds =  useDeepCompareMemo(() => ids,[ ids ]);
+    return actualWishIds
+}
+
 const getWishesByWishlistId = (id?: WishlistId) => {
     const wishlist = getWishlistById(id);
     return getWishesByIdList(wishlist?.wishes)
@@ -590,7 +598,7 @@ export {
     getWishById,
     getWishesByIdList,
     getActualWishes,
-    getWishesByWishlistId,
+    getActualWishIds,
     useFriendWishesPolling,
 
     getUserWishlists,

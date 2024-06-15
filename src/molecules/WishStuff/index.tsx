@@ -213,41 +213,46 @@ const WishCoverView = memo(({
     isLoading,
     coverRef
 } : WishCoverViewProps
-) => (
-    <div
-        className={ 'wish-cover' + (wish.withImage ? '' : ' no-image') }
-        style={ wish.withImage
-            ? { aspectRatio: (wish?.imageAR || 1) + '' }
-            : onCard
-            ? { height: '4rem' }
-            : undefined
-        }
-        ref={ coverRef }
-    >
-        <StarRating readOnly rating={ wish?.stars }/>
-        { withUserPic &&
-            <User
-                id={ wish.author }
-                picSize={ 6 }
-                picOnly
-                withTooltip
-                onClick={(e: SyntheticEvent) => e.stopPropagation()}
-            />
-        }
-        { onCard &&
-            <StatusBar {...{
-                wish,
-                onCard,
-                tooShort: !wish?.withImage || ((coverRef.current?.offsetHeight || 100) < 99)
-            }}/>
-        }
-        { imageURL
-            ? <img src={ imageURL }/>
-            : (!onCard || wish?.withImage) && 
-                <WishPreloader {...{ isLoading }}/>
-        }
-    </div>
-));
+) => {
+    const aspectRatio = (wish.withImage && !imageURL)
+        ? (wish?.imageAR || 1) + ''
+        : undefined
+
+    const height = (!wish.withImage && onCard)
+        ? '6rem'
+        : undefined
+        
+    return (
+        <div
+            className={ 'wish-cover' + (wish.withImage ? '' : ' no-image') }
+            ref={ coverRef }
+            style={{ aspectRatio, height }}
+        >
+            <StarRating readOnly rating={ wish?.stars }/>
+            { withUserPic &&
+                <User
+                    id={ wish.author }
+                    picSize={ 6 }
+                    picOnly
+                    withTooltip
+                    onClick={(e: SyntheticEvent) => e.stopPropagation()}
+                />
+            }
+            { onCard &&
+                <StatusBar {...{
+                    wish,
+                    onCard,
+                    tooShort: !wish?.withImage || ((coverRef.current?.offsetHeight || 100) < 99)
+                }}/>
+            }
+            { imageURL
+                ? <img src={ imageURL }/>
+                : (!onCard || wish?.withImage) && 
+                    <WishPreloader {...{ isLoading }}/>
+            }
+        </div>
+    )
+});
 
 export const WishCover = (props : WishCoverProps) => {
     const imageURL = useAppSelector(state => state.images?.imageURLs[props.wish?.id]?.url);

@@ -21,7 +21,7 @@ import { generateUniqueId,
 import { usePostWishlistMutation } from 'store/apiSlice'
 import { getLocationConfig,
          getCurrentUser,
-         getActualWishes,
+         getActualWishIds,
          getWishlistById } from 'store/getters'
 
 import type { Control,
@@ -32,7 +32,7 @@ import type { BaseSyntheticEvent,
               MouseEvent } from 'react'
 import type { WishlistDefaultValues,
               WishlistId,
-              Wish,
+              WishId,
               InvitationCode } from 'typings'
 import type { OutletContextType } from 'organisms/NavBarLayout'
 
@@ -44,7 +44,7 @@ interface NewListPageViewProps {
     register: UseFormRegister<WishlistDefaultValues>;
     control: Control<WishlistDefaultValues>;
     formState: FormState<WishlistDefaultValues>;
-    actualWishes: Wish[];
+    actualWishIds: WishId[];
     isSubmitButtonDisabled: boolean;
     isSubmitButtonLoading: boolean;
     isLandscape: boolean;
@@ -71,7 +71,7 @@ const NewListPageView = memo(({
     register,
     control,
     formState,
-    actualWishes,
+    actualWishIds,
     isSubmitButtonDisabled,
     isSubmitButtonLoading,
     isLandscape,
@@ -158,7 +158,7 @@ const NewListPageView = memo(({
                 <CardSelect
                     name='wishes'
                     control={ control }
-                    options={ actualWishes }
+                    options={ actualWishIds }
                 />
             </form>
         </div>
@@ -175,7 +175,7 @@ export const NewListPage = () => {
 
     const [ postWishlist,{ isLoading: awaitPostWishlist }] = usePostWishlistMutation();
     const { user } = getCurrentUser();
-    const { actualWishes } = getActualWishes();
+    const actualWishIds = getActualWishIds();
     const editingWishlist = getWishlistById(wishlistId);
 
     // FORM SETTINGS //
@@ -288,7 +288,7 @@ export const NewListPage = () => {
             register,
             control,
             formState: memoizedFormState,
-            actualWishes,
+            actualWishIds,
             isSubmitButtonDisabled: !isAbleToSumbit,
             isSubmitButtonLoading: formState.isSubmitting || awaitPostWishlist,
             isLandscape,

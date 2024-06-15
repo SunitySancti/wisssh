@@ -29,6 +29,9 @@
         .user {
             opacity: 1;
         }
+        &.of-friend .wish-cover.no-image .star-rating {
+            left: 6rem
+        }
     }
   
     &.view {

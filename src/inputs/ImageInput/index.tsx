@@ -245,8 +245,7 @@ export const ImageInput = <FV extends FieldValues>({
 
     const { getRootProps, getInputProps, isDragAccept, isDragReject } = useDropzone({
         onDrop,
-        accept: {'image/*': ['.jpeg', '.png']},
-        maxFiles: 1
+        accept: {'image/*': ['.jpeg', '.png']}
     });
     
     const setAspectRatio = () => {

@@ -6,7 +6,7 @@ import './styles.scss'
 import { WishCover,
          WishMenu } from 'molecules/WishStuff'
 
-import { getLocationConfig } from 'store/getters'
+import { getLocationConfig, getWishById } from 'store/getters'
 import { useAppSelector } from 'store'
 
 import type { Wish,
@@ -14,57 +14,95 @@ import type { Wish,
 
 
 interface WishCardProps {
-    data: Wish;
+    id: WishId;
     value?: WishId[];
     onChange?: (newValue: WishId[]) => unknown
 }
+interface WishCardViewProps {
+    wish: Wish;
+    isInput: boolean;
+    isSelected: boolean;
+    isMobile: boolean;
+    handleClick(): void
+}
 
-
-export const WishCard = memo(({
-    data: wish,
+export const WishCard = ({
+    id,
     value,
     onChange
 } : WishCardProps
 ) => {
-    // METHODS //
-    const navigate = useNavigate();
-    const { location,
-            isInvitesSection } = getLocationConfig();
-
     // RESPONSIVENESS //
-    const isMobile = useAppSelector(state => state.responsiveness.isMobile);
-    
-    // ELEMENTS //
-    const currency = wish.currency==='rouble' ? ' ₽'
-                   : wish.currency==='dollar' ? ' $'
-                   : wish.currency==='euro'   ? ' €' : '';
+    const { isMobile } = useAppSelector(state => state.responsiveness);
+
+    // NAVIGATION //
+    const navigate = useNavigate();
+    const { location } = getLocationConfig();
+
+    // DATA //
+    const wish = getWishById(id);
 
     // INPUT OR VIEW FEATURES //
     const isInput = !!value && !!onChange;
-    const selected = isInput && value.includes(wish.id);
-    
-    const classes = 'wishcard fade-in' + (isInput ? ' input' : ' view') + (selected ? ' selected' : '');
+    const isSelected = isInput && value.includes(id);
 
-    const handleCardClick = useCallback(() => {
+    const handleClick = useCallback(() => {
         if(isInput) {
-            const result = selected
-                ? value.filter(id => id != wish.id)
-                : value.concat([wish.id]);
+            const result = isSelected
+                ? value.filter(id => id != id)
+                : value.concat([id]);
             onChange(result);
         } else {
-            navigate(location + '/' + wish.id)
+            navigate(location + '/' + id)
         }
     },[ isInput,
-        selected,
+        isSelected,
         location,
         value?.length
     ]);
 
+    return wish &&
+        <WishCardView {...{
+            wish,
+            isInput,
+            isSelected,
+            isMobile,
+            handleClick
+        }}/>
+}
+
+
+export const WishCardView = memo(({
+    wish,
+    isInput,
+    isSelected,
+    isMobile,
+    handleClick
+} : WishCardViewProps
+) => {
+    const { isInvitesSection } = getLocationConfig();
+    
+    const classes = ['wishcard', 'fade-in'];
+    if(isInput) {
+        classes.push('input')
+    } else {
+        classes.push('view')
+    }
+    if(isSelected) {
+        classes.push('selected')
+    }
+    if(isInvitesSection) {
+        classes.push('of-friend')
+    }
+    const currency = wish.currency==='rouble' ? ' ₽'
+                   : wish.currency==='dollar' ? ' $'
+                   : wish.currency==='euro'   ? ' €' : '';
+
     return (
         <div
-            className={ classes }
+            className={ classes.join(' ') }
             key={ wish.id }
-            onClick={ handleCardClick }
+            onClick={ handleClick }
         >
             <WishCover wish={ wish } withUserPic={ !isMobile && isInvitesSection } onCard/>
             { !isMobile && !isInput && <WishMenu wish={ wish }/> }
@@ -76,7 +114,7 @@ export const WishCard = memo(({
                     <span className='price'>{ wish.price + currency }</span>
                 }
             </div>
-            { selected &&
+            { isSelected &&
                 <div className='selection-mask'/>
             }
         </div>

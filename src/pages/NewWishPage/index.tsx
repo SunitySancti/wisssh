@@ -91,7 +91,8 @@ const defaultValues: WishDefaultValues = {
     isCompleted: false,
     completedAt: null,
     createdAt: null,
-    lastModifiedAt: undefined
+    lastModifiedAt: undefined,
+    // lastImageUpdate: undefined
 }
 
 
@@ -400,10 +401,10 @@ export const NewWishPage = forwardRef(() => {
     ]);
 
     useEffect(() => {
-        const { id, isCompleted } = getValues()
+        const { id, isCompleted, imageAR } = getValues()
         if(id && wishHasPosted) {
             if(image && (isNewImage || isNewWish)) {
-                dispatch(postImage({ id, file: image }))
+                dispatch(postImage({ id, file: image, imageAR }))
             }
             if(!image && !isNewWish && isEditWish) {
                 dispatch(deleteImage(id))
@@ -425,7 +426,8 @@ export const NewWishPage = forwardRef(() => {
 
     // TRANSLATE SUBMIT FUNCTION TO NAVBAR //
     const { submitRef, setIsAbleToSumbit } = useOutletContext<OutletContextType>();
-    const isAbleToSumbit = formState.isDirty && formState.isValid || !formState.isDirty && isNewImage;
+    const isAbleToSumbit = formState.isValid && (formState.isDirty || isNewImage);
+    // const isAbleToSumbit = (formState.isDirty && formState.isValid) || (!formState.isDirty && isNewImage);
 
     useImperativeHandle(submitRef, () => ({
         submitWish: handleFormSubmit

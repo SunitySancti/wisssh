@@ -3,7 +3,6 @@ import { useDeepCompareMemo } from 'use-deep-compare'
 import { Navigate } from 'react-router-dom'
 
 import './styles.scss'
-import { WishCard } from 'molecules/WishCard'
 import { WishlistHeader } from 'molecules/WishlistHeader'
 import { MultiColumnLayout } from 'containers/MultiColumnLayout'
 import { WishPreloader } from 'atoms/Preloaders'
@@ -11,24 +10,20 @@ import { Plug } from 'atoms/Plug'
 
 import { getLocationConfig,
          getWishlistById,
-         getWishesByWishlistId,
          getLoadingStatus } from 'store/getters'
 
-import type { Wish,
-              Wishlist } from 'typings'
+import type { Wishlist } from 'typings'
 
 
 interface WishlistPageViewProps {
     isLoading: boolean;
     wishlist: Wishlist | undefined;
-    wishes: Wish[]
 }
 
 
 const WishlistPageView = memo(({
     isLoading,
-    wishlist,
-    wishes
+    wishlist
 } : WishlistPageViewProps
 ) => {
     const { section } = getLocationConfig();
@@ -39,11 +34,8 @@ const WishlistPageView = memo(({
                 :   wishlist
                     ?   <>
                             <WishlistHeader {...{ wishlist }}/>
-                            { wishes.length
-                                ?   <MultiColumnLayout
-                                        Card={ WishCard }
-                                        data={ wishes }
-                                    />
+                            { wishlist.wishes.length
+                                ?   <MultiColumnLayout ids={ wishlist.wishes }/>
                                 :   <Plug position='wishlistPageNoWishes'/>
                             }
                             
@@ -71,16 +63,12 @@ export const WishlistPage = () => {
         : awaitingFriendWishes || awaitingInvites;
 
     const wishlist = getWishlistById(wishlistId);
-    const wishes = getWishesByWishlistId(wishlistId);
-
     const memoizedWishlist = useDeepCompareMemo(() => wishlist,[ wishlist ]);
-    const memoizedWishes = useDeepCompareMemo(() => wishes,[ wishes ])
 
     return (
         <WishlistPageView {...{
             isLoading,
-            wishlist: memoizedWishlist,
-            wishes: memoizedWishes
+            wishlist: memoizedWishlist
         }}/>
     )
 }

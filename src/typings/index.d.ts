@@ -53,17 +53,17 @@ export interface WishDefaultValues {
     inWishlists: WishlistId[];
     reservedBy: UserId | null;
     isCompleted: boolean;
-    completedAt: Timestamp | null
-    createdAt: Timestamp | null;
+    completedAt?: Timestamp | null
+    createdAt?: Timestamp | null;
+    lastModifiedAt?: Timestamp;
     id?: WishId;
     author?: UserId;
-    lastModifiedAt?: Timestamp;
-    lastImageUpdate?: Timestamp
 }
 
 export interface Wish extends WishDefaultValues {
     id: WishId;
     author: UserId;
+    lastImageUpdate?: Timestamp;
     key?: WishId;                       // обрабатывается сервером
 }
 
