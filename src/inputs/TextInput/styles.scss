@@ -54,7 +54,10 @@
         font: $general;
         color: $darkGray2;
         cursor: default;
-        box-shadow: $insetShadow;
+
+        &:not(:disabled) {
+            box-shadow: $insetShadow;
+        }
 
         // &:not(.auto-height) {
         //     flex: 1;
