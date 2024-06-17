@@ -21,6 +21,7 @@ import { getLocationConfig,
          getWishById,
          getWishlistsByIdList,
          getLoadingStatus } from 'store/getters'
+import { makeupLongNumber } from 'utils'
 
 import type { Wish,
               Wishlist } from 'typings'
@@ -112,7 +113,7 @@ const PriceLine = ({
 } : PriceLineProps
 ) => (
     <span className='price'>
-        { !!price && price + (
+        { !!price && makeupLongNumber(price) + (
               (currency === 'rouble') ? ' ₽'
             : (currency === 'dollar') ? ' $'
             : (currency === 'euro')   ? ' €' : ''

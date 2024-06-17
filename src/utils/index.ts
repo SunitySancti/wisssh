@@ -216,3 +216,23 @@ export function currentTime() {
     
     return `${currentDate.getHours()}:${currentMinutes < 10 ? '0' : ''}${currentMinutes}:${currentSeconds < 10 ? '0' : ''}${currentSeconds}` 
 }
+
+export function makeupLongNumber(number: number | string) {
+    if(typeof number !== 'number' && typeof number !== 'string') {
+        return ''
+    }
+    let string = typeof number === 'number'
+        ?  String(number)
+        : number;
+
+    const parts = [];
+    while(string.length) {
+        parts.unshift(string.slice(-3));
+        if(string.length > 3) {
+            string = string.slice(0, -3)
+        } else {
+            string = ''
+        }
+    }
+    return parts.join(' ')
+}

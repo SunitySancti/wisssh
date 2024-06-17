@@ -8,6 +8,7 @@ import { WishCover,
 
 import { getLocationConfig, getWishById } from 'store/getters'
 import { useAppSelector } from 'store'
+import { makeupLongNumber } from 'utils'
 
 import type { Wish,
               WishId } from 'typings'
@@ -111,7 +112,7 @@ export const WishCardView = memo(({
                     <span className='title'>{ wish.title }</span>
                 }
                 { !!wish.price && !isMobile &&
-                    <span className='price'>{ wish.price + currency }</span>
+                    <span className='price'>{ makeupLongNumber(wish.price) + currency }</span>
                 }
             </div>
             { isSelected &&
