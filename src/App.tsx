@@ -19,95 +19,23 @@ import { ProfilePage } from 'pages/ProfilePage'
 import { InvitationAcceptancePage } from 'pages/InvitationAcceptancePage'
 
 import { useWindowSize } from 'hooks/useWindowSize'
-import { getFriends,
-         getUserWishlists,
-         getUserWishes,
-         getInvites,
-         getFriendWishes,
-         getLocationConfig,
-         useFriendWishesPolling,
-         useInvitesPolling } from 'store/getters'
+import { getLocationConfig } from 'store/getters'
 import { useAppDispatch } from 'store'
-import { usePrefetch } from 'store/apiSlice'
 import { responseWidth } from 'store/responsivenessSlice'
 
 
-const DataFetchController = () => {
-    const { section, mode } = getLocationConfig();
-
-    const   triggerFriends = usePrefetch('getFriends');
-    const { friendsHaveLoaded } = getFriends();
-
-    const   triggerUserWishes = usePrefetch('getUserWishes');
-    const { userWishesHaveLoaded } = getUserWishes();
-        
-    const   triggerUserWishlists = usePrefetch('getUserWishlists');
-    const { userWishlistsHaveLoaded } = getUserWishlists();
-            
-    const   triggerFriendWishes = usePrefetch('getFriendWishes');
-    const { friendWishesHaveLoaded } = getFriendWishes();
-                
-    const   triggerInvites = usePrefetch('getInvites');
-    const { invitesHaveLoaded } = getInvites();
-
-    const fetchRest = () => {
-        if(!userWishesHaveLoaded)       triggerUserWishes();
-        if(!userWishlistsHaveLoaded)    triggerUserWishlists();
-        if(!friendWishesHaveLoaded)     triggerFriendWishes();
-        if(!invitesHaveLoaded)          triggerInvites();
-        if(!friendsHaveLoaded)          triggerFriends();
-    }
-
-    useFriendWishesPolling();
-    useInvitesPolling();
-
-
-    useEffect(() => {
-        switch(section + '/' + mode) {
-            case 'my-wishes/items':
-                triggerUserWishes();
-                if(userWishesHaveLoaded) fetchRest()
-                break
-            case 'my-wishes/lists':
-                triggerUserWishlists();
-                if(userWishlistsHaveLoaded) fetchRest()
-                break
-            case 'my-invites/items':
-                triggerFriendWishes();
-                if(friendWishesHaveLoaded) fetchRest()
-                break
-            case 'my-invites/lists':
-                triggerInvites();
-                triggerFriends();
-                if(invitesHaveLoaded && friendsHaveLoaded) fetchRest()
-        }
-    },[ section,
-        mode,
-        userWishesHaveLoaded,
-        userWishlistsHaveLoaded,
-        friendWishesHaveLoaded,
-        invitesHaveLoaded,
-        friendsHaveLoaded
-    ]);
-
-    return null
-}
-
-const ResponsivenessController = () => {
+const Controllers = () => {
     const dispatch = useAppDispatch();
+    const navigate = useNavigate();
     const { width } = useWindowSize();
+    const { location } = getLocationConfig();
 
+    // RESPONSIVENESS CONTROLLER
     useEffect(() => {
         dispatch(responseWidth(width))
     },[ width ]);
 
-    return null
-}
-
-const URLCorrector = () => {
-    const navigate = useNavigate();
-    const { location } = getLocationConfig();
-
+    // URL CORRECTOR
     useEffect(() => {
         const corrected = '/' + location.split('/').filter(str => str).join('/');
         if(corrected !== location) {
@@ -120,9 +48,7 @@ const URLCorrector = () => {
 
 const App = () => (
     <>
-        <DataFetchController/>
-        <ResponsivenessController/>
-        <URLCorrector/>
+        <Controllers/>
         <Routes>
             <Route path='/' element={ <AppLayout/> }>
                 <Route index element={ <Navigate to='/my-wishes/items/actual' replace/> }/>
@@ -162,7 +88,7 @@ const App = () => (
                 <Route path='share/:invitationCode' element={ <InvitationAcceptancePage/> }/>
             </Route>
 
-            <Route path='/login/:encodedEmail?' element={ <LoginPage/> }/>
+            <Route path='/login/:encodedEmail?/:incomePassword?' element={ <LoginPage/> }/>
             <Route path='/logout' element={ <LogoutPage/> }/>
             <Route path='*' element={ <Navigate to='/my-wishes/items/actual' replace/> }/>
         </Routes>

@@ -105,23 +105,26 @@ export function numberSystemConverter(
     if(inputRadix > inputAlphabet.length || outputRadix > outputAlphabet.length) {
         return { error: 'Radix must to be less or equal to alphabet length' }
     }
-    let reminder = Number(input);
-    if(inputRadix !== 10) {
-        reminder = decimalDigitsArrayToDecimalNumber(
-            stringOrNumberToDecimalDigitsArray(reminder, inputAlphabet),
-            inputRadix
-        )
-    }
-    if(outputRadix === 10) {
-        return reminder + ''
+
+    let reminder: number;
+
+    if(inputRadix === 10) {
+        reminder = typeof input === 'string' ? parseInt(input) : input;
+    } else {
+        const middleValue = stringOrNumberToDecimalDigitsArray(input, inputAlphabet);
+        reminder = decimalDigitsArrayToDecimalNumber(middleValue, inputRadix)
     }
 
-    let accumulator: number[] = [];
-    while(reminder !== 0) {
-        accumulator.unshift(reminder % outputRadix);
-        reminder = Math.floor(reminder / outputRadix)
+    if(outputRadix === 10) {
+        return reminder + ''
+    } else {
+        let accumulator = [];
+        while(reminder !== 0) {
+            accumulator.unshift(reminder % outputRadix);
+            reminder = Math.floor(reminder / outputRadix)
+        }
+        return decimalDigitsArrayToAlphabetString(accumulator, outputAlphabet || inputAlphabet)
     }
-    return decimalDigitsArrayToAlphabetString(accumulator, outputAlphabet || inputAlphabet)
 }
 
 // takes string as input and number as partLength, return array of strings
@@ -143,8 +146,38 @@ export function separateString(
     return accumulator
 }
 
+function separate<Type extends string | any[]>(input: Type, partLength: number): Type[] {
+    let reminder = input;
+    console.log({ reminder })
+    let accumulator = [];
+    let part;
+    while(reminder.length) {
+        part = reminder.slice(0, partLength);
+        accumulator.push(part);
+        if(typeof reminder === 'string') {
+            reminder = reminder.replace(part as string, '') as Type
+        } else {
+            reminder.splice(0, part.length)
+        }
+    }
+    console.log({ accumulator })
+    return accumulator as Type[]
+}
+
+export function encodeEmail(email: string) {
+    const emailChars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ ?^_~.,:;@!#$%&*+-={}()[]<>'`\"/|\\";
+    return separate(email, 7)
+        .map(part => {
+            console.log({ part })
+            const convertedPart = numberSystemConverter(part, 95, 62, emailChars)
+            console.log({ convertedPart })
+            return convertedPart
+        })
+        .join('+');
+}
+
 export function decodeEmail(encodedEmail: string) {
-    if(encodedEmail.length < 6) return ''
+    // if(encodedEmail.length < 6) return ''
     const emailChars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ ?^_~.,:;@!#$%&*+-={}()[]<>'`\"/|\\";
     // check chars
     return encodedEmail

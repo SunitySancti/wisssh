@@ -32,9 +32,12 @@ import { getLocationConfig,
          getRestImageIds, 
          getFriends,
          getUserWishes,
-         getFriendWishes} from 'store/getters'
+         getFriendWishes,
+         getUserWishlists,
+         getInvites } from 'store/getters'
 import { useAppDispatch,
          useAppSelector } from 'store'
+import { usePrefetch } from 'store/apiSlice'
 
 import type { RefObject,
               SyntheticEvent,
@@ -53,6 +56,10 @@ interface AppHeaderViewProps {
     creationGroupRef: RefObject<WidthAwared>;
     userGroupRef: RefObject<WidthAwared>;
     groupsMaxWidth: number
+}
+
+interface AppHeaderMobileProps {
+    hasBackPressed: boolean
 }
 
 interface AppHeaderMobileViewProps {
@@ -75,6 +82,66 @@ function useRedirectController() {
             navigate('/login',{ state: location })
         }
     },[ token ]);
+}
+
+
+function useFetchDataController() {
+    const { section, mode } = getLocationConfig();
+
+    const   triggerFriends = usePrefetch('getFriends');
+    const { friendsHaveLoaded } = getFriends();
+
+    const   triggerUserWishes = usePrefetch('getUserWishes');
+    const { userWishesHaveLoaded } = getUserWishes();
+        
+    const   triggerUserWishlists = usePrefetch('getUserWishlists');
+    const { userWishlistsHaveLoaded } = getUserWishlists();
+            
+    const   triggerFriendWishes = usePrefetch('getFriendWishes');
+    const { friendWishesHaveLoaded } = getFriendWishes();
+                
+    const   triggerInvites = usePrefetch('getInvites');
+    const { invitesHaveLoaded } = getInvites();
+
+    const fetchRest = () => {
+        if(!userWishesHaveLoaded)       triggerUserWishes();
+        if(!userWishlistsHaveLoaded)    triggerUserWishlists();
+        if(!friendWishesHaveLoaded)     triggerFriendWishes();
+        if(!invitesHaveLoaded)          triggerInvites();
+        if(!friendsHaveLoaded)          triggerFriends();
+    }
+
+    // useFriendWishesPolling();
+    // useInvitesPolling();
+
+
+    useEffect(() => {
+        switch(section + '/' + mode) {
+            case 'my-wishes/items':
+                triggerUserWishes();
+                if(userWishesHaveLoaded) fetchRest()
+                break
+            case 'my-wishes/lists':
+                triggerUserWishlists();
+                if(userWishlistsHaveLoaded) fetchRest()
+                break
+            case 'my-invites/items':
+                triggerFriendWishes();
+                if(friendWishesHaveLoaded) fetchRest()
+                break
+            case 'my-invites/lists':
+                triggerInvites();
+                triggerFriends();
+                if(invitesHaveLoaded && friendsHaveLoaded) fetchRest()
+        }
+    },[ section,
+        mode,
+        userWishesHaveLoaded,
+        userWishlistsHaveLoaded,
+        friendWishesHaveLoaded,
+        invitesHaveLoaded,
+        friendsHaveLoaded
+    ]);
 }
 
 function useFetchImagesController() {
@@ -217,10 +284,6 @@ const AppHeaderView = memo(({
 ));
 
 const AppHeader = () => {
-    useRedirectController();
-    useFetchImagesController();
-    useHistoryController();
-
     // HANDLE SCROLLING //
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const handleScroll = useCallback((e: WheelEvent) => {
@@ -345,11 +408,7 @@ const AppHeaderMobileView = memo(({
     )
 })
 
-
-const AppHeaderMobile = () => {
-    useRedirectController();
-    useFetchImagesController();
-    const { hasBackPressed } = useHistoryController();
+const AppHeaderMobile = ({ hasBackPressed }: AppHeaderMobileProps) => {
     const navigate = useNavigate();
 
     const { section,
@@ -397,6 +456,11 @@ const AppHeaderMobile = () => {
 }
 
 export const AppLayout = () => {
+    useFetchDataController();
+    useFetchImagesController();
+    useRedirectController();
+    const { hasBackPressed } = useHistoryController();
+
     // RESPONSIVENESS //
     const { isNarrow,
             isMobile } = useAppSelector(state => state.responsiveness);
@@ -404,7 +468,7 @@ export const AppLayout = () => {
     return (
         <div className={'app-layout' + (isNarrow ? ' narrow' : '') + (isMobile ? ' mobile' : '')}>
             { isMobile
-                ? <AppHeaderMobile/>
+                ? <AppHeaderMobile {...{ hasBackPressed }}/>
                 : <AppHeader/>
             }
             <Outlet/>

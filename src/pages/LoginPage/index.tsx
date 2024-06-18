@@ -3,12 +3,12 @@ import { useState,
          useCallback } from 'react'
 import { useForm,
          useWatch } from 'react-hook-form'
-import { Navigate,
-         useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import './styles.scss'
 import { LogoIcon } from 'atoms/Icon'
 import { Button } from 'atoms/Button'
+import { WishPreloader } from 'atoms/Preloaders'
 import { TextInput } from 'inputs/TextInput'
 import { PasswordInput } from 'inputs/PasswordInput'
 import { CheckBox } from 'inputs/CheckBox'
@@ -41,15 +41,16 @@ const __DEV_MODE__ = import.meta.env.DEV
 type FlowStep = 'start' | 'login' | 'signup' | 'reset-request' | 'reset-verification' | 'reset-new-password'
 
 interface ButtonGroupProps<FV extends FieldValues> {
-    control: Control<FV>,
-    flowStep: FlowStep,
-    isAnyError: boolean,
-    isLoading: boolean,
-    goToResetRequest: () => void
+    goToResetRequest: () => void;
+    control: Control<FV>;
+    flowStep: FlowStep;
+    isAnyError: boolean;
+    isLoading: boolean;
+    isMobile: boolean;
+    isNarrow?: boolean;
 }
 
 interface LoginPageViewProps<FV extends FieldValues> {
-    token: string;
     flowStep: FlowStep;
     control: Control<FV>;
     register: UseFormRegister<LoginFormValues>;
@@ -63,18 +64,19 @@ interface LoginPageViewProps<FV extends FieldValues> {
     maxLabelWidth: number;
     isLoading: boolean;
     isAnyError: boolean;
-    message: string,
-    isNarrow?: boolean 
+    message: string;
+    isMobile: boolean;
+    isNarrow?: boolean;
 }
 
 interface LoginFormValues {
     email?: string;
     password?: string;
-    maskedPassword?: string,
+    maskedPassword?: string;
     nickname?: string;
     newPassword?: string;
     verificationCode?: string;
-    shouldNotRemember: boolean
+    shouldNotRemember: boolean;
 }
 
 
@@ -94,6 +96,8 @@ const ButtonGroup = <FV extends FieldValues>({
     flowStep,
     isAnyError,
     isLoading,
+    isNarrow,
+    isMobile,
     goToResetRequest
 } : ButtonGroupProps<FV>
 ) => {
@@ -133,7 +137,7 @@ const ButtonGroup = <FV extends FieldValues>({
             props.kind = 'accent' as const
             break
         case 'reset-request':
-            props.text = 'Всё верно. Хочу восстановить пароль'
+            props.text = 'Всё верно, восстановить пароль'
             props.kind = 'accent' as const
             break
         case 'reset-verification':
@@ -143,7 +147,9 @@ const ButtonGroup = <FV extends FieldValues>({
             props.disabled = true
             break
         case 'reset-new-password':
-            props.text = 'Завершить восстановление пароля и войти'
+            props.text = (isNarrow || isMobile)
+                ? 'Завершить и войти'
+                : 'Завершить восстановление пароля и войти'
             props.icon = 'login' as const
             props.kind = 'accent' as const
     }
@@ -165,14 +171,26 @@ const ButtonGroup = <FV extends FieldValues>({
 export const LoginPage = () => {
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
-    const { encodedEmail } = getLocationConfig();
+    const { encodedEmail,
+            incomePassword,
+            redirectedFrom } = getLocationConfig();
+
+    // GETTING RESPONSIVE 
+    const { isNarrow,
+            isMobile } = useAppSelector(state => state.responsiveness);
+
+    // REDIRECT IF LOGGED IN
+    const token = useAppSelector(state => state.auth.token);
+    useEffect(() => {
+        if(token) {
+            navigate(redirectedFrom || '/my-wishes/items/actual',{ replace: true, state: '/login' })
+        }
+    },[ token ]);
 
     // AVOID PASSWORD SAVING IF REMEMBER: FALSE
-
     const shouldRemember = useAppSelector(state => state.auth.remember);
     
     // FORM SETTINGS
-    
     const { handleSubmit,
             register,
             control,
@@ -185,7 +203,6 @@ export const LoginPage = () => {
     });
 
     // STATE AND HOOKS
-
     const [ flowStep, setFlowStep ] = useState<FlowStep>('start');
     const [ message, setMessage ] = useState('Введите почту, чтобы войти или зарегистрироваться');
     const [ connectionErrorMessage, setConnectionErrorMessage ] = useState('');
@@ -255,19 +272,28 @@ export const LoginPage = () => {
 
     useEffect(() => {
         if(encodedEmail) {
-            const email = decodeEmail(encodedEmail.slice(0, -6));
-            const code = encodedEmail.slice(-6);
-            const emailPattern = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-            
-            if(emailPattern.test(email)) {
-                setValue('email', email);
-                setValue('verificationCode', code);
-                verificateCode(code, goToCreateNewPassword)
+            if(incomePassword) {
+                // LOGIN WITH CREDENTIALS FROM URL USERFLOW
+                const email = decodeEmail(encodedEmail);
+                login({ email, password: incomePassword })
             } else {
-                navigate('/login',{ replace: true })
+                // PASSWORD RESET USERFLOW
+                const email = decodeEmail(encodedEmail.slice(0, -6));
+                const code = encodedEmail.slice(-6);
+                const emailPattern = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+                
+                if(emailPattern.test(email)) {
+                    setValue('email', email);
+                    setValue('verificationCode', code);
+                    verificateCode(code, goToCreateNewPassword)
+                } else {
+                    navigate('/login',{ replace: true })
+                }
             }
         }
-    },[ encodedEmail ]);
+    },[ encodedEmail,
+        incomePassword
+    ]);
 
     useEffect(() => {
         switch(flowStep) {
@@ -380,9 +406,6 @@ export const LoginPage = () => {
         }
     }
 
-    // REDIRECT IF LOGGED IN
-    const token = useAppSelector(state => state.auth.token);
-
     // CLEANUP
 
     useEffect(() => {
@@ -395,35 +418,33 @@ export const LoginPage = () => {
         }
     },[]);
 
-    // GETTING RESPONSIVE 
-    const { isNarrow } = useAppSelector(state => state.responsiveness);
-
-    return (
-        <LoginPageView {...{
-            token,
-            flowStep,
-            control,
-            register,
-            handleFormChange,
-            handleFormSubmit: handleSubmit(onSubmit),
-            handleEmailEvents,
-            handleRememberCheckbox: (value: boolean) => dispatch(setRemember(!value)),
-            shouldRemember,
-            goToResetRequest,
-            backToStart,
-            maxLabelWidth,
-            isLoading: isSubmitting || loginAwait || signupAwait,
-            isAnyError,
-            message: isAnyError
-                ? connectionErrorMessage || emailErrorMessage || nicknameErrorMessage || passwordErrorMessage
-                : message,
-            isNarrow
-        }}/>
-    )
+    return (encodedEmail && incomePassword)
+        ?   <div style={{ height: '100vh', position: 'relative' }}>
+                <WishPreloader isLoading/>
+            </div>
+        :   <LoginPageView {...{
+                flowStep,
+                control,
+                register,
+                handleFormChange,
+                handleFormSubmit: handleSubmit(onSubmit),
+                handleEmailEvents,
+                handleRememberCheckbox: (value: boolean) => dispatch(setRemember(!value)),
+                shouldRemember,
+                goToResetRequest,
+                backToStart,
+                maxLabelWidth,
+                isLoading: isSubmitting || loginAwait || signupAwait,
+                isAnyError,
+                message: isAnyError
+                    ? connectionErrorMessage || emailErrorMessage || nicknameErrorMessage || passwordErrorMessage
+                    : message,
+                isNarrow,
+                isMobile
+            }}/>
 }
 
 const LoginPageView = <FV extends FieldValues>({
-    token,
     flowStep,
     control,
     register,
@@ -438,99 +459,92 @@ const LoginPageView = <FV extends FieldValues>({
     isLoading,
     isAnyError,
     message,
-    isNarrow
+    isNarrow,
+    isMobile
 } : LoginPageViewProps<FV>
-) => {
-    const { redirectedFrom } = getLocationConfig();
-
-    return ( token
-        ?   <Navigate 
-                to={ redirectedFrom || '/my-wishes/items/actual' }
-                state='/login'
-                replace
-            />
-        :   
-        <div className={ 'login-page' + (isNarrow ? ' narrow' : '') }>
-            <div className='logo-icon'>
-                <LogoIcon/>
-                <div className='beta'>Beta</div>
-            </div>
-            <form
-                onChange={ handleFormChange }
-                onSubmit={ handleFormSubmit }
-            >
-                <span 
-                    className={ 'message-line' + (isAnyError ? ' error' : '') + (isNarrow ? ' narrow' : '') }
-                    children={ message }
-                />
-                <div className='inputs'>
-                    <TextInput
-                        register={ register }
-                        name='email'
-                        patternType='email'
-                        label='Почта'
-                        labelWidth={ maxLabelWidth }
-                        disabled= { flowStep !== 'start' }
-                        onBlur={ handleEmailEvents }
-                        onKeyDown={ handleEmailEvents }
-                        rightAlignedComponent={ flowStep !== 'start' &&
-                            <Button
-                                icon='change'
-                                onClick={ backToStart }
-                                className='back-btn'
-                            />
-                        }
-                        autoComplete={ shouldRemember ? 'username' : 'off' }
-                    />
-                    <PasswordInput
-                        register={ register }
-                        name={ shouldRemember ? 'password' : 'maskedPassword' }
-                        label='Пароль'
-                        labelWidth={ maxLabelWidth }
-                        autoComplete={ shouldRemember ? 'current-password' : 'off' }
-                        className={ (flowStep === 'login' || flowStep === 'signup') ? 'visible' : 'collapsed' }
-                    />
-                    <TextInput
-                        register={ register }
-                        name='nickname'
-                        label='Никнейм'
-                        labelWidth={ maxLabelWidth }
-                        className={ flowStep === 'signup' ? 'visible' : 'collapsed' }
-                        disabled={ flowStep !== 'signup' }
-                    />
-                    <CheckBox
-                        callback={ handleRememberCheckbox }
-                        name='shouldNotRemember'
-                        label='не запоминать меня на этом устройстве'
-                        className={ (flowStep === 'login' || flowStep === 'signup') ? 'visible' : 'collapsed' }
-                    />
-                    <TextInput
-                        register={ register }
-                        name='verificationCode'
-                        label='Код из письма'
-                        type='password'
-                        labelWidth={ maxLabelWidth }
-                        className={ flowStep === 'reset-verification' || flowStep === 'reset-new-password' ? 'visible' : 'collapsed' }
-                        disabled={ flowStep !== 'reset-verification' && flowStep !== 'reset-request' }
-                    />
-                    <PasswordInput
-                        register={ register }
-                        name='newPassword'
-                        label='Новый пароль'
-                        autoComplete='new-password'
-                        labelWidth={ maxLabelWidth }
-                        className={ flowStep === 'reset-new-password' ? 'visible' : 'collapsed' }
-                        disabled={ flowStep !== 'reset-new-password' }
-                    />
-                </div>
-                <ButtonGroup {...{
-                    control,
-                    flowStep,
-                    isAnyError,
-                    isLoading,
-                    goToResetRequest
-                }}/>
-            </form>
+) => (
+    <div className={ 'login-page' + ((isNarrow || isMobile) ? ' narrow' : '') }>
+        <div className='logo-icon'>
+            <LogoIcon/>
+            <div className='beta'>Beta</div>
         </div>
-    )
-}
+        <form
+            onChange={ handleFormChange }
+            onSubmit={ handleFormSubmit }
+        >
+            <span 
+                className={ 'message-line' + (isAnyError ? ' error' : '') + ((isNarrow || isMobile) ? ' narrow' : '') }
+                children={ message }
+            />
+            <div className='inputs'>
+                <TextInput
+                    register={ register }
+                    name='email'
+                    patternType='email'
+                    label='Почта'
+                    labelWidth={ maxLabelWidth }
+                    disabled= { flowStep !== 'start' }
+                    onBlur={ handleEmailEvents }
+                    onKeyDown={ handleEmailEvents }
+                    rightAlignedComponent={ flowStep !== 'start' &&
+                        <Button
+                            icon='change'
+                            onClick={ backToStart }
+                            className='back-btn'
+                        />
+                    }
+                    autoComplete={ shouldRemember ? 'username' : 'off' }
+                />
+                <PasswordInput
+                    register={ register }
+                    name={ shouldRemember ? 'password' : 'maskedPassword' }
+                    label='Пароль'
+                    labelWidth={ maxLabelWidth }
+                    autoComplete={ shouldRemember ? 'current-password' : 'off' }
+                    className={ (flowStep === 'login' || flowStep === 'signup') ? 'visible' : 'collapsed' }
+                />
+                <TextInput
+                    register={ register }
+                    name='nickname'
+                    label='Никнейм'
+                    labelWidth={ maxLabelWidth }
+                    className={ flowStep === 'signup' ? 'visible' : 'collapsed' }
+                    disabled={ flowStep !== 'signup' }
+                />
+                <CheckBox
+                    callback={ handleRememberCheckbox }
+                    name='shouldNotRemember'
+                    label='не запоминать меня на этом устройстве'
+                    className={ (flowStep === 'login' || flowStep === 'signup') ? 'visible' : 'collapsed' }
+                />
+                <TextInput
+                    register={ register }
+                    name='verificationCode'
+                    label='Код из письма'
+                    type='password'
+                    labelWidth={ maxLabelWidth }
+                    className={ flowStep === 'reset-verification' || flowStep === 'reset-new-password' ? 'visible' : 'collapsed' }
+                    disabled={ flowStep !== 'reset-verification' && flowStep !== 'reset-request' }
+                />
+                <PasswordInput
+                    register={ register }
+                    name='newPassword'
+                    label='Новый пароль'
+                    autoComplete='new-password'
+                    labelWidth={ maxLabelWidth }
+                    className={ flowStep === 'reset-new-password' ? 'visible' : 'collapsed' }
+                    disabled={ flowStep !== 'reset-new-password' }
+                />
+            </div>
+            <ButtonGroup {...{
+                control,
+                flowStep,
+                isAnyError,
+                isLoading,
+                isMobile,
+                isNarrow,
+                goToResetRequest
+            }}/>
+        </form>
+    </div>
+)

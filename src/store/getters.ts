@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { useLocation,
          useParams } from 'react-router-dom'
 import { useDeepCompareMemo } from 'use-deep-compare'
@@ -119,7 +118,7 @@ const getInvites = () => {
             isError:            loadingInvitesWasCrashed,
             refetch:            refreshInvites,
             isFetching:         fetchingInvites,
-            fulfilledTimeStamp: invitesTimeStamp } = useGetInvitesQuery(undefined,{ pollingInterval });
+            fulfilledTimeStamp: invitesTimeStamp } = useGetInvitesQuery(undefined,{ pollingInterval: 3000 });
 
     const memoizedInvites = useDeepCompareMemo(() => (
         invites || []
@@ -148,17 +147,6 @@ const getWishlistsByIdList = (ids?: WishlistId[]) => {
     return useDeepCompareMemo(() => (
         allWishlists.filter(wishlist => ids?.includes(wishlist.id))
     ),[ allWishlists, ids ]);
-}
-
-const useInvitesPolling = (ms?: number) => {
-    // POLLING WISHES OF FRIENDS TO CATCH STATUS CHANGING //
-    const { refreshInvites } = getInvites();
-    useEffect(() => {
-        const intervalId = setInterval(() => {
-            refreshInvites();
-        }, ms || 3000);
-        return () => clearInterval(intervalId);
-    },[]);
 }
 
 
@@ -190,7 +178,7 @@ const getFriendWishes = () => {
             isError:            loadingFriendWishesWasCrashed,
             refetch:            refreshFriendWishes,
             isFetching:         fetchingFriendWishes,
-            fulfilledTimeStamp: friendWishesTimeStamp } = useGetFriendWishesQuery(undefined,{ pollingInterval });
+            fulfilledTimeStamp: friendWishesTimeStamp } = useGetFriendWishesQuery(undefined,{ pollingInterval: 3000 });
 
     const memoizedWishes = useDeepCompareMemo(() => (
         friendWishes || []
@@ -239,17 +227,6 @@ const getActualWishIds = () => {
 const getWishesByWishlistId = (id?: WishlistId) => {
     const wishlist = getWishlistById(id);
     return getWishesByIdList(wishlist?.wishes)
-}
-
-const useFriendWishesPolling = (ms?: number) => {
-    // POLLING WISHES OF FRIENDS TO CATCH STATUS CHANGING //
-    const { refreshFriendWishes } = getFriendWishes();
-    useEffect(() => {
-        const intervalId = setInterval(() => {
-            refreshFriendWishes();
-        }, ms || 3000);
-        return () => clearInterval(intervalId);
-    },[]);
 }
 
 
@@ -339,6 +316,7 @@ const getLocationConfig = () => {
     const wishlistId = checkId<WishlistId>(params.wishlistId);
     const invitationCode = checkId<InvitationCode>(params.invitationCode, 11);
     const encodedEmail = params.encodedEmail;
+    const incomePassword = params.incomePassword;
 
     const isNewWish = isWishesSection && isItemsMode && steps[3] === 'new';
     const isEditWish = isWishesSection && !!wishId && steps[5] === 'editing';
@@ -360,6 +338,7 @@ const getLocationConfig = () => {
         wishlistId,
         invitationCode,
         encodedEmail,
+        incomePassword,
         isWishesSection,
         isInvitesSection,
         isProfileSection,
@@ -599,13 +578,11 @@ export {
     getWishesByIdList,
     getActualWishes,
     getActualWishIds,
-    useFriendWishesPolling,
 
     getUserWishlists,
     getInvites,
     getWishlistById,
     getWishlistsByIdList,
-    useInvitesPolling,
 
     getLoadingStatus,
     getLocationConfig,

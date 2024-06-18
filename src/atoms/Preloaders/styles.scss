@@ -64,6 +64,8 @@
     > svg {
         fill: $lightGray2;
         height: 100%;
+        // SPECIFIED WIDTH MAY LEAD TO MISTAKES
+        width: 100%;
         overflow: visible;
 
         .box {
