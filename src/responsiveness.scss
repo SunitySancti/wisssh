@@ -1,5 +1,37 @@
 @import './style-config';
 
+
+
+.login-page {
+    &:not(.narrow) {
+        >.logo-icon {
+            margin: 1rem 0;
+        }
+        >form .inputs .visible {
+            &.text-input,
+            &.password-input,
+            &.checkbox {
+                height: 4rem;
+            }
+        }
+    }
+
+    &.narrow {
+        >.logo-icon {
+            margin: 0;
+        }
+        >form .inputs .visible{
+            &.text-input,
+            &.password-input {
+                height: 7rem;
+            }
+            &.checkbox {
+                height: 5rem;
+            }
+        }
+    }
+}
+
 .app-layout {
     &:not(.mobile) {
         ::-webkit-scrollbar {
@@ -80,10 +112,6 @@
             .bc-slider {
                 bottom: 12px;
             }
-        }
-
-        .login-page > .logo-icon {
-            margin: 1rem 0;
         }
 
         .wishcard {
@@ -335,10 +363,6 @@
                     border-bottom: solid 1px $lightGray2;
                 }
             }
-        }
-
-        .login-page > .logo-icon {
-            margin: 0;
         }
 
         .wishcard {
