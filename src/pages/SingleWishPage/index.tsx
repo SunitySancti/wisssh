@@ -125,14 +125,14 @@ const OuterLink = ({
     urlString
 } : OuterLinkProps
 ) => {
-    let url = null
+    let url;
     try {
         url = new URL(urlString);
     } catch(err) {}
     return ( urlString
-        ?   <a
+        ?   <a  className='inline-link'
                 href={ urlString }
-                className='inline-link'
+                target='_blank'
             >
                 { url ? url.host : urlString }
                 <Icon name='outerLink' size={ 22 }/>
