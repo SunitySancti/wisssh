@@ -326,7 +326,7 @@ const Crumbs = memo(({
 
     const NewWishCrumb = memo(() => (
         <Crumb
-            to='/my-wishes/items/new'
+            to={ location }
             children={ <span>Новое желание</span> }
             isMobile={ isMobile }
         />
@@ -391,7 +391,10 @@ const Crumbs = memo(({
                 }
 
             { isNewWish
-                ? <NewWishCrumb/>
+                ? <>
+                    { wishlistId && <Slash/> }
+                    <NewWishCrumb/>
+                  </>
             : isNewWishlist
                 ? <NewWishlistCrumb/>
             : !wishlistId && !wishId && isWishesSection && !isMobile &&

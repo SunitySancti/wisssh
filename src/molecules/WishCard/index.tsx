@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import './styles.scss'
 import { WishCover,
          WishMenu } from 'molecules/WishStuff'
+import { NewWishCardIcon } from 'atoms/Icon'
 
 import { getLocationConfig, getWishById } from 'store/getters'
 import { useAppSelector } from 'store'
@@ -14,11 +15,19 @@ import type { Wish,
               WishId } from 'typings'
 
 
-interface WishCardProps {
-    id: WishId;
+interface WishCardCommonProps {
     value?: WishId[];
-    onChange?: (newValue: WishId[]) => unknown
+    onChange?: (newValue: WishId[]) => unknown;
 }
+
+interface WishCardProps extends WishCardCommonProps {
+    id: WishId | 'new-wish';
+}
+
+interface WishCardModelProps extends WishCardCommonProps {
+    id: WishId;
+}
+
 interface WishCardViewProps {
     wish: Wish;
     isInput: boolean;
@@ -29,9 +38,31 @@ interface WishCardViewProps {
 
 export const WishCard = ({
     id,
+    ...props
+} : WishCardProps
+) => {
+    const { section, mode, wishlistId } = getLocationConfig();
+    const navigate = useNavigate();
+    const handleClick = () => {
+        navigate(['', section, mode, wishlistId, 'new-wish'].join('/'))
+    }
+
+    return id === 'new-wish'
+        ? <div 
+            className='wishcard fade-in new-wish-button'
+            onClick={ handleClick }
+          >
+            <NewWishCardIcon/>
+            Новое желание
+          </div>
+        : <WishCardModel {...{ id, ...props }}/>
+}
+
+export const WishCardModel = ({
+    id,
     value,
     onChange
-} : WishCardProps
+} : WishCardModelProps
 ) => {
     // RESPONSIVENESS //
     const { isMobile } = useAppSelector(state => state.responsiveness);
@@ -73,7 +104,7 @@ export const WishCard = ({
 }
 
 
-export const WishCardView = memo(({
+const WishCardView = memo(({
     wish,
     isInput,
     isSelected,
@@ -109,10 +140,14 @@ export const WishCardView = memo(({
             { !isMobile && !isInput && <WishMenu wish={ wish }/> }
             <div className='wishcard-content'>
                 { wish.title &&
-                    <span className='title'>{ wish.title }</span>
+                    <span className='title'>{
+                        wish.title
+                    }</span>
                 }
                 { !!wish.price && !isMobile &&
-                    <span className='price'>{ makeupLongNumber(wish.price) + currency }</span>
+                    <span className='price'>{
+                        makeupLongNumber(wish.price) + currency
+                    }</span>
                 }
             </div>
             { isSelected &&

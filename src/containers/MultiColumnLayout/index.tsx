@@ -14,6 +14,7 @@ import type { WishId } from 'typings'
 
 interface MultiColumnLayoutProps {
     ids: WishId[];
+    showNewWishCard?: boolean;
     value?: WishId[];
     onChange?(newValue: WishId[]): void;
 }
@@ -21,6 +22,7 @@ interface MultiColumnLayoutProps {
 
 export const MultiColumnLayout = memo(({
     ids,
+    showNewWishCard,
     ...rest
 } : MultiColumnLayoutProps
 ) => {
@@ -28,10 +30,10 @@ export const MultiColumnLayout = memo(({
     const layoutRef = useRef<HTMLDivElement>(null);
     const { location } = getLocationConfig();
 
-    const [ items, setItems ] = useState<WishId[]>([]);
+    const [ items, setItems ] = useState<(WishId | 'new-wish')[]>([]);
     const [ columnsQty, setColumnsQty ] = useState(0);
-    const [ itemsRest, setItemsRest ] = useState<WishId[]>([]);
-    const [ columnedData, setColumnedData ] = useState<WishId[][]>([]);
+    const [ itemsRest, setItemsRest ] = useState<(WishId | 'new-wish')[]>([]);
+    const [ columnedData, setColumnedData ] = useState<(WishId | 'new-wish')[][]>([]);
     const [ opacity, setOpacity ] = useState(0.5);
     
     // RESPONSIVENESS //
@@ -67,7 +69,7 @@ export const MultiColumnLayout = memo(({
     
     // METHODS //
     const resetState = () => {
-        setItems(ids);
+        setItems( showNewWishCard ? [...ids, 'new-wish'] : ids );
         setColumnsQty(0);
         setItemsRest([]);
         setColumnedData([]);
