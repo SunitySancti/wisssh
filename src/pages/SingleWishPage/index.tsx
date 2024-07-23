@@ -110,11 +110,6 @@ const Description = ({
             className='description-container'
             style={{ minWidth: `${ pointerOffset + 77 }px` }}
         >
-<<<<<<< Updated upstream
-            { description.split(/\r?\n/).map((line, index) => (
-                <span key={ index }>{ line }</span>
-            ))}
-=======
             { description
                 .split(/\r?\n/)
                 .map((line, index) =>
@@ -141,7 +136,6 @@ const Description = ({
                         }
                     </span>
             )}
->>>>>>> Stashed changes
         </div>
     </div>
 );
