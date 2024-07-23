@@ -280,6 +280,7 @@ export const NewWishPage = forwardRef(() => {
 
     const { location,
             wishId,
+            wishlistId,
             isNewWish,
             isEditWish } = getLocationConfig();
 
@@ -291,10 +292,6 @@ export const NewWishPage = forwardRef(() => {
             isSuccess: wishHasPosted }] = usePostWishMutation();
 
     const isMobile = useAppSelector(state => state.responsiveness.isMobile);
-
-    useEffect(() => {
-        console.log({ editingWish })
-    },[ editingWish?.id ])
 
     // FORM SETTINGS //
 
@@ -339,8 +336,12 @@ export const NewWishPage = forwardRef(() => {
     useEffect(() => {
         if(isNewWish) {
             setId()
+
+            if(wishlistId) {
+                setValue('inWishlists',[ wishlistId ]);
+            }
         }
-    },[ isNewWish ]);
+    },[ isNewWish, wishlistId ]);
 
     useEffect(() => {
         if(user) {

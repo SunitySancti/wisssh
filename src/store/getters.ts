@@ -318,7 +318,8 @@ const getLocationConfig = () => {
     const encodedEmail = params.encodedEmail;
     const incomePassword = params.incomePassword;
 
-    const isNewWish = isWishesSection && isItemsMode && steps[3] === 'new';
+    const isNewWish = (isWishesSection && isItemsMode && steps[3] === 'new')
+                   || (isWishesSection && isListsMode && steps[4] === 'new-wish');
     const isEditWish = isWishesSection && !!wishId && steps[5] === 'editing';
     const isNewWishlist = isWishesSection && isListsMode && steps[3] === 'new';
     const isEditWishlist = isWishesSection && isListsMode && !!wishlistId && steps[4] === 'editing';

@@ -11,6 +11,7 @@ import { Plug } from 'atoms/Plug'
 import { getLocationConfig,
          getWishlistById,
          getLoadingStatus } from 'store/getters'
+import { getDaysToEvent } from 'utils'
 
 import type { Wishlist } from 'typings'
 
@@ -18,15 +19,18 @@ import type { Wishlist } from 'typings'
 interface WishlistPageViewProps {
     isLoading: boolean;
     wishlist: Wishlist | undefined;
+    showNewWishCard?: boolean;
 }
 
 
 const WishlistPageView = memo(({
     isLoading,
+    showNewWishCard,
     wishlist
 } : WishlistPageViewProps
 ) => {
     const { section } = getLocationConfig();
+
     return (
         <div className='wishlist-page'>
             {  isLoading
@@ -35,7 +39,10 @@ const WishlistPageView = memo(({
                     ?   <>
                             <WishlistHeader {...{ wishlist }}/>
                             { wishlist.wishes.length
-                                ?   <MultiColumnLayout ids={ wishlist.wishes }/>
+                                ?   <MultiColumnLayout
+                                        ids={ wishlist.wishes }
+                                        showNewWishCard={ showNewWishCard }
+                                    />
                                 :   <Plug position='wishlistPageNoWishes'/>
                             }
                             
@@ -65,9 +72,12 @@ export const WishlistPage = () => {
     const wishlist = getWishlistById(wishlistId);
     const memoizedWishlist = useDeepCompareMemo(() => wishlist,[ wishlist ]);
 
+    const showNewWishCard = isWishesSection && wishlist && getDaysToEvent(wishlist) >= 0;
+
     return (
         <WishlistPageView {...{
             isLoading,
+            showNewWishCard,
             wishlist: memoizedWishlist
         }}/>
     )

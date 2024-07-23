@@ -65,6 +65,7 @@ const App = () => (
                     <Route index element={ <ListOfListsPage/> }/>
                     <Route path='new' element={ <NewListPage/> }/>
                     <Route path=':wishlistId' element={ <WishlistPage/> }/>
+                    <Route path=':wishlistId/new-wish' element={ <NewWishPage/> }/>
                     <Route path=':wishlistId/editing' element={ <NewListPage/> }/>
                     <Route path=':wishlistId/:wishId' element={ <SingleWishPage/> }/>
                     <Route path=':wishlistId/:wishId/editing' element={ <NewWishPage/> }/>
