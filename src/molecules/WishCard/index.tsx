@@ -44,6 +44,7 @@ export const WishCard = ({
     const { section, mode, wishlistId } = getLocationConfig();
     const navigate = useNavigate();
     const handleClick = () => {
+        console.log(['', section, mode, wishlistId, 'new-wish'].join('/'))
         navigate(['', section, mode, wishlistId, 'new-wish'].join('/'))
     }
 

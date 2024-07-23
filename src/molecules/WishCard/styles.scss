@@ -41,7 +41,6 @@
     }
 
     &.new-wish-button {
-        // aspect-ratio: 0.9;
         display: flex;
         flex-flow: column;
         align-items: center;
@@ -52,14 +51,15 @@
 
         svg {
             width: 66%;
-            fill: currentColor
         }
 
         &:not(:hover) {
-            color: $gray1;
+            color: $lightGray3;
+            fill: $lightGray2;
         }
         &:hover {
-            color: $darkGray1;
+            color: $gray1;
+            fill: $lightGray3;
             cursor: pointer;
         }
     }

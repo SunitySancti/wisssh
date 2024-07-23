@@ -410,7 +410,11 @@ export const NewWishPage = forwardRef(() => {
             if(!image && !isNewWish && isEditWish) {
                 dispatch(deleteImage(id))
             }
-            navigate(`/my-wishes/items/${ isCompleted ? 'completed' : 'actual'  }/${ id }`)
+            if(wishlistId) {
+                navigate(`/my-wishes/lists/${ wishlistId  }/${ id }`)
+            } else {
+                navigate(`/my-wishes/items/${ isCompleted ? 'completed' : 'actual'  }/${ id }`)
+            }
         }
     },[ wishHasPosted ])
 
@@ -428,7 +432,6 @@ export const NewWishPage = forwardRef(() => {
     // TRANSLATE SUBMIT FUNCTION TO NAVBAR //
     const { submitRef, setIsAbleToSumbit } = useOutletContext<OutletContextType>();
     const isAbleToSumbit = formState.isValid && (formState.isDirty || isNewImage);
-    // const isAbleToSumbit = (formState.isDirty && formState.isValid) || (!formState.isDirty && isNewImage);
 
     useImperativeHandle(submitRef, () => ({
         submitWish: handleFormSubmit
