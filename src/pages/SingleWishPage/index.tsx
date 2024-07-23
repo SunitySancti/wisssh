@@ -1,7 +1,8 @@
 import { useEffect,
          useState,
          memo,
-         useMemo } from 'react'
+         useMemo,
+         Fragment } from 'react'
 import { Link,
          Navigate } from 'react-router-dom'
 
@@ -45,6 +46,15 @@ interface PriceLineProps {
 
 interface OuterLinkProps {
     urlString: string
+}
+
+
+function makeURL(string: string) {
+    let url;
+    try {
+      url = new URL(string);
+    } catch (_) {}
+    return url;
 }
 
 
@@ -100,9 +110,38 @@ const Description = ({
             className='description-container'
             style={{ minWidth: `${ pointerOffset + 77 }px` }}
         >
+<<<<<<< Updated upstream
             { description.split(/\r?\n/).map((line, index) => (
                 <span key={ index }>{ line }</span>
             ))}
+=======
+            { description
+                .split(/\r?\n/)
+                .map((line, index) =>
+                    <span key={ index }>
+                        { line
+                            .split(' ')
+                            .map((token, idx) => {
+                                const url = makeURL(token);
+                                const wrappedToken = url
+                                    ? <a className='inline-link'
+                                         href={ url.href }
+                                         target='_blank'
+                                      >
+                                        { url.host }
+                                      </a>
+                                    : <>{ token }</>
+                                return (
+                                    <Fragment key={ idx }>
+                                        { idx && <> </> }
+                                        { wrappedToken }
+                                    </Fragment>
+                                )
+                            })
+                        }
+                    </span>
+            )}
+>>>>>>> Stashed changes
         </div>
     </div>
 );
