@@ -213,10 +213,14 @@ const SingleWishPageView = memo(({
                         secondColumn={
                             <>
                                 <div className='header'>
-                                    { !isMobile && <WishMenu wish={ wish }/> }
-                                    <span className='title'>{ wish.title }</span>
-                                    <div style={{ flex: 1 }}/>
-                                    <OuterLink urlString={ wish.external }/>
+                                    <div className='wrapper'>
+                                        { !isMobile && <WishMenu wish={ wish }/> }
+                                        <span className='title'>{ wish.title }</span>
+                                    </div>
+                                    <div className='wrapper'>
+                                        <div style={{ flex: 1 }}/>
+                                        <OuterLink urlString={ wish.external }/>
+                                    </div>
                                 </div>
 
                                 <div className='info'>

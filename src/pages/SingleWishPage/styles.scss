@@ -40,14 +40,28 @@
             flex-flow: row wrap;
             align-items: baseline;
             position: relative;
+
+            .wish-menu {
+                left: -1.5rem;
+            }
+
+            .wrapper {
+                position: relative;
+                display: flex;
+                flex-flow: row wrap;
+                align-items: baseline;
+                flex: 1;
+            }
     
             .title {
                 font: $wishPageHeader;
                 color: $darkGray2;
                 white-space: pre-line;
+                text-wrap: nowrap;
             }
     
             a {
+                text-wrap: nowrap;
                 display: flex;
                 flex-flow: row nowrap;
             }
@@ -68,12 +82,19 @@
                 position: relative;
                 display: flex;
                 flex-flow: row nowrap;
-                align-items: center;
                 gap: 2rem;
+
+                &:first-child {
+                    align-items: flex-start;
+                }
+                &:nth-child(2) {
+                    align-items: center;
+                }
         
                 .label {
                     font: $general;
                     color: $gray2;
+                    text-wrap: nowrap;
                 }
         
                 .links {

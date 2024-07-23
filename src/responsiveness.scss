@@ -205,8 +205,13 @@
                 min-height: 30rem;
             }
             .second.column .title {
-                text-indent: 6rem;
+                text-indent: 3rem;
                 margin: 0 4rem 1rem 0;
+            }
+            .double-column-layout {
+                > div {
+                    gap: 3rem;
+                }
             }
         }
         
