@@ -49,13 +49,33 @@ interface OuterLinkProps {
 }
 
 
-function makeURL(string: string) {
+const makeURL = (string: string) => {
     let url;
     try {
       url = new URL(string);
     } catch (_) {}
     return url;
 }
+
+const parseLinks = (string: string) => string
+    .split(' ')
+    .map((token, idx) => {
+        const url = makeURL(token);
+        const wrappedToken = url
+            ? <a className='inline-link'
+                href={ url.href }
+                target='_blank'
+            >
+                { url.host }
+            </a>
+            : <>{ token }</>
+        return (
+            <Fragment key={ idx }>
+                { idx ? <> </> : null }
+                { wrappedToken }
+            </Fragment>
+        )
+    });
 
 
 const WishlistEntries = ({
@@ -114,26 +134,7 @@ const Description = ({
                 .split(/\r?\n/)
                 .map((line, index) =>
                     <span key={ index }>
-                        { line
-                            .split(' ')
-                            .map((token, idx) => {
-                                const url = makeURL(token);
-                                const wrappedToken = url
-                                    ? <a className='inline-link'
-                                         href={ url.href }
-                                         target='_blank'
-                                      >
-                                        { url.host }
-                                      </a>
-                                    : <>{ token }</>
-                                return (
-                                    <Fragment key={ idx }>
-                                        { idx && <> </> }
-                                        { wrappedToken }
-                                    </Fragment>
-                                )
-                            })
-                        }
+                        { parseLinks(line) }
                     </span>
             )}
         </div>
