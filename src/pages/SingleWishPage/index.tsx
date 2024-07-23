@@ -80,6 +80,14 @@ const WishlistEntries = ({
     </div>
 );
 
+function makeURL(string: string) {
+    let url;
+    try {
+      url = new URL(string);
+    } catch (_) {}
+    return url;
+}
+
 const Description = ({
     description,
     pointerOffset
@@ -100,9 +108,30 @@ const Description = ({
             className='description-container'
             style={{ minWidth: `${ pointerOffset + 77 }px` }}
         >
-            { description.split(/\r?\n/).map((line, index) => (
-                <span key={ index }>{ line }</span>
-            ))}
+            { description
+                .split(/\r?\n/)
+                .map((line, index) =>
+                    <span key={ index }>
+                        { line
+                            .split(' ')
+                            .map((token, idx) => {
+                                const url = makeURL(token);
+                                const wrappedToken = url
+                                    ? <a className='inline-link'
+                                         href={ url.href }
+                                         target='_blank'
+                                      >
+                                        { url.host }
+                                      </a>
+                                    : <>{ token }</>
+                                return idx
+                                    ? <><> </>{ wrappedToken }</>
+                                    : wrappedToken
+                            })
+                        }
+                    </span>
+                    // <span key={ index }>{ line }</span>
+            )}
         </div>
     </div>
 );
@@ -125,13 +154,10 @@ const OuterLink = ({
     urlString
 } : OuterLinkProps
 ) => {
-    let url;
-    try {
-        url = new URL(urlString);
-    } catch(err) {}
-    return ( urlString
+    const url = makeURL(urlString);
+    return ( url
         ?   <a  className='inline-link'
-                href={ urlString }
+                href={ url.href }
                 target='_blank'
             >
                 { url ? url.host : urlString }

@@ -91,6 +91,10 @@
                 position: relative;
                 display: inline-block;
                 filter: drop-shadow(0px 1px 1px rgba(0, 0, 0, 0.12)) drop-shadow(0px 0px 5px rgba(0, 0, 0, 0.05));
+                
+                a {
+                    word-break: break-all;
+                };
         
                 .description-pointer {
                     height: 2rem;
